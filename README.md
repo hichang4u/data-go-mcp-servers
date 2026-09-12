@@ -30,7 +30,7 @@
 
 ## 계획
 
-상세 요구사항·설계·결함 목록은 [docs/PRD.md](docs/PRD.md) 참조.
+상세 요구사항·설계·결함 목록은 [docs/PRD.md](docs/PRD.md), 스프린트별 태스크는 [docs/PLAN.md](docs/PLAN.md) 참조.
 
 | 단계 | 내용 |
 |---|---|
