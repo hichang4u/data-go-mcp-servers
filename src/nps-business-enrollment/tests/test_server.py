@@ -10,8 +10,6 @@ from mcp.types import TextContent
 
 from data_go_mcp.nps_business_enrollment.server import mcp
 
-from .test_api import BASE, DETAIL_RESPONSE, PERIOD_RESPONSE, SEARCH_RESPONSE
-
 
 @pytest.fixture(autouse=True)
 def _key(monkeypatch):
@@ -38,9 +36,9 @@ async def test_all_tools_are_read_only_with_described_params():
 
 
 @respx.mock
-async def test_search_business_returns_items_and_message():
-    respx.get(f"{BASE}/getBassInfoSearchV2").mock(
-        return_value=httpx.Response(200, json=SEARCH_RESPONSE)
+async def test_search_business_returns_items_and_message(base_url, search_response):
+    respx.get(f"{base_url}/getBassInfoSearchV2").mock(
+        return_value=httpx.Response(200, json=search_response)
     )
     async with Client(mcp) as client:
         result = await client.call_tool("search_business", {"wkpl_nm": "삼성전자"})
@@ -53,9 +51,9 @@ async def test_search_business_returns_items_and_message():
 
 
 @respx.mock
-async def test_get_business_detail_adds_estimated_salary():
-    respx.get(f"{BASE}/getDetailInfoSearchV2").mock(
-        return_value=httpx.Response(200, json=DETAIL_RESPONSE)
+async def test_get_business_detail_adds_estimated_salary(base_url, detail_response):
+    respx.get(f"{base_url}/getDetailInfoSearchV2").mock(
+        return_value=httpx.Response(200, json=detail_response)
     )
     async with Client(mcp) as client:
         result = await client.call_tool("get_business_detail", {"seq": 7101020})
@@ -67,12 +65,14 @@ async def test_get_business_detail_adds_estimated_salary():
 
 
 @respx.mock
-async def test_get_period_status_includes_salary_from_detail():
-    respx.get(f"{BASE}/getPdAcctoSttusInfoSearchV2").mock(
-        return_value=httpx.Response(200, json=PERIOD_RESPONSE)
+async def test_get_period_status_includes_salary_from_detail(
+    base_url, detail_response, period_response
+):
+    respx.get(f"{base_url}/getPdAcctoSttusInfoSearchV2").mock(
+        return_value=httpx.Response(200, json=period_response)
     )
-    respx.get(f"{BASE}/getDetailInfoSearchV2").mock(
-        return_value=httpx.Response(200, json=DETAIL_RESPONSE)
+    respx.get(f"{base_url}/getDetailInfoSearchV2").mock(
+        return_value=httpx.Response(200, json=detail_response)
     )
     async with Client(mcp) as client:
         result = await client.call_tool(
@@ -86,8 +86,8 @@ async def test_get_period_status_includes_salary_from_detail():
 
 
 @respx.mock
-async def test_api_error_is_reported_as_tool_error():
-    respx.get(f"{BASE}/getBassInfoSearchV2").mock(
+async def test_api_error_is_reported_as_tool_error(base_url):
+    respx.get(f"{base_url}/getBassInfoSearchV2").mock(
         return_value=httpx.Response(
             200,
             json={"response": {"header": {"resultCode": "30", "resultMsg": "KEY"}, "body": {}}},
@@ -101,8 +101,8 @@ async def test_api_error_is_reported_as_tool_error():
 
 
 @respx.mock
-async def test_network_error_is_reported_as_tool_error():
-    respx.get(f"{BASE}/getBassInfoSearchV2").mock(side_effect=httpx.ConnectError("refused"))
+async def test_network_error_is_reported_as_tool_error(base_url):
+    respx.get(f"{base_url}/getBassInfoSearchV2").mock(side_effect=httpx.ConnectError("refused"))
     async with Client(mcp) as client:
         result = await client.call_tool("search_business", {"wkpl_nm": "x"})
 

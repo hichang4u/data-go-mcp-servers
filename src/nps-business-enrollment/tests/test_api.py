@@ -8,73 +8,6 @@ from data_go_mcp.core.errors import DataGoAPIError
 from data_go_mcp.nps_business_enrollment.api_client import NPSAPIClient
 
 
-BASE = "https://apis.data.go.kr/B552015/NpsBplcInfoInqireServiceV2"
-
-SEARCH_RESPONSE = {
-    "response": {
-        "header": {"resultCode": "00", "resultMsg": "NORMAL_CODE"},
-        "body": {
-            "items": {
-                "item": [
-                    {
-                        "bzowrRgstNo": "142816****",
-                        "dataCrtYm": "202607",
-                        "ldongAddrMgplDgCd": "41",
-                        "ldongAddrMgplSgguCd": "220",
-                        "ldongAddrMgplSgguEmdCd": "128",
-                        "seq": 7101020,
-                        "wkplJnngStcd": "1",
-                        "wkplNm": "주식회사 유일이엔지",
-                        "wkplRoadNmDtlAddr": "경기도 평택시 삼성로",
-                        "wkplStylDvcd": "1",
-                    }
-                ]
-            },
-            "pageNo": 1,
-            "numOfRows": 1,
-            "totalCount": 2107,
-        },
-    }
-}
-
-DETAIL_RESPONSE = {
-    "response": {
-        "header": {"resultCode": "00", "resultMsg": "NORMAL_CODE"},
-        "body": {
-            "items": {
-                "item": [
-                    {
-                        "adptDt": "20260601",
-                        "bzowrRgstNo": "142816****",
-                        "crrmmNtcAmt": "7979660",
-                        "jnngpCnt": 36,
-                        "scsnDt": "00010101",
-                        "vldtVlKrnNm": "배관 및 냉ㆍ난방 공사업",
-                        "wkplIntpCd": "452104",
-                        "wkplNm": "주식회사 유일이엔지",
-                    }
-                ]
-            },
-            "pageNo": 1,
-            "numOfRows": 1,
-            "totalCount": 1,
-        },
-    }
-}
-
-PERIOD_RESPONSE = {
-    "response": {
-        "header": {"resultCode": "00", "resultMsg": "NORMAL_CODE"},
-        "body": {
-            "items": {"item": [{"lssJnngpCnt": 7, "nwAcqzrCnt": 36}]},
-            "pageNo": 1,
-            "numOfRows": 1,
-            "totalCount": 1,
-        },
-    }
-}
-
-
 @pytest.fixture(autouse=True)
 def _key(monkeypatch):
     monkeypatch.setenv("API_KEY", "test-key")
@@ -88,9 +21,9 @@ def test_client_requires_api_key(monkeypatch):
 
 
 @respx.mock
-async def test_search_business_sends_camel_case_params_and_parses_items():
-    route = respx.get(f"{BASE}/getBassInfoSearchV2").mock(
-        return_value=httpx.Response(200, json=SEARCH_RESPONSE)
+async def test_search_business_sends_camel_case_params_and_parses_items(base_url, search_response):
+    route = respx.get(f"{base_url}/getBassInfoSearchV2").mock(
+        return_value=httpx.Response(200, json=search_response)
     )
 
     async with NPSAPIClient() as client:
@@ -122,9 +55,9 @@ async def test_search_business_sends_camel_case_params_and_parses_items():
 
 
 @respx.mock
-async def test_get_business_detail_parses_subscriber_fields():
-    respx.get(f"{BASE}/getDetailInfoSearchV2").mock(
-        return_value=httpx.Response(200, json=DETAIL_RESPONSE)
+async def test_get_business_detail_parses_subscriber_fields(base_url, detail_response):
+    respx.get(f"{base_url}/getDetailInfoSearchV2").mock(
+        return_value=httpx.Response(200, json=detail_response)
     )
 
     async with NPSAPIClient() as client:
@@ -137,9 +70,9 @@ async def test_get_business_detail_parses_subscriber_fields():
 
 
 @respx.mock
-async def test_get_period_status_passes_data_crt_ym():
-    route = respx.get(f"{BASE}/getPdAcctoSttusInfoSearchV2").mock(
-        return_value=httpx.Response(200, json=PERIOD_RESPONSE)
+async def test_get_period_status_passes_data_crt_ym(base_url, period_response):
+    route = respx.get(f"{base_url}/getPdAcctoSttusInfoSearchV2").mock(
+        return_value=httpx.Response(200, json=period_response)
     )
 
     async with NPSAPIClient() as client:
@@ -150,8 +83,8 @@ async def test_get_period_status_passes_data_crt_ym():
 
 
 @respx.mock
-async def test_empty_items_gives_empty_list():
-    respx.get(f"{BASE}/getBassInfoSearchV2").mock(
+async def test_empty_items_gives_empty_list(base_url):
+    respx.get(f"{base_url}/getBassInfoSearchV2").mock(
         return_value=httpx.Response(
             200,
             json={
@@ -170,8 +103,8 @@ async def test_empty_items_gives_empty_list():
 
 
 @respx.mock
-async def test_error_result_code_raises_data_go_error():
-    respx.get(f"{BASE}/getBassInfoSearchV2").mock(
+async def test_error_result_code_raises_data_go_error(base_url):
+    respx.get(f"{base_url}/getBassInfoSearchV2").mock(
         return_value=httpx.Response(
             200,
             json={
