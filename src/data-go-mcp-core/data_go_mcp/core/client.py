@@ -125,13 +125,23 @@ class BaseDataGoClient:
         response.raise_for_status()
         return self._check_response(self._parse(response))
 
-    @staticmethod
-    def _gateway_error(response: httpx.Response) -> DataGoAPIError | None:
-        """게이트웨이 오류(활용신청 전 등)를 DataGoAPIError 로. data.go.kr 과 odcloud 형태 모두 처리."""
+    def _gateway_error(self, response: httpx.Response) -> DataGoAPIError | None:
+        """게이트웨이 오류(활용신청 전 등)를 DataGoAPIError 로.
+
+        data.go.kr(JSON/XML ``OpenAPI_ServiceResponse``) 과 odcloud(``{"code","msg"}``) 형태 모두 처리.
+        XML 서비스는 게이트웨이 오류도 XML 로, 때로는 HTTP 200 으로 온다.
+        """
+        data: Any = None
         try:
             data = response.json()
         except ValueError:
-            return None
+            if self.response_format == "xml" and "OpenAPI_ServiceResponse" in response.text[:200]:
+                from .xml import parse_xml_response
+
+                try:
+                    data = parse_xml_response(response.text)
+                except ValueError:
+                    return None
         if not isinstance(data, Mapping):
             return None
         header = (data.get("OpenAPI_ServiceResponse") or {}).get("cmmMsgHeader")

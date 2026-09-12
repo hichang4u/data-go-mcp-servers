@@ -218,6 +218,8 @@
 - 사업장 상세는 `v_saeopjaDrno`(10자리 전체) 외 필터가 없다(`v_saeopjangNm` 무시). `opaBoheomFg` 생략 시 산재+고용 모두.
 - 업종 요소가 보험 종류에 따라 `sjEopjong*`/`gyEopjong*` 로 갈리고 값에 뒤 공백이 붙는다 → 모델에서 통합·strip.
 - 빈 결과는 `<items/>` → xmltodict `None` → core `normalize_items` 가 처리. nps 패키지에 `data-go-mcp-core[xml]` 의존 추가.
+- 코드리뷰: core `_gateway_error` 가 JSON 만 봐서 XML 서비스의 게이트웨이 오류(403 + XML `OpenAPI_ServiceResponse`)가 `HTTP 403: <?xml…` 로,
+  200 으로 오면 빈 결과로 새어 나갔다 → core 0.1.1 에서 XML 도 파싱. msds 도 같은 혜택.
 
 ### 착수 순서 제안
 

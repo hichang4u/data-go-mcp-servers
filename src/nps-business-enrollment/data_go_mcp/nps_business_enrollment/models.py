@@ -166,9 +166,8 @@ class InsuredWorkplace(BaseModel):
             v = v.strip() if isinstance(v, str) else v
             return v or None
 
-        kind = INSURANCE_KINDS.get(
-            str(raw.get("opaBoheomFg", "")), str(raw.get("opaBoheomFg", ""))
-        )
+        flag = s("opaBoheomFg")
+        kind = INSURANCE_KINDS.get(flag or "", flag or "미상")
         cnt = s("sangsiInwonCnt")
         return cls(
             insurance=kind,

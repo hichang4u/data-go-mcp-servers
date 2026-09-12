@@ -624,7 +624,7 @@ wheels = [
 
 [[package]]
 name = "data-go-mcp-core"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "src/data-go-mcp-core" }
 dependencies = [
     { name = "httpx" },

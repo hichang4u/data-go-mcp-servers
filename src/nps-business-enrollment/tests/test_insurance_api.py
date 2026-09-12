@@ -78,3 +78,12 @@ async def test_get_workplaces_rejects_unknown_insurance():
     async with InsuranceStatusAPIClient() as client:
         with pytest.raises(ValueError, match="산재"):
             await client.get_workplaces("1208800767", insurance="건강")
+
+
+def test_insured_workplace_empty_kind_element_does_not_become_the_string_none():
+    from data_go_mcp.nps_business_enrollment.models import InsuredWorkplace
+
+    item = InsuredWorkplace.from_api(
+        {"opaBoheomFg": None, "saeopjangNm": "x", "saeopjaDrno": "1208800767"}
+    )
+    assert item.insurance == "미상"
