@@ -58,7 +58,20 @@
 - pytest `--import-mode=importlib` — 서버마다 `test_api.py` 같은 basename을 쓰고 있어 루트에서
   한 번에 돌리면 충돌했다.
 
-API 생존 확인: `API_KEY=... uv run python scripts/check_apis.py`
+### API 생존 확인 (`scripts/check_apis.py`, 2026-09-12, data.go.kr 일반 인증키 1개)
+
+| 서버 | HTTP | 결과 | 판정 |
+|---|---|---|---|
+| nts-business-verification | 200 | `status_code: OK`, 실데이터 반환 | 살아있음 |
+| pps-narajangteo | 200 | `resultCode 00` | 살아있음 |
+| msds-chemical-info | 200 | `resultCode 00`, XML 실데이터 | 살아있음 — **data.go.kr 키로 KOSHA 직접 호출 가능** |
+| nps-business-enrollment | 403 | `returnReasonCode 30` SERVICE_KEY_IS_NOT_REGISTERED_ERROR | 키는 유효, 해당 API **활용신청 필요** |
+| fsc-financial-info | 403 | `returnReasonCode 30` | 활용신청 필요 — [금융위원회_기업 재무정보](https://www.data.go.kr/data/15043459/openapi.do) |
+| presidential-speeches | 401 | `{"code":-401,"msg":"유효하지 않은 인증키 입니다."}` | 활용신청 필요 (odcloud 도 미신청 시 401) |
+
+코드 30은 서비스 폐기(12)와 다르다 — 키가 그 API에 등록되지 않았다는 뜻이므로 활용신청 후 재확인.
+원저장소 README가 가리키던 NPS 데이터셋 페이지(`/data/15084277`)는 현재 404 — 포털에서
+"국민연금공단_국민연금 가입 사업장 내역"으로 재검색 필요.
 
 ## 개발
 

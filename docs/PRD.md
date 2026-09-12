@@ -202,12 +202,12 @@ async def search_business(...) -> dict[str, Any]:
 |---|---|
 | 1년 방치 동안 API 엔드포인트·스키마 변경 | Phase 0b를 코드 수정 전에 완료. 죽은 API는 FR-7 |
 | mcp 2.x 마이너 릴리스에서 API 변동 | `<3` 상한 + CI 매트릭스로 조기 감지 |
-| MSDS 키 발급처가 data.go.kr가 아닐 가능성 | §9 미결로 두고 확인 후 README 표기 |
+| ~~MSDS 키 발급처가 data.go.kr가 아닐 가능성~~ | 해소 — data.go.kr 키로 호출 확인 |
 | 원저장소 PyPI 패키지와 이름 충돌 | git 직접 설치를 1차 배포 경로로. PyPI는 별도 네임스페이스로 후속 결정 |
 
 ## 9. 미결 사항
 
-1. MSDS(KOSHA) API 키가 data.go.kr 키와 동일한지 — `check_apis.py` 결과로 확인
+1. ~~MSDS(KOSHA) API 키가 data.go.kr 키와 동일한지~~ — 동일 키로 `resultCode 00` 확인 (2026-09-12, 해결)
 2. ~~공통 클라이언트 패키지 추출 여부~~ — 추출하기로 결정 (§5.2). 배포 방식은 3번과 함께 결정
 3. PyPI 재배포 네임스페이스 (`hichang4u-data-go-mcp.*` 등) 및 core 패키지 의존 해석 방식(git source vs PyPI) — Phase 4에서 결정
 4. ~~`requires-python` 하한~~ — mcp 2.2.0의 `Requires-Python: >=3.10` 확인. 3.10 유지 (해결)
