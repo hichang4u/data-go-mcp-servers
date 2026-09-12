@@ -823,6 +823,7 @@ name = "data-go-mcp-presidential-speeches"
 version = "0.1.0"
 source = { editable = "src/presidential-speeches" }
 dependencies = [
+    { name = "data-go-mcp-core" },
     { name = "httpx" },
     { name = "mcp", extra = ["cli"] },
     { name = "pydantic" },
@@ -839,6 +840,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "data-go-mcp-core", editable = "src/data-go-mcp-core" },
     { name = "httpx", specifier = ">=0.28" },
     { name = "mcp", extras = ["cli"], specifier = ">=2.2,<3" },
     { name = "pydantic", specifier = ">=2.11" },

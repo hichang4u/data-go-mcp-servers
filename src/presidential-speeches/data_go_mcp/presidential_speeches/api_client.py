@@ -1,138 +1,71 @@
-"""API client for Presidential Speech Records (대통령기록관 연설문)."""
+"""API client for 대통령기록관 대통령연설기록(연설문) — odcloud 파일데이터 API."""
 
-import os
-from typing import Optional, Dict, Any, List
-from urllib.parse import urljoin
-import httpx
+from typing import Any, Optional
+
+from data_go_mcp.core import BaseDataGoClient, DataGoAPIError
+
 from .models import SpeechesResponse2022, SpeechesResponse2023
 
 
-class PresidentialSpeechesAPIClient:
-    """Presidential Speech Records API 클라이언트."""
-    
-    def __init__(self, api_key: Optional[str] = None):
-        """
-        API 클라이언트 초기화.
-        
-        Args:
-            api_key: API 인증키. None이면 환경변수에서 로드
-        """
-        self.api_key = api_key or os.getenv("API_KEY")
-        if not self.api_key:
-            raise ValueError(
-                f"API key is required. Set API_KEY environment variable or pass api_key parameter."
+UDDI_2023 = "uddi:f30c6ace-297a-4a9e-9229-844153ed21ba"  # 2023-09-12 갱신본 (연설연도)
+UDDI_2022 = "uddi:1c8b5454-bd4e-45db-98f7-fe94d71f271b"  # 이전 본 (연설일자 포함)
+
+
+class PresidentialSpeechesAPIClient(BaseDataGoClient):
+    """대통령 연설문 API 클라이언트.
+
+    odcloud 는 ``{"page","perPage","totalCount","currentCount","matchCount","data"}`` 형태이며
+    ``cond[컬럼::EQ|LIKE]=값`` 쿼리로 서버측 필터를 지원한다.
+    """
+
+    base_url = "https://api.odcloud.kr/api/15084167/v1"
+    key_env_prefix = "PRESIDENTIAL_SPEECHES"
+    default_params = {"returnType": "json"}
+
+    def _check_response(self, data: dict[str, Any]) -> dict[str, Any]:
+        if "data" not in data:
+            raise DataGoAPIError(
+                str(data.get("code", "")), str(data.get("msg", "unexpected response"))
             )
-        
-        self.base_url = "https://api.odcloud.kr/api/15084167/v1"
-        self.client = httpx.AsyncClient(timeout=30.0)
-    
-    async def __aenter__(self):
-        """비동기 컨텍스트 매니저 진입."""
-        return self
-    
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """비동기 컨텍스트 매니저 종료."""
-        await self.client.aclose()
-    
-    async def _request(
-        self,
-        endpoint: str,
-        params: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
-        """
-        API 요청을 보내고 응답을 반환.
-        
-        Args:
-            endpoint: API 엔드포인트
-            params: 요청 파라미터
-            
-        Returns:
-            API 응답
-            
-        Raises:
-            httpx.HTTPStatusError: HTTP 오류 발생 시
-            ValueError: API 응답 오류 시
-        """
-        url = f"{self.base_url}/{endpoint}"
-        
-        # 기본 파라미터 설정
-        request_params = {
-            "serviceKey": self.api_key,
-            "returnType": "json",
-            **(params or {})
-        }
-        
-        try:
-            response = await self.client.get(url, params=request_params)
-            response.raise_for_status()
-            
-            data = response.json()
-            
-            # API 오류 응답 확인
-            if response.status_code == 401:
-                raise ValueError("인증 정보가 정확하지 않습니다. API 키를 확인해주세요.")
-            elif response.status_code == 500:
-                raise ValueError("API 서버에 문제가 발생했습니다.")
-            
-            return data
-            
-        except httpx.HTTPStatusError as e:
-            if e.response.status_code == 401:
-                raise ValueError("인증 정보가 정확하지 않습니다. API 키를 확인해주세요.")
-            elif e.response.status_code == 500:
-                raise ValueError("API 서버에 문제가 발생했습니다.")
-            raise httpx.HTTPStatusError(
-                f"HTTP error occurred: {e.response.status_code}",
-                request=e.request,
-                response=e.response
-            )
-    
-    async def get_speeches_2022(
-        self,
-        page: int = 1,
-        per_page: int = 10
-    ) -> SpeechesResponse2022:
-        """
-        2022년 버전 대통령 연설문 목록을 조회합니다.
-        
-        Args:
-            page: 페이지 번호 (기본값: 1)
-            per_page: 페이지당 결과 수 (기본값: 10)
-        
-        Returns:
-            2022년 버전 연설문 목록
-        """
-        params = {
-            "page": page,
-            "perPage": per_page
-        }
-        
-        response = await self._request("uddi:1c8b5454-bd4e-45db-98f7-fe94d71f271b", params)
-        return SpeechesResponse2022(**response)
-    
+        return data
+
     async def get_speeches_2023(
-        self,
-        page: int = 1,
-        per_page: int = 10
+        self, page: int = 1, per_page: int = 10, **cond: Any
     ) -> SpeechesResponse2023:
-        """
-        2023년 버전 대통령 연설문 목록을 조회합니다.
-        
-        Args:
-            page: 페이지 번호 (기본값: 1)
-            per_page: 페이지당 결과 수 (기본값: 10)
-        
-        Returns:
-            2023년 버전 연설문 목록
-        """
-        params = {
-            "page": page,
-            "perPage": per_page
-        }
-        
-        response = await self._request("uddi:f30c6ace-297a-4a9e-9229-844153ed21ba", params)
-        return SpeechesResponse2023(**response)
-    
+        """2023 버전 목록 (연설연도). ``cond`` 는 이미 ``cond[...]`` 형태의 키."""
+        body = await self.get(UDDI_2023, {"page": page, "perPage": per_page, **cond})
+        return SpeechesResponse2023(**body)
+
+    async def get_speeches_2022(
+        self, page: int = 1, per_page: int = 10, **cond: Any
+    ) -> SpeechesResponse2022:
+        """2022 버전 목록 (연설일자)."""
+        body = await self.get(UDDI_2022, {"page": page, "perPage": per_page, **cond})
+        return SpeechesResponse2022(**body)
+
+    @staticmethod
+    def build_cond(
+        president: Optional[str] = None,
+        title: Optional[str] = None,
+        year: Optional[int] = None,
+        location: Optional[str] = None,
+        use_2023_version: bool = True,
+    ) -> dict[str, Any]:
+        """검색 조건을 odcloud ``cond[]`` 파라미터로."""
+        cond: dict[str, Any] = {}
+        if president:
+            cond["cond[대통령::EQ]"] = president
+        if title:
+            cond["cond[글제목::LIKE]"] = title
+        if year:
+            if use_2023_version:
+                cond["cond[연설연도::EQ]"] = year
+            else:
+                cond["cond[연설일자::LIKE]"] = str(year)
+        if location:
+            cond["cond[연설장소::LIKE]"] = location
+        return cond
+
     async def search_speeches(
         self,
         president: Optional[str] = None,
@@ -141,52 +74,10 @@ class PresidentialSpeechesAPIClient:
         location: Optional[str] = None,
         page: int = 1,
         per_page: int = 10,
-        use_2023_version: bool = True
-    ) -> Dict[str, Any]:
-        """
-        연설문을 검색합니다.
-        
-        Args:
-            president: 대통령 이름으로 검색
-            title: 연설 제목으로 검색
-            year: 연설 연도로 검색
-            location: 연설 장소로 검색
-            page: 페이지 번호
-            per_page: 페이지당 결과 수
-            use_2023_version: 2023년 버전 사용 여부 (기본값: True)
-        
-        Returns:
-            검색된 연설문 목록
-        """
-        # API 버전 선택
+        use_2023_version: bool = True,
+    ) -> SpeechesResponse2023 | SpeechesResponse2022:
+        """서버측 필터로 연설문 검색. ``match_count`` 가 조건에 맞는 전체 건수."""
+        cond = self.build_cond(president, title, year, location, use_2023_version)
         if use_2023_version:
-            response = await self.get_speeches_2023(page, per_page)
-            speeches = response.data
-        else:
-            response = await self.get_speeches_2022(page, per_page)
-            speeches = response.data
-        
-        # 필터링
-        filtered = speeches
-        
-        if president:
-            filtered = [s for s in filtered if president.lower() in s.president.lower()]
-        
-        if title:
-            filtered = [s for s in filtered if title.lower() in s.title.lower()]
-        
-        if year:
-            if use_2023_version:
-                filtered = [s for s in filtered if hasattr(s, 'speech_year') and s.speech_year == year]
-            else:
-                filtered = [s for s in filtered if hasattr(s, 'speech_date') and str(year) in s.speech_date]
-        
-        if location:
-            filtered = [s for s in filtered if s.location and location.lower() in s.location.lower()]
-        
-        return {
-            "total_count": len(filtered),
-            "page": page,
-            "per_page": per_page,
-            "data": filtered
-        }
+            return await self.get_speeches_2023(page, per_page, **cond)
+        return await self.get_speeches_2022(page, per_page, **cond)

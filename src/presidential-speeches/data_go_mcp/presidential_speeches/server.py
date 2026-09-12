@@ -1,236 +1,141 @@
-"""MCP server for Presidential Speech Records API."""
+"""MCP server for 대통령기록관 대통령연설기록(연설문)."""
 
-import os
-import asyncio
-from typing import Optional, Dict, Any
-from mcp.server.mcpserver import MCPServer
+import math
+from typing import Annotated, Any, Optional
+
 from dotenv import load_dotenv
-from .api_client import PresidentialSpeechesAPIClient
+from mcp.server.mcpserver import MCPServer
+from pydantic import Field
 
-# 환경변수 로드
+from data_go_mcp.core import READ_ONLY, configure_logging, load_api_key, tool_errors
+
+from .api_client import PresidentialSpeechesAPIClient
+from .models import Speech2022, Speech2023
+
+
 load_dotenv()
 
-# MCP 서버 인스턴스 생성
 mcp = MCPServer("Presidential Speech Records")
 
+Page = Annotated[int, Field(description="페이지 번호 (기본값: 1)")]
+PerPage = Annotated[int, Field(description="페이지당 결과 수 (기본값: 10)")]
+Use2023 = Annotated[
+    bool,
+    Field(
+        description="2023 갱신본 사용 (연설연도 제공). False 면 2022 본 (연설일자 YYYY-MM-DD 제공)"
+    ),
+]
+President = Annotated[Optional[str], Field(description="대통령 이름 (정확히 일치, 예: 노무현)")]
 
-@mcp.tool()
+
+def _speech_dict(speech: Speech2023 | Speech2022) -> dict[str, Any]:
+    out: dict[str, Any] = {
+        "id": speech.id,
+        "president": speech.president,
+        "title": speech.title,
+        "source_url": speech.source_url,
+        "location": speech.location,
+    }
+    if isinstance(speech, Speech2023):
+        out["year"] = speech.speech_year
+    else:
+        out["date"] = speech.speech_date
+    return out
+
+
+@mcp.tool(annotations=READ_ONLY)
 async def list_speeches(
-    page: int = 1,
-    per_page: int = 10,
-    use_2023_version: bool = True
-) -> Dict[str, Any]:
+    page: Page = 1, per_page: PerPage = 10, use_2023_version: Use2023 = True
+) -> dict[str, Any]:
+    """대통령 연설문 목록을 조회합니다. List presidential speeches from the archives.
+
+    목록은 오래된 순(1948년부터)이다. 최신 연설은 get_recent_speeches 를 쓴다.
+    Returns total_count, page, per_page, data[] (id, president, title, source_url, location,
+    year 또는 date).
     """
-    대통령 연설문 목록을 조회합니다.
-    List presidential speeches from the archives.
-    
-    Args:
-        page: 페이지 번호 (Page number, default: 1)
-        per_page: 페이지당 결과 수 (Results per page, default: 10)
-        use_2023_version: 2023년 버전 사용 여부 (Use 2023 version, default: True)
-    
-    Returns:
-        Dictionary containing:
-        - total_count: 전체 연설문 수
-        - page: 현재 페이지
-        - per_page: 페이지당 결과 수
-        - data: 연설문 목록
-    
-    Examples:
-        >>> await list_speeches(page=1, per_page=20)
-        >>> await list_speeches(use_2023_version=False)  # 2022 버전 사용
-    """
-    async with PresidentialSpeechesAPIClient() as client:
-        try:
+    async with tool_errors():
+        async with PresidentialSpeechesAPIClient() as client:
             if use_2023_version:
                 response = await client.get_speeches_2023(page, per_page)
             else:
                 response = await client.get_speeches_2022(page, per_page)
-            
-            # 데이터를 딕셔너리로 변환
-            speeches_data = []
-            for speech in response.data:
-                speech_dict = {
-                    "id": speech.id,
-                    "president": speech.president,
-                    "title": speech.title,
-                    "source_url": speech.source_url,
-                    "location": speech.location
-                }
-                
-                # 버전별 필드 추가
-                if hasattr(speech, 'speech_year'):
-                    speech_dict["year"] = speech.speech_year
-                elif hasattr(speech, 'speech_date'):
-                    speech_dict["date"] = speech.speech_date
-                
-                speeches_data.append(speech_dict)
-            
-            return {
-                "total_count": response.total_count,
-                "page": response.page,
-                "per_page": response.per_page,
-                "data": speeches_data
-            }
-        except Exception as e:
-            return {
-                "error": str(e),
-                "total_count": 0,
-                "page": page,
-                "per_page": per_page,
-                "data": []
-            }
+    return {
+        "total_count": response.total_count,
+        "page": response.page,
+        "per_page": response.per_page,
+        "data": [_speech_dict(s) for s in response.data],
+    }
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def search_speeches(
-    president: Optional[str] = None,
-    title: Optional[str] = None,
-    year: Optional[int] = None,
-    location: Optional[str] = None,
-    page: int = 1,
-    per_page: int = 10
-) -> Dict[str, Any]:
+    president: President = None,
+    title: Annotated[Optional[str], Field(description="제목에 포함될 키워드 (부분 일치)")] = None,
+    year: Annotated[Optional[int], Field(description="연설 연도 (예: 2020)")] = None,
+    location: Annotated[
+        Optional[str], Field(description="연설 장소 (부분 일치, 예: 국내/국외)")
+    ] = None,
+    page: Page = 1,
+    per_page: PerPage = 10,
+) -> dict[str, Any]:
+    """대통령 연설문을 검색합니다. Search presidential speeches (server-side filters).
+
+    Returns total_count (조건에 맞는 전체 건수), page, per_page, data[].
     """
-    대통령 연설문을 검색합니다.
-    Search presidential speeches with various filters.
-    
-    Args:
-        president: 대통령 이름으로 검색 (President name filter)
-        title: 연설 제목으로 검색 (Speech title keyword)
-        year: 연설 연도로 검색 (Speech year filter)
-        location: 연설 장소로 검색 (Speech location filter)
-        page: 페이지 번호 (Page number, default: 1)
-        per_page: 페이지당 결과 수 (Results per page, default: 10)
-    
-    Returns:
-        Dictionary containing:
-        - total_count: 검색된 연설문 수
-        - page: 현재 페이지
-        - per_page: 페이지당 결과 수
-        - data: 검색된 연설문 목록
-    
-    Examples:
-        >>> await search_speeches(president="노무현")
-        >>> await search_speeches(title="통일", year=2020)
-        >>> await search_speeches(location="청와대")
-    """
-    async with PresidentialSpeechesAPIClient() as client:
-        try:
-            result = await client.search_speeches(
+    async with tool_errors():
+        async with PresidentialSpeechesAPIClient() as client:
+            response = await client.search_speeches(
                 president=president,
                 title=title,
                 year=year,
                 location=location,
                 page=page,
                 per_page=per_page,
-                use_2023_version=True
+                use_2023_version=True,
             )
-            
-            # 결과를 딕셔너리로 변환
-            speeches_data = []
-            for speech in result.get("data", []):
-                speech_dict = {
-                    "id": speech.id,
-                    "president": speech.president,
-                    "title": speech.title,
-                    "source_url": speech.source_url,
-                    "location": speech.location
-                }
-                
-                # 버전별 필드 추가
-                if hasattr(speech, 'speech_year'):
-                    speech_dict["year"] = speech.speech_year
-                elif hasattr(speech, 'speech_date'):
-                    speech_dict["date"] = speech.speech_date
-                
-                speeches_data.append(speech_dict)
-            
-            return {
-                "total_count": result["total_count"],
-                "page": result["page"],
-                "per_page": result["per_page"],
-                "data": speeches_data
-            }
-        except Exception as e:
-            return {
-                "error": str(e),
-                "total_count": 0,
-                "page": page,
-                "per_page": per_page,
-                "data": []
-            }
+    return {
+        "total_count": response.match_count,
+        "page": response.page,
+        "per_page": response.per_page,
+        "data": [_speech_dict(s) for s in response.data],
+    }
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 async def get_recent_speeches(
-    president: Optional[str] = None,
-    limit: int = 5
-) -> Dict[str, Any]:
+    president: President = None,
+    limit: Annotated[int, Field(description="가져올 연설문 수 (기본값: 5)")] = 5,
+) -> dict[str, Any]:
+    """최근 대통령 연설문을 조회합니다. Get the most recent presidential speeches.
+
+    목록이 오래된 순이라 전체 건수를 먼저 구한 뒤 마지막 페이지를 읽어 최신순으로 돌려준다.
+    Returns count, president, data[] (최신 → 과거).
     """
-    최근 대통령 연설문을 조회합니다.
-    Get recent presidential speeches.
-    
-    Args:
-        president: 특정 대통령으로 필터링 (Filter by president name)
-        limit: 가져올 연설문 수 (Number of speeches to retrieve, default: 5)
-    
-    Returns:
-        Dictionary containing:
-        - count: 반환된 연설문 수
-        - data: 최근 연설문 목록
-    
-    Examples:
-        >>> await get_recent_speeches(limit=10)
-        >>> await get_recent_speeches(president="윤석열", limit=5)
-    """
-    async with PresidentialSpeechesAPIClient() as client:
-        try:
-            # 2023 버전으로 최신 데이터 가져오기
-            response = await client.get_speeches_2023(page=1, per_page=limit * 2)
-            
-            speeches = response.data
-            
-            # 대통령 필터링
-            if president:
-                speeches = [s for s in speeches if president.lower() in s.president.lower()]
-            
-            # limit 적용
-            speeches = speeches[:limit]
-            
-            # 데이터 변환
-            speeches_data = []
-            for speech in speeches:
-                speeches_data.append({
-                    "id": speech.id,
-                    "president": speech.president,
-                    "title": speech.title,
-                    "year": speech.speech_year,
-                    "source_url": speech.source_url,
-                    "location": speech.location
-                })
-            
-            return {
-                "count": len(speeches_data),
-                "data": speeches_data
-            }
-        except Exception as e:
-            return {
-                "error": str(e),
-                "count": 0,
-                "data": []
-            }
+    async with tool_errors():
+        cond = PresidentialSpeechesAPIClient.build_cond(president=president)
+        async with PresidentialSpeechesAPIClient() as client:
+            probe = await client.get_speeches_2023(page=1, per_page=1, **cond)
+            total = probe.match_count
+            if total == 0:
+                speeches: list[Speech2023] = []
+            else:
+                last_page = max(1, math.ceil(total / limit))
+                response = await client.get_speeches_2023(page=last_page, per_page=limit, **cond)
+                speeches = list(reversed(response.data))
+    return {
+        "count": len(speeches),
+        "president": president,
+        "data": [_speech_dict(s) for s in speeches],
+    }
 
 
-def main():
-    """메인 함수."""
-    # API 키 확인
-    if not os.getenv("API_KEY"):
-        print(f"Warning: API_KEY environment variable is not set")
-        print(f"Please set it to use the Presidential Speech Records API")
-        print(f"You can get an API key from: https://www.data.go.kr")
-    
-    # MCP 서버 실행
+def main() -> None:
+    """Run the MCP server over stdio."""
+    logger = configure_logging(__name__)
+    try:
+        load_api_key(PresidentialSpeechesAPIClient.key_env_prefix)
+    except ValueError as e:
+        logger.warning("%s — the server will start but tool calls will fail.", e)
     mcp.run()
 
 
