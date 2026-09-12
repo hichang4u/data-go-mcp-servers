@@ -120,3 +120,19 @@ class APIResponse(BaseModel):
     items: Optional[List] = None
 
     model_config = ConfigDict(populate_by_name=True)
+
+
+class RegionCodeItem(BaseModel):
+    """법정동코드 아이템 (행정안전부 행정표준코드 StanReginCd)."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    region_cd: str = Field(description="법정동코드 (10자리)")
+    name: str = Field(alias="locatadd_nm", description="지역주소명 (예: 서울특별시 강남구 역삼동)")
+    sido_cd: str = Field(description="시도코드 (2자리)")
+    sgg_cd: str = Field(description="시군구코드 (3자리, 시도 단위면 000)")
+    umd_cd: str = Field(description="읍면동코드 (3자리, 시군구 단위면 000)")
+    ri_cd: str = Field(description="리코드 (2자리, 리가 아니면 00)")
+    parent_cd: Optional[str] = Field(
+        default=None, alias="locathigh_cd", description="상위 법정동코드"
+    )
