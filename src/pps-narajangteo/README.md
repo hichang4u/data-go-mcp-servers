@@ -83,10 +83,7 @@ export API_KEY="your-api-key-here"
 result = await search_bid_announcements()
 
 # 특정 기간 입찰공고
-result = await search_bid_announcements(
-    start_date="2025-07-01",
-    end_date="2025-07-31"
-)
+result = await search_bid_announcements(start_date="2025-07-01", end_date="2025-07-31")
 ```
 
 **Claude에서 사용 예시:**
@@ -115,9 +112,7 @@ result = await search_successful_bids(business_type="공사")
 
 # 특정 기간 물품 낙찰정보
 result = await search_successful_bids(
-    business_type="1",
-    start_date="2025-07-01",
-    end_date="2025-07-07"
+    business_type="1", start_date="2025-07-01", end_date="2025-07-07"
 )
 ```
 
@@ -149,7 +144,7 @@ result = await search_contracts(
     start_date="2025-03-01",
     end_date="2025-03-31",
     institution_type="1",
-    institution_code="4490000"  # 천안시
+    institution_code="4490000",  # 천안시
 )
 ```
 

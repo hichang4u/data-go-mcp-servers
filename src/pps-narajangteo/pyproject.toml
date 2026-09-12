@@ -20,11 +20,11 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
+    "data-go-mcp-core",
     "httpx>=0.28",
     "mcp[cli]>=2.2,<3",
     "pydantic>=2.11",
     "python-dotenv>=1.1",
-    "xmltodict>=0.14",
 ]
 
 [project.urls]
@@ -36,6 +36,9 @@ Changelog = "https://github.com/yourusername/data-go-mcp-servers/blob/main/src/p
 
 [project.scripts]
 "data-go-mcp.pps-narajangteo" = "data_go_mcp.pps_narajangteo.server:main"
+
+[tool.uv.sources]
+data-go-mcp-core = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]
