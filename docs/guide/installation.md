@@ -26,7 +26,7 @@ uvx --from "git+https://github.com/hichang4u/data-go-mcp-servers#subdirectory=sr
 | `presidential-speeches` | 대통령기록관 연설문 |
 | `msds-chemical-info` | 안전보건공단 MSDS |
 
-특정 커밋/태그에 고정하려면 `data-go-mcp-servers@v0.3.0#subdirectory=…` 처럼 `@` 뒤에 붙인다.
+특정 커밋/태그에 고정하려면 `data-go-mcp-servers@v0.4.0#subdirectory=…` 처럼 `@` 뒤에 붙인다.
 
 ## Claude Desktop
 
