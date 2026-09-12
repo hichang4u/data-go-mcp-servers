@@ -84,11 +84,13 @@ def main() -> int:
     for slug, body in rendered.items():
         path = DOCS / f"{slug}.md"
         if not path.exists():
-            print(f"skip (no doc): {path}")
+            print(f"missing doc: {path.relative_to(ROOT)}")
+            stale.append(slug)
             continue
         text = path.read_text(encoding="utf-8")
         if START not in text or END not in text:
-            print(f"skip (no markers): {path}")
+            print(f"missing markers in {path.relative_to(ROOT)}: {START} … {END}")
+            stale.append(slug)
             continue
         head, rest = text.split(START, 1)
         _, tail = rest.split(END, 1)
@@ -99,7 +101,7 @@ def main() -> int:
                 path.write_text(new, encoding="utf-8", newline="\n")
                 print(f"updated: {path.relative_to(ROOT)}")
     if args.check and stale:
-        print("tool docs out of date:", ", ".join(stale))
+        print("tool docs out of date or missing:", ", ".join(stale))
         return 1
     return 0
 
