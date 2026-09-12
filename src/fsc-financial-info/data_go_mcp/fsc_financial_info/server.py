@@ -14,7 +14,11 @@ from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 from pydantic import Field
 
-from .api_client import CorpBasicInfoAPIClient, FSCFinancialAPIClient
+from .api_client import (
+    CorpBasicInfoAPIClient,
+    FSCFinancialAPIClient,
+    StockPriceAPIClient,
+)
 
 load_dotenv()
 
@@ -348,6 +352,111 @@ async def get_corp_outline(
         if outline is None:
             raise ToolError(f"법인등록번호 {crno} 에 해당하는 기업기본정보가 없습니다")
     return outline
+
+
+def _with_market_cap_text(items: list[dict[str, Any]]) -> None:
+    for item in items:
+        amount = item.get("mrkt_tot_amt")
+        item["mrkt_tot_amt_text"] = format_financial_amount(
+            Decimal(amount) if amount is not None else None
+        )
+
+
+DATE_DESC = "기준일자 (YYYYMMDD) | Trading date"
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def get_stock_price(
+    itms_nm: Annotated[
+        str | None,
+        Field(
+            description="종목명 (정확히 일치, 예: '삼성전자'; get_corp_outline 의 enp_pban_cmpy_nm) | "
+            "Exact stock name"
+        ),
+    ] = None,
+    srtn_cd: Annotated[
+        str | None, Field(description="단축코드 (6자리, 예: 005930) | 6-digit ticker")
+    ] = None,
+    isin_cd: Annotated[
+        str | None, Field(description="ISIN 코드 (예: KR7005930003) | ISIN code")
+    ] = None,
+    bas_dt: Annotated[str | None, Field(description=f"{DATE_DESC} — 하루만")] = None,
+    begin_bas_dt: Annotated[
+        str | None, Field(description=f"{DATE_DESC} 시작 (이상)")
+    ] = None,
+    end_bas_dt: Annotated[
+        str | None, Field(description=f"{DATE_DESC} 끝 (이하)")
+    ] = None,
+    page_no: Annotated[int, Field(description=PAGE_NO_DESC)] = 1,
+    num_of_rows: Annotated[
+        int,
+        Field(description="거래일 수 (기본값: 10, 최대: 100) | Trading days per page"),
+    ] = 10,
+) -> dict[str, Any]:
+    """KRX 상장 주식의 일별 시세를 조회합니다: 종가, 등락, 시가·고가·저가, 거래량, 시가총액. 최신 거래일부터 내려옵니다. | Get daily KRX stock prices (close, change, OHLC, volume, market cap), newest first.
+
+    Give one of itms_nm / srtn_cd / isin_cd. Data lags the market by about one trading day.
+    To find the exact 종목명 or ticker, use search_stock_items.
+    """
+    async with tool_errors():
+        async with StockPriceAPIClient() as client:
+            result = await client.get_stock_prices(
+                itms_nm=itms_nm,
+                srtn_cd=srtn_cd,
+                isin_cd=isin_cd,
+                bas_dt=bas_dt,
+                begin_bas_dt=begin_bas_dt,
+                end_bas_dt=end_bas_dt,
+                page_no=page_no,
+                num_of_rows=num_of_rows,
+            )
+    _with_market_cap_text(result["items"])
+    if result["items"]:
+        first = result["items"][0]
+        result["message"] = (
+            f"{first['itms_nm']} ({first['srtn_cd']}, {first['mrkt_ctg'] or '-'}): "
+            f"{len(result['items'])} trading day(s) shown, latest {first['bas_dt']}"
+        )
+    elif bas_dt or begin_bas_dt or end_bas_dt:
+        result["message"] = (
+            "No stock price for the given date(s) — market closed or not yet published; "
+            "try without a date"
+        )
+    else:
+        result["message"] = (
+            "No stock price found (check the exact 종목명 with search_stock_items)"
+        )
+    return result
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def search_stock_items(
+    name: Annotated[
+        str,
+        Field(description="종목명 일부 (예: '삼성', '카카오') | Partial stock name"),
+    ],
+    num_of_rows: Annotated[
+        int, Field(description="최대 종목 수 (기본값: 50, 최대: 100) | Max items")
+    ] = 50,
+    page_no: Annotated[int, Field(description=PAGE_NO_DESC)] = 1,
+) -> dict[str, Any]:
+    """종목명 일부로 상장 종목을 찾습니다. 최신 거래일 기준 종목당 한 건(코드, 시장, 종가, 시가총액). | Search listed stocks by partial name; one row per item as of the latest trading day.
+
+    Use the returned itms_nm or srtn_cd with get_stock_price for history.
+    """
+    async with tool_errors():
+        async with StockPriceAPIClient() as client:
+            result = await client.search_items(
+                name, num_of_rows=num_of_rows, page_no=page_no
+            )
+    _with_market_cap_text(result["items"])
+    result["message"] = (
+        f"Found {result['total_count']} item(s) matching '{name}' as of {result['bas_dt']} "
+        f"(showing {len(result['items'])} on page {page_no})"
+        if result["items"]
+        else f"No listed stock matching '{name}'"
+    )
+    return result
 
 
 def main() -> None:

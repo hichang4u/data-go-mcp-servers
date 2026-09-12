@@ -18,7 +18,7 @@ Encoding 값(`%2B`, `%3D` 가 섞인 것)이 아니라 **Decoding 값**(`+`, `=`
 | nps-business-enrollment | [국민연금공단_국민연금 가입 사업장 내역](https://www.data.go.kr/data/3046071/openapi.do) 와 [행정안전부_행정표준코드_법정동코드](https://www.data.go.kr/data/15077871/openapi.do) (`find_region_code` 용) |
 | nts-business-verification | 포털에서 "국세청_사업자등록정보 진위확인 및 상태조회 서비스" 검색 |
 | pps-narajangteo | 포털에서 "조달청_나라장터 공공데이터개방표준서비스" 검색 |
-| fsc-financial-info | [금융위원회_기업 재무정보](https://www.data.go.kr/data/15043459/openapi.do) 와 [금융위원회_기업기본정보](https://www.data.go.kr/data/15043184/openapi.do) (`find_corp_number` 용) |
+| fsc-financial-info | [금융위원회_기업 재무정보](https://www.data.go.kr/data/15043459/openapi.do) , [금융위원회_기업기본정보](https://www.data.go.kr/data/15043184/openapi.do) (`find_corp_number` 용), [금융위원회_주식시세정보](https://www.data.go.kr/data/15094808/openapi.do) (`get_stock_price` 용) |
 | presidential-speeches | [대통령기록관_대통령연설기록(연설문)](https://www.data.go.kr/data/15084167/fileData.do) → "오픈API" 탭 |
 | msds-chemical-info | 별도 신청 없이 동작 확인됨 (2026-09) |
 
@@ -37,7 +37,7 @@ MCP 클라이언트 설정의 `"env"` 로 넘기는 것이 기본이고, 저장�
 
 ## 4. 확인
 
-저장소를 clone 했다면 8개 API 를 한 번에 점검할 수 있다:
+저장소를 clone 했다면 9개 API 를 한 번에 점검할 수 있다:
 
 ```bash
 uv run python scripts/check_apis.py

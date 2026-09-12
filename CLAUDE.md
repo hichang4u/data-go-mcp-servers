@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-data.go.kr 공공 API 8종(서버 6개)을 MCP 서버로 제공하는 uv 워크스페이스. Python 3.10+, `mcp>=2.2,<3`.
+data.go.kr 공공 API 9종(서버 6개)을 MCP 서버로 제공하는 uv 워크스페이스. Python 3.10+, `mcp>=2.2,<3`.
 
 ## 명령
 
@@ -11,7 +11,7 @@ uv run pytest src/<server>/tests -q              # 서버 하나
 uv run pytest -m integration                     # 실호출 (키 필요)
 uv run ruff check src scripts tests && uv run ruff format --check src scripts tests
 uv run pyright src scripts tests
-uv run python scripts/check_apis.py              # 8개 API 생존·권한
+uv run python scripts/check_apis.py              # 9개 API 생존·권한
 uv run python scripts/gen_tool_docs.py [--check] # 툴 레퍼런스 문서 재생성
 uv run python -m data_go_mcp.<module>.server     # 서버 단독 실행 (stdio)
 ```

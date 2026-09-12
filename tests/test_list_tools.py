@@ -36,6 +36,8 @@ SERVERS = {
         "search_company_financial_info",
         "find_corp_number",
         "get_corp_outline",
+        "get_stock_price",
+        "search_stock_items",
     },
     "presidential_speeches": {"list_speeches", "search_speeches", "get_recent_speeches"},
     "msds_chemical_info": {

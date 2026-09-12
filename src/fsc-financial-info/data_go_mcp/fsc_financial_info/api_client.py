@@ -3,7 +3,7 @@
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
-from data_go_mcp.core import BaseDataGoClient, normalize_items
+from data_go_mcp.core import BaseDataGoClient, DataGoAPIError, normalize_items
 
 from .models import (
     BalanceSheetItem,
@@ -13,6 +13,8 @@ from .models import (
     FinancialRequest,
     IncomeStatementItem,
     IncomeStatementResponse,
+    StockPrice,
+    StockPriceRequest,
     SummaryFinancialResponse,
     SummaryFinancialStatement,
 )
@@ -235,3 +237,96 @@ class CorpBasicInfoAPIClient(BaseDataGoClient):
                 break
         latest = latest_per_crno(items)
         return CorpOutline.from_api(latest[0]).model_dump() if latest else None
+
+
+class StockPriceAPIClient(BaseDataGoClient):
+    """금융위원회 주식시세정보 API (GetStockSecuritiesInfoService_V2, 주식시세만).
+
+    KRX 상장 주식의 일별 시세. 최신 일자가 먼저 온다. ``crno`` 파라미터는 API 가 무시하므로
+    (전체가 반환됨) 종목명·단축코드·ISIN 으로만 조회한다.
+    """
+
+    base_url = "https://apis.data.go.kr/1160100/GetStockSecuritiesInfoService_V2"
+    key_env_prefix = "FSC_FINANCIAL_INFO"
+    default_params = {"resultType": "json"}
+
+    async def _prices(
+        self, request: StockPriceRequest
+    ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+        body = await self.get(
+            "getStockPriceInfo_V2",
+            {
+                "pageNo": request.page_no,
+                "numOfRows": request.num_of_rows,
+                "itmsNm": request.itms_nm,
+                "likeItmsNm": request.like_itms_nm,
+                "likeSrtnCd": request.srtn_cd,
+                "isinCd": request.isin_cd,
+                "basDt": request.bas_dt,
+                "beginBasDt": request.begin_bas_dt,
+                "endBasDt": request.end_bas_dt,
+            },
+        )
+        return body, normalize_items(body)
+
+    async def get_stock_prices(
+        self,
+        itms_nm: str | None = None,
+        srtn_cd: str | None = None,
+        isin_cd: str | None = None,
+        bas_dt: str | None = None,
+        begin_bas_dt: str | None = None,
+        end_bas_dt: str | None = None,
+        page_no: int = 1,
+        num_of_rows: int = 10,
+    ) -> dict[str, Any]:
+        """종목 하나의 일별 시세 (최신 일자부터). 종목명/단축코드/ISIN 중 하나는 필요."""
+        request = StockPriceRequest(
+            itms_nm=itms_nm,
+            srtn_cd=srtn_cd,
+            isin_cd=isin_cd,
+            bas_dt=bas_dt,
+            begin_bas_dt=begin_bas_dt,
+            end_bas_dt=end_bas_dt,
+            page_no=page_no,
+            num_of_rows=num_of_rows,
+        )
+        if not (request.itms_nm or request.srtn_cd or request.isin_cd):
+            raise ValueError(
+                "종목명(itms_nm), 단축코드(srtn_cd), ISIN(isin_cd) 중 하나는 필요합니다"
+            )
+        body, items = await self._prices(request)
+        return {
+            "items": [StockPrice.from_api(i).model_dump() for i in items],
+            "page_no": request.page_no,
+            "num_of_rows": request.num_of_rows,
+            "total_count": int(body.get("totalCount", 0)),
+        }
+
+    async def search_items(
+        self, name: str, num_of_rows: int = 50, page_no: int = 1
+    ) -> dict[str, Any]:
+        """종목명 부분 일치로 종목 목록. 최신 거래일 하루치만 돌려줘 종목당 한 건이 되게 한다."""
+        probe = StockPriceRequest(like_itms_nm=name, num_of_rows=1)
+        if probe.like_itms_nm is None:
+            raise ValueError("종목명(name)은 비어 있을 수 없습니다")
+        _, latest = await self._prices(probe)
+        if not latest:
+            return {"bas_dt": None, "items": [], "page_no": page_no, "total_count": 0}
+        bas_dt = latest[0].get("basDt")
+        if not bas_dt:
+            raise DataGoAPIError("INVALID", "주식시세 응답에 basDt 가 없습니다")
+        body, items = await self._prices(
+            StockPriceRequest(
+                like_itms_nm=name,
+                bas_dt=bas_dt,
+                num_of_rows=num_of_rows,
+                page_no=page_no,
+            )
+        )
+        return {
+            "bas_dt": bas_dt,
+            "items": [StockPrice.from_api(i).model_dump() for i in items],
+            "page_no": page_no,
+            "total_count": int(body.get("totalCount", 0)),
+        }

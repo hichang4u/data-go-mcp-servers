@@ -148,7 +148,7 @@
 - 서버별 툴 레퍼런스는 `scripts/gen_tool_docs.py` 가 `list_tools()` 스키마에서 생성하고 CI 가 `--check` 로 어긋남을 잡는다.
 - FR-7(deprecated 표시)은 죽은 API 가 없어 적용 대상 없음. 서버 버전 0.3.0, 태그 `v0.3.0`.
 
-## S5 — 추가 공공데이터 연동 `[~]` (5.1, 5.2 완료 2026-09-12)
+## S5 — 추가 공공데이터 연동 `[~]` (5.1–5.3 완료 2026-09-12)
 
 2026-09-12 검토. 아래 API 는 **활용신청·엔드포인트·응답 구조를 아직 확인하지 않은 후보**다. 착수 전에
 `scripts/check_apis.py` 방식으로 생존·권한을 먼저 확인하고, 절차는 [adding-a-server.md](adding-a-server.md)를 따른다.
@@ -162,7 +162,7 @@
 |---|---|---|---|---|
 | 5.1 `[x]` | 행정안전부_행정표준코드_법정동코드 ([15077871](https://www.data.go.kr/data/15077871/openapi.do), `1741000/StanReginCd`) | 비표준 JSON: `{"StanReginCd":[{"head":[…]},{"row":[…]}]}`, 결과 없음은 `{"RESULT":{"resultCode":"INFO-3"}}` | nps 검색이 지역 코드를 요구하는데 사용자는 코드를 모른다 | nps 에 `find_region_code` 툴 (브랜치 `s5-region-code`, nps 0.4.0) |
 | 5.2 `[x]` | 금융위원회_기업기본정보 ([15043184](https://www.data.go.kr/data/15043184/openapi.do), `GetCorpBasicInfoService_V2/getCorpOutline_V2`; V1 은 폐기 코드 12) | 표준 JSON. `corpNm` 부분 일치, `bzno`/`crno` 정확 일치 | fsc 는 법인등록번호 13자리만 받는다. 회사명/사업자번호 → 법인번호 매핑이 없어 nts → fsc 체인이 끊긴다 | fsc 에 `find_corp_number` + `get_corp_outline` (브랜치 `s5-corp-number`, fsc 0.4.0) |
-| 5.3 | 금융위원회_주식시세정보 / KRX 상장종목 | 표준 JSON, fsc 와 같은 응답 구조 | 재무제표 옆에 시가총액·주가. 구현 비용이 가장 낮다 | fsc 에 툴 추가 또는 신규 서버 |
+| 5.3 `[x]` | 금융위원회_주식시세정보 ([15094808](https://www.data.go.kr/data/15094808/openapi.do), `1160100/GetStockSecuritiesInfoService_V2/getStockPriceInfo_V2` — `service/` 세그먼트 없음, V1 폐기) | 표준 JSON | 재무제표 옆에 시가총액·주가 | fsc 에 `get_stock_price` + `search_stock_items` (브랜치 `s5-stock-price`, fsc 0.5.0) |
 | 5.4 | 고용노동부_워크넷 채용정보 또는 고용보험 사업장정보 | 확인 필요 | nps 가입자 수와 함께 기업 규모·채용 동향. 사업장명/주소코드로 조인 | 신규 서버 |
 
 ### 5b. 범용성이 큰 것 (2순위)
@@ -199,6 +199,16 @@
 - 공시 대상이 아닌 법인은 대부분 필드가 빈 문자열 → `CorpOutline.from_api` 가 None 으로 정규화.
 - `corpNm` 은 LIKE 검색이라 "카카오" 는 182 레코드. 페이지(100) 안에서만 dedupe 되므로 이름을 구체적으로 주라고 문서에 적음.
 
+### 5.3 에서 드러난 것
+
+- 엔드포인트가 다른 금융위 API 와 달리 `/1160100/service/…` 가 아니라 `/1160100/GetStockSecuritiesInfoService_V2/…`. 활용신청 페이지의
+  End Point 를 그대로 믿어야 한다 (추측한 경로는 코드 30/12).
+- `crno` 파라미터는 문서에 있지만 **무시된다**(전체 4,446,353건 반환). 법인 → 종목 연결은 `get_corp_outline.enp_pban_cmpy_nm`
+  (공시회사명) 을 `itmsNm` 에 넣는 방식으로 문서화.
+- 결과 없음이 `items.item: []` — 재무정보 API 의 `items: ""` 와 다르지만 core `normalize_items` 가 둘 다 처리.
+- 종목 목록(`likeItmsNm`)은 전 일자에 걸친 행이라, 1건 조회로 최신 거래일을 알아낸 뒤 그 날짜로 다시 조회해 종목당 한 건으로 만든다 (2회 호출).
+- 수익증권·신주인수권 오퍼레이션 3개는 쓰임이 좁아 제외.
+
 ### 착수 순서 제안
 
 1. 5.1 법정동코드 — 반나절. nps 사용성 즉시 개선
@@ -216,6 +226,6 @@
 | S2 | 완료 | — |
 | S3 | 완료 | — |
 | S4 | 완료 | — |
-| S5 | 진행 중 (5.1, 5.2 완료) | 항목별 활용신청 |
+| S5 | 진행 중 (5.1–5.3 완료) | 항목별 활용신청 |
 
 S0~S4 전부 2026-09-12 하루에 완료 (계획 3.5d).

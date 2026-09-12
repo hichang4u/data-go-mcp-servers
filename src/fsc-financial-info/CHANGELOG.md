@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-09-12
+
+### Added
+- `get_stock_price`: KRX 일별 주식시세 (종가·등락·OHLC·거래량·시가총액, `mrkt_tot_amt_text`). 금융위원회_주식시세정보 API (`GetStockSecuritiesInfoService_V2/getStockPriceInfo_V2`, 별도 활용신청 필요). 종목명(정확히)·단축코드·ISIN 으로 조회, 날짜/기간 필터.
+- `search_stock_items`: 종목명 부분 일치로 상장 종목 목록 (최신 거래일 기준 종목당 1건).
+
 ## [0.4.0] - 2026-09-12
 
 ### Added

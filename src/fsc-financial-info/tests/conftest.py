@@ -218,3 +218,111 @@ def corp_two_page_responses() -> tuple[dict, dict]:
 def corp_undisclosed_response() -> dict:
     """공시 대상이 아닌 법인: 종업원 수·급여가 "0" 으로 온다."""
     return wrap([_CHEONGPYEONG], total=1)
+
+
+# 금융위원회_주식시세정보 (GetStockSecuritiesInfoService_V2) — 2026-09-12 실응답 발췌
+STOCK_BASE = "https://apis.data.go.kr/1160100/GetStockSecuritiesInfoService_V2"
+
+_SAMSUNG_0910 = {
+    "basDt": "20260910",
+    "srtnCd": "005930",
+    "isinCd": "KR7005930003",
+    "itmsNm": "삼성전자",
+    "mrktCtg": "KOSPI",
+    "clpr": "269000",
+    "vs": "-500",
+    "fltRt": "-.19",
+    "mkp": "269000",
+    "hipr": "270500",
+    "lopr": "263500",
+    "trqu": "22517075",
+    "trPrc": "6028310398811",
+    "lstgStCnt": "5846278608",
+    "mrktTotAmt": "1572648945552000",
+}
+_SAMSUNG_0909 = {
+    "basDt": "20260909",
+    "srtnCd": "005930",
+    "isinCd": "KR7005930003",
+    "itmsNm": "삼성전자",
+    "mrktCtg": "KOSPI",
+    "clpr": "269500",
+    "vs": "0",
+    "fltRt": "0",
+    "mkp": "269500",
+    "hipr": "275000",
+    "lopr": "267500",
+    "trqu": "16370962",
+    "trPrc": "4436451989189",
+    "lstgStCnt": "5846278608",
+    "mrktTotAmt": "1575572084856000",
+}
+_FIRE_0910 = {
+    "basDt": "20260910",
+    "srtnCd": "000810",
+    "isinCd": "KR7000810002",
+    "itmsNm": "삼성화재",
+    "mrktCtg": "KOSPI",
+    "clpr": "647000",
+    "vs": "6000",
+    "fltRt": ".94",
+    "mkp": "640000",
+    "hipr": "652000",
+    "lopr": "636000",
+    "trqu": "192158",
+    "trPrc": "124032898500",
+    "lstgStCnt": "44647473",
+    "mrktTotAmt": "28886915031000",
+}
+_FIRE_PREF_0910 = {
+    "basDt": "20260910",
+    "srtnCd": "000815",
+    "isinCd": "KR7000811000",
+    "itmsNm": "삼성화재우",
+    "mrktCtg": "KOSPI",
+    "clpr": "418500",
+    "vs": "1000",
+    "fltRt": ".24",
+    "mkp": "414000",
+    "hipr": "419500",
+    "lopr": "414000",
+    "trqu": "5545",
+    "trPrc": "2307328750",
+    "lstgStCnt": "3007020",
+    "mrktTotAmt": "1258437870000",
+}
+
+
+@pytest.fixture
+def stock_base_url() -> str:
+    return STOCK_BASE
+
+
+@pytest.fixture
+def stock_response() -> dict:
+    """itmsNm=삼성전자 — 최신 일자가 먼저."""
+    return wrap([_SAMSUNG_0910, _SAMSUNG_0909], total=1643)
+
+
+@pytest.fixture
+def stock_search_responses() -> tuple[dict, dict]:
+    """likeItmsNm=삼성: (최신 일자 탐색용 1건, 그 일자의 종목 목록)."""
+    return wrap([_FIRE_0910], total=39816), wrap(
+        [_FIRE_0910, _FIRE_PREF_0910], total=26
+    )
+
+
+@pytest.fixture
+def stock_empty_response() -> dict:
+    """결과 없음은 items.item 이 빈 리스트로 온다 (재무정보 API 의 "" 와 다름)."""
+    return {
+        "response": {
+            "header": {"resultCode": "00", "resultMsg": "NORMAL SERVICE."},
+            "body": {
+                "numOfRows": 2,
+                "pageNo": 1,
+                "totalCount": 0,
+                "items": {"item": []},
+            },
+        }
+    }
