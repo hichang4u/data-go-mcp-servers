@@ -20,6 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
+    "data-go-mcp-core",
     "httpx>=0.28",
     "mcp[cli]>=2.2,<3",
     "pydantic>=2.11",
@@ -35,6 +36,9 @@ Changelog = "https://github.com/Koomook/data-go-mcp-servers/blob/main/src/nts-bu
 
 [project.scripts]
 "data-go-mcp.nts-business-verification" = "data_go_mcp.nts_business_verification.server:main"
+
+[tool.uv.sources]
+data-go-mcp-core = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

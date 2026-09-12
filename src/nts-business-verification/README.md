@@ -158,7 +158,7 @@ result = await validate_business(
     business_number="123-45-67890",
     start_date="2020-01-01",
     representative_name="홍길동",
-    business_name="테스트회사"
+    business_name="테스트회사",
 )
 ```
 
@@ -206,7 +206,7 @@ Batch validate multiple business registration information at once.
 
 **Example:**
 ```python
-businesses_json = '''[
+businesses_json = """[
     {
         "b_no": "1234567890",
         "start_dt": "20200101",
@@ -218,7 +218,7 @@ businesses_json = '''[
         "start_dt": "20210101",
         "p_nm": "김철수"
     }
-]'''
+]"""
 
 result = await batch_validate_businesses(businesses_json)
 ```

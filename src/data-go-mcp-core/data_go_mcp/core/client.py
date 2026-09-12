@@ -127,7 +127,7 @@ class BaseDataGoClient:
 
     @staticmethod
     def _gateway_error(response: httpx.Response) -> DataGoAPIError | None:
-        """data.go.kr 게이트웨이 오류(활용신청 전 등)는 HTTP 4xx + OpenAPI_ServiceResponse 로 온다."""
+        """게이트웨이 오류(활용신청 전 등)를 DataGoAPIError 로. data.go.kr 과 odcloud 형태 모두 처리."""
         try:
             data = response.json()
         except ValueError:
@@ -135,9 +135,12 @@ class BaseDataGoClient:
         if not isinstance(data, Mapping):
             return None
         header = (data.get("OpenAPI_ServiceResponse") or {}).get("cmmMsgHeader")
-        if not header:
-            return None
-        return DataGoAPIError(
-            str(header.get("returnReasonCode", "")),
-            f"{header.get('errMsg', '')} ({header.get('returnAuthMsg', '')})",
-        )
+        if header:
+            return DataGoAPIError(
+                str(header.get("returnReasonCode", "")),
+                f"{header.get('errMsg', '')} ({header.get('returnAuthMsg', '')})",
+            )
+        # odcloud 계열: HTTP 4xx + {"code": -401, "msg": "..."}
+        if response.is_error and "code" in data and "msg" in data:
+            return DataGoAPIError(str(data["code"]), str(data["msg"]))
+        return None

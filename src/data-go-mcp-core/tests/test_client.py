@@ -196,3 +196,19 @@ async def test_context_manager_closes_http_client():
         http = client.http
         assert not http.is_closed
     assert http.is_closed
+
+
+@respx.mock
+async def test_odcloud_auth_error_maps_to_data_go_error():
+    # S0b 에서 관측한 odcloud 형태: HTTP 401 + {"code": -401, "msg": ...}
+    respx.post("https://api.odcloud.kr/api/demo/v1/status").mock(
+        return_value=httpx.Response(
+            401, json={"code": -401, "msg": "유효하지 않은 인증키 입니다."}
+        )
+    )
+    async with OdcloudClient() as client:
+        with pytest.raises(DataGoAPIError) as exc:
+            await client.post("status", json={})
+
+    assert exc.value.result_code == "-401"
+    assert exc.value.result_msg == "유효하지 않은 인증키 입니다."
