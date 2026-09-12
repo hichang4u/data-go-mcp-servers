@@ -17,6 +17,7 @@ SERVERS = {
         "get_business_detail",
         "get_period_status",
         "find_region_code",
+        "get_insurance_status",
     },
     "nts_business_verification": {
         "validate_business",

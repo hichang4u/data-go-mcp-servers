@@ -8,7 +8,7 @@ from pydantic import Field
 
 from data_go_mcp.core import READ_ONLY, configure_logging, load_api_key, tool_errors
 
-from .api_client import NPSAPIClient, RegionCodeAPIClient
+from .api_client import InsuranceStatusAPIClient, NPSAPIClient, RegionCodeAPIClient
 
 
 load_dotenv()
@@ -201,6 +201,48 @@ async def find_region_code(
         )
     else:
         result["message"] = f"Found {total} region(s)"
+    return result
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def get_insurance_status(
+    bzno: Annotated[
+        str,
+        Field(description="사업자등록번호 (10자리, 하이픈 허용) | Business registration number"),
+    ],
+    insurance: Annotated[
+        Optional[str],
+        Field(description="보험 구분: '산재' 또는 '고용'. 생략하면 둘 다 | Insurance kind filter"),
+    ] = None,
+    page_no: PageNo = 1,
+    num_of_rows: Annotated[int, Field(description="한 페이지 결과 수 (기본값: 100)")] = 100,
+) -> dict[str, Any]:
+    """사업자등록번호로 고용·산재보험 가입 사업장 현황을 조회합니다: 사업장별 상시인원, 보험관계 성립일, 업종, 주소.
+
+    Employment (고용) and industrial-accident (산재) insurance workplaces registered under a
+    business number, from 근로복지공단. A company with several sites returns one item per
+    site and per insurance kind; `summary` totals workplaces and employees per kind for the
+    items on this page. Complements search_business (국민연금) for company size.
+    """
+    async with tool_errors():
+        async with InsuranceStatusAPIClient() as client:
+            result = await client.get_workplaces(
+                bzno, insurance=insurance, page_no=page_no, num_of_rows=num_of_rows
+            )
+    summary: dict[str, dict[str, int]] = {}
+    for item in result["items"]:
+        entry = summary.setdefault(item["insurance"], {"workplaces": 0, "employees": 0})
+        entry["workplaces"] += 1
+        entry["employees"] += item["employee_cnt"] or 0
+    result["summary"] = summary
+    normalized = bzno.replace("-", "").strip()
+    if summary:
+        parts = ", ".join(
+            f"{kind} {v['workplaces']} ({v['employees']:,}명)" for kind, v in summary.items()
+        )
+        result["message"] = f"{normalized}: {result['total_count']} insured workplace(s) — {parts}"
+    else:
+        result["message"] = f"{normalized}: no insured workplace found"
     return result
 
 

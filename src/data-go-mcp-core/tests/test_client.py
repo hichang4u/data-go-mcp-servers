@@ -212,3 +212,30 @@ async def test_odcloud_auth_error_maps_to_data_go_error():
 
     assert exc.value.result_code == "-401"
     assert exc.value.result_msg == "유효하지 않은 인증키 입니다."
+
+
+GATEWAY_XML = (
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    "<OpenAPI_ServiceResponse><cmmMsgHeader><errMsg>SERVICE_KEY_IS_NOT_REGISTERED_ERROR</errMsg>"
+    "<returnAuthMsg>등록되지 않은 서비스키</returnAuthMsg><returnReasonCode>30</returnReasonCode>"
+    "</cmmMsgHeader></OpenAPI_ServiceResponse>"
+)
+
+
+class XmlDemoClient(BaseDataGoClient):
+    base_url = BASE
+    key_env_prefix = "DEMO"
+    response_format = "xml"
+
+
+@pytest.mark.parametrize("status", [403, 200])
+@respx.mock
+async def test_xml_gateway_error_maps_to_data_go_error(status):
+    # XML 서비스(근로복지공단 등)는 게이트웨이 오류도 XML 로 온다. 200 으로 오는 경우도 같은 형태.
+    respx.get(f"{BASE}/getThing").mock(return_value=httpx.Response(status, text=GATEWAY_XML))
+    async with XmlDemoClient() as client:
+        with pytest.raises(DataGoAPIError) as exc:
+            await client.get("getThing")
+
+    assert exc.value.result_code == "30"
+    assert "SERVICE_KEY_IS_NOT_REGISTERED_ERROR" in exc.value.result_msg

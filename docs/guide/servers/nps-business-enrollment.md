@@ -1,11 +1,11 @@
 # 국민연금공단 사업장 가입내역 (nps-business-enrollment)
 
-국민연금에 가입된 사업장을 이름·사업자번호·지역으로 찾고, 가입자 수와 당월 고지금액, 월별 취득·상실 인원을 조회한다. 지역명을 법정동코드로 바꿔 주는 `find_region_code` 를 함께 제공한다.
+국민연금에 가입된 사업장을 이름·사업자번호·지역으로 찾고, 가입자 수와 당월 고지금액, 월별 취득·상실 인원을 조회한다. 지역명을 법정동코드로 바꿔 주는 `find_region_code`, 사업자등록번호로 고용·산재보험 가입 사업장(상시인원·업종·성립일)을 보는 `get_insurance_status` 를 함께 제공한다.
 
 | | |
 |---|---|
-| 데이터셋 | [국민연금공단_국민연금 가입 사업장 내역](https://www.data.go.kr/data/3046071/openapi.do) (`NpsBplcInfoInqireServiceV2`)<br>[행정안전부_행정표준코드_법정동코드](https://www.data.go.kr/data/15077871/openapi.do) (`StanReginCd`, `find_region_code` 용) |
-| 활용신청 | **필요, 두 API 모두** — 포털에서 신청 후 승인 즉시 반영 (자동승인) |
+| 데이터셋 | [국민연금공단_국민연금 가입 사업장 내역](https://www.data.go.kr/data/3046071/openapi.do) (`NpsBplcInfoInqireServiceV2`)<br>[행정안전부_행정표준코드_법정동코드](https://www.data.go.kr/data/15077871/openapi.do) (`StanReginCd`, `find_region_code` 용)<br>[근로복지공단_고용/산재보험 현황정보](https://www.data.go.kr/data/15059256/openapi.do) (`gySjbPstateInfoService`, `get_insurance_status` 용) |
+| 활용신청 | **필요, 세 API 모두** — 포털에서 신청 후 승인 즉시 반영 (자동승인) |
 | 환경변수 | `API_KEY` 또는 `NPS_BUSINESS_ENROLLMENT_API_KEY` |
 | 패키지 | `data-go-mcp.nps-business-enrollment` (`src/nps-business-enrollment`) |
 
@@ -25,6 +25,7 @@
 - "사업자등록번호 124815로 시작하는 사업장을 조회해줘"
 - "강남구 역삼동에 있는 삼성 관련 사업장을 찾아줘" (→ `find_region_code` 로 코드를 얻어 `search_business`)
 - "seq 7101020 사업장의 가입자 수와 추정 평균 월급을 알려줘"
+- "사업자번호 124-81-00998 의 고용보험 상시인원과 사업장 수는?"
 
 ## 알아둘 것
 
@@ -33,6 +34,7 @@
 - 사업자등록번호는 앞 6자리만 검색된다. 응답의 번호도 뒷자리가 마스킹돼 있다.
 - 지역 필터는 시도(2자리)·시군구(3자리)·읍면동(3자리) 코드다. 시군구는 시도와, 읍면동은 시도·시군구와 함께 줘야 적용된다. `find_region_code` 결과의 `nps_params` 를 그대로 넘기면 된다. 리(里) 단위 필터는 없다.
 - `find_region_code` 는 부분 일치라 "강남" 은 다른 지역의 강남동도 포함한다. 시도명까지 붙이면 좁혀진다.
+- `get_insurance_status` 는 **10자리 사업자등록번호 전체**가 필요하다(nps 검색의 앞 6자리와 다름). 사업장·보험 종류마다 한 건씩 오므로 `summary` 로 종류별 사업장 수·상시인원 합계를 본다 — 합계는 현재 페이지 기준. 산재는 사업장 단위, 고용은 본사 단위로 잡히는 경우가 많아 두 인원이 다를 수 있다.
 
 ## 툴
 
@@ -66,6 +68,22 @@ amount, and an estimated average monthly salary (추정값).
 | `seq` | integer | 예 |  | 사업장 식별번호 (search_business 결과의 seq) |
 | `page_no` | integer |  | `1` | 페이지 번호 (기본값: 1) |
 | `num_of_rows` | integer |  | `10` | 한 페이지 결과 수 (기본값: 10) |
+
+### `get_insurance_status`
+
+사업자등록번호로 고용·산재보험 가입 사업장 현황을 조회합니다: 사업장별 상시인원, 보험관계 성립일, 업종, 주소.
+
+Employment (고용) and industrial-accident (산재) insurance workplaces registered under a
+business number, from 근로복지공단. A company with several sites returns one item per
+site and per insurance kind; `summary` totals workplaces and employees per kind for the
+items on this page. Complements search_business (국민연금) for company size.
+
+| 파라미터 | 타입 | 필수 | 기본값 | 설명 |
+|---|---|---|---|---|
+| `bzno` | string | 예 |  | 사업자등록번호 (10자리, 하이픈 허용) \| Business registration number |
+| `insurance` | string (optional) |  |  | 보험 구분: '산재' 또는 '고용'. 생략하면 둘 다 \| Insurance kind filter |
+| `page_no` | integer |  | `1` | 페이지 번호 (기본값: 1) |
+| `num_of_rows` | integer |  | `100` | 한 페이지 결과 수 (기본값: 100) |
 
 ### `get_period_status`
 

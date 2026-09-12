@@ -136,3 +136,48 @@ class RegionCodeItem(BaseModel):
     parent_cd: Optional[str] = Field(
         default=None, alias="locathigh_cd", description="상위 법정동코드"
     )
+
+
+INSURANCE_KINDS = {"1": "산재", "2": "고용"}
+
+
+class InsuredWorkplace(BaseModel):
+    """고용·산재보험 가입 사업장 한 건 (근로복지공단 gySjbPstateInfoService)."""
+
+    insurance: str = Field(description="보험 구분 (산재/고용)")
+    workplace_nm: str = Field(description="사업장명")
+    bzno: str = Field(description="사업자등록번호")
+    addr: Optional[str] = Field(default=None, description="주소")
+    post: Optional[str] = Field(default=None, description="우편번호")
+    employee_cnt: Optional[int] = Field(default=None, description="상시인원")
+    established_dt: Optional[str] = Field(default=None, description="보험관계 성립일 (YYYYMMDD)")
+    industry_cd: Optional[str] = Field(
+        default=None, description="업종코드 (산재: sjEopjongCd, 고용: gyEopjongCd)"
+    )
+    industry_nm: Optional[str] = Field(default=None, description="업종명")
+    saeop_fg: Optional[str] = Field(default=None, description="사업구분 코드 (원본 saeopFg)")
+
+    @classmethod
+    def from_api(cls, raw: dict) -> "InsuredWorkplace":
+        """XML 항목(문자열 값) → 모델. 업종은 보험 구분에 따라 다른 요소에 온다."""
+
+        def s(key: str) -> Optional[str]:
+            v = raw.get(key)
+            v = v.strip() if isinstance(v, str) else v
+            return v or None
+
+        flag = s("opaBoheomFg")
+        kind = INSURANCE_KINDS.get(flag or "", flag or "미상")
+        cnt = s("sangsiInwonCnt")
+        return cls(
+            insurance=kind,
+            workplace_nm=s("saeopjangNm") or "",
+            bzno=s("saeopjaDrno") or "",
+            addr=s("addr"),
+            post=s("post"),
+            employee_cnt=int(cnt) if cnt is not None and cnt.isdigit() else None,
+            established_dt=s("seongripDt"),
+            industry_cd=s("sjEopjongCd") or s("gyEopjongCd"),
+            industry_nm=s("sjEopjongNm") or s("gyEopjongNm"),
+            saeop_fg=s("saeopFg"),
+        )

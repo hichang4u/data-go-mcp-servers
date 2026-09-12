@@ -6,7 +6,14 @@ from pydantic import BaseModel
 
 from data_go_mcp.core import BaseDataGoClient, DataGoAPIError, normalize_items, to_camel
 
-from .models import BusinessDetailItem, BusinessItem, PeriodStatusItem, RegionCodeItem
+from .models import (
+    INSURANCE_KINDS,
+    BusinessDetailItem,
+    BusinessItem,
+    InsuredWorkplace,
+    PeriodStatusItem,
+    RegionCodeItem,
+)
 
 
 class NPSAPIClient(BaseDataGoClient):
@@ -134,4 +141,48 @@ class RegionCodeAPIClient(BaseDataGoClient):
             "page_no": page_no,
             "num_of_rows": num_of_rows,
             "total_count": body["total_count"],
+        }
+
+
+class InsuranceStatusAPIClient(BaseDataGoClient):
+    """근로복지공단 고용·산재보험 현황정보(gySjbPstateInfoService) — XML 전용.
+
+    사업자등록번호로 고용·산재보험 가입 사업장(상시인원, 성립일, 업종)을 조회한다.
+    """
+
+    base_url = "https://apis.data.go.kr/B490001/gySjbPstateInfoService"
+    key_env_prefix = "NPS_BUSINESS_ENROLLMENT"
+    response_format = "xml"
+
+    async def get_workplaces(
+        self,
+        bzno: str,
+        insurance: Optional[str] = None,
+        page_no: int = 1,
+        num_of_rows: int = 100,
+    ) -> dict[str, Any]:
+        """사업자등록번호(10자리)의 가입 사업장. ``insurance`` 는 "산재"/"고용"/None(둘 다)."""
+        bzno = bzno.replace("-", "").strip()
+        if not bzno.isdigit() or len(bzno) != 10:
+            raise ValueError("사업자등록번호는 10자리 숫자여야 합니다")
+        flag: Optional[str] = None
+        if insurance is not None:
+            codes = {name: code for code, name in INSURANCE_KINDS.items()}
+            if insurance not in codes:
+                raise ValueError("보험 구분은 '산재' 또는 '고용' 이어야 합니다")
+            flag = codes[insurance]
+        body = await self.get(
+            "getGySjBoheomBsshItem",
+            {
+                "v_saeopjaDrno": bzno,
+                "opaBoheomFg": flag,
+                "pageNo": page_no,
+                "numOfRows": num_of_rows,
+            },
+        )
+        return {
+            "items": [InsuredWorkplace.from_api(i).model_dump() for i in normalize_items(body)],
+            "page_no": page_no,
+            "num_of_rows": num_of_rows,
+            "total_count": int(body.get("totalCount") or 0),
         }
