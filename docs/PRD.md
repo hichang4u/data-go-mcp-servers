@@ -184,7 +184,7 @@ async def search_business(...) -> dict[str, Any]:
 | Phase | 산출물 | 완료 기준 | 상태 |
 |---|---|---|---|
 | 0. 기준선 | 원본 vendoring, `mcp<2` 임시 핀, CI, `check_apis.py` | CI에서 로컬과 동일한 3건 실패 재현 | **완료** (2026-09-12) |
-| 0b. API 생존 확인 | `check_apis.py` 실행 결과를 README에 기록 | 6개 각각 살아있음/죽음 판정 | 대기 (API 키 필요) |
+| 0b. API 생존 확인 | `check_apis.py` 실행 결과를 README에 기록 | 6개 각각 살아있음/죽음 판정 | **완료** (2026-09-12, 6개 전부 정상) |
 | 1. mcp 2.x | D1, D8 해소. 임시 핀 제거 | 6개 서버 `list_tools` 동작, 기존 테스트 결과 유지 | |
 | 2. 결함 수정 | `data-go-mcp-core` 추출(§5.2) 후 6개 서버 이전, D4–D7, D9 해소, FR-2/3/4/6 | core 단위 테스트 + 서버별 기존 테스트 유지 | |
 | 3. 테스트·품질 | D3, D11 해소, NFR-3/6 | pytest 전부 통과, ruff 0, pyright 0, CI 전부 필수 | |
@@ -200,7 +200,7 @@ async def search_business(...) -> dict[str, Any]:
 
 | 리스크 | 대응 |
 |---|---|
-| 1년 방치 동안 API 엔드포인트·스키마 변경 | Phase 0b를 코드 수정 전에 완료. 죽은 API는 FR-7 |
+| ~~1년 방치 동안 API 엔드포인트·스키마 변경~~ | 해소 — 0b에서 6개 엔드포인트 모두 정상 응답 확인. 스키마 변경은 S2 이전 시 실응답 fixture로 검증 |
 | mcp 2.x 마이너 릴리스에서 API 변동 | `<3` 상한 + CI 매트릭스로 조기 감지 |
 | ~~MSDS 키 발급처가 data.go.kr가 아닐 가능성~~ | 해소 — data.go.kr 키로 호출 확인 |
 | 원저장소 PyPI 패키지와 이름 충돌 | git 직접 설치를 1차 배포 경로로. PyPI는 별도 네임스페이스로 후속 결정 |

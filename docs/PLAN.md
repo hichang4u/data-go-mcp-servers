@@ -12,13 +12,13 @@
 - [x] D2 제거, pytest importlib 모드
 - 결과: pytest 59 passed / 3 failed, ruff 917, pyright 46
 
-## S0b — API 생존 확인 `[~]` (키 확보 즉시, 0.5h)
+## S0b — API 생존 확인 `[x]` 2026-09-12
 
 - [x] `.env`에 `API_KEY` 설정 후 `uv run python scripts/check_apis.py` (2026-09-12)
 - [x] 6개 결과를 README "현재 상태" 표에 기록 — nts/pps/msds 정상, nps/fsc/presidential 은 코드 30/401 (활용신청 미완)
 - [x] MSDS(KOSHA)가 같은 키로 응답 → PRD §9-1 해결
-- [ ] nps / fsc(15043459) / presidential(15084167) 활용신청 후 재실행
-- [ ] 죽은 API가 있으면 FR-7 적용 대상으로 표시
+- [x] nps(3046071) / fsc(15043459) / presidential(15084167) 활용신청 후 재실행 → 6개 전부 정상
+- [x] 죽은 API 없음 → FR-7 적용 대상 없음
 - 완료 기준: 6개 서버 각각 살아있음/죽음 판정이 README에 있음
 
 ## S1 — mcp 2.x 전환 `[ ]` (0.5d) — D1, D8, FR-1
@@ -110,7 +110,7 @@
 
 | 스프린트 | 예상 | 선행 조건 |
 |---|---|---|
-| S0b | 0.5h | API 키 |
+| S0b | 완료 | — |
 | S1 | 0.5d | — |
 | S2 | 1.5d | S1. 2b의 fixture는 S0b 결과가 있으면 실응답 사용 |
 | S3 | 1d | S2 |
