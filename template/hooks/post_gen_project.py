@@ -2,9 +2,15 @@
 """Post-generation hook for setting up the new MCP server project."""
 
 import os
-import sys
+import shutil
 import subprocess
+import sys
 from pathlib import Path
+
+
+# Windows 콘솔(cp949)에서 이모지 출력이 죽지 않도록
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 
 
 def run_command(cmd, cwd=None):
@@ -32,23 +38,22 @@ def main():
     
     print("\n🚀 Setting up your new MCP server...")
     
-    # 1. Initialize git repository (if not in one already)
-    if not (project_dir / ".git").exists():
-        if run_command("git init"):
-            print("  Initialized git repository")
-    
-    # 2. Install dependencies with uv
-    if run_command("uv sync"):
-        print("  Installed dependencies")
+    # 모노레포(uv workspace)의 src/ 아래에 생성되므로 git init 은 하지 않는다 (중첩 저장소 방지).
+    # 의존성은 워크스페이스 루트에서 설치한다.
+    root = project_dir.parent.parent
+    uv = shutil.which("uv")
+    if uv is None:
+        print("  uv not found on PATH - run 'uv sync --dev --all-packages' and the tests manually.")
+    elif run_command(f'"{uv}" sync --dev --all-packages', cwd=root):
+        print("  Installed workspace dependencies")
     else:
-        print("  ⚠️  Failed to install dependencies. Run 'uv sync' manually.")
-    
-    # 3. Run initial tests
-    if run_command("uv run pytest tests/ -v"):
-        print("  All tests passed!")
-    else:
-        print("  ⚠️  Some tests failed. This is expected for the template.")
-    
+        print("  Failed to install dependencies. Run 'uv sync --dev --all-packages' at the repo root.")
+
+    if uv is not None and run_command(f'"{uv}" run pytest src/{project_dir.name}/tests -q', cwd=root):
+        print("  Template tests passed!")
+    elif uv is not None:
+        print("  Template tests failed - check the output above.")
+
     # 4. Print next steps
     print("\n✨ Your MCP server '{{ cookiecutter.api_name }}' is ready!")
     print("\n📝 Next steps:")
