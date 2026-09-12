@@ -77,7 +77,9 @@ class SummaryFinancialStatement(BaseModel):
     enp_tdbt_amt: JsonDecimal | None = Field(default=None, description="기업총부채금액")
     enp_tcpt_amt: JsonDecimal | None = Field(default=None, description="기업총자본금액")
     enp_cptl_amt: JsonDecimal | None = Field(default=None, description="기업자본금액")
-    fncl_debt_rto: JsonDecimal | None = Field(default=None, description="재무제표부채비율")
+    fncl_debt_rto: JsonDecimal | None = Field(
+        default=None, description="재무제표부채비율"
+    )
 
 
 class BalanceSheetItem(BaseModel):
@@ -98,11 +100,15 @@ class BalanceSheetItem(BaseModel):
     thqr_acit_amt: JsonDecimal | None = Field(
         default=None, description="당분기계정과목금액"
     )
-    crtm_acit_amt: JsonDecimal | None = Field(default=None, description="당기계정과목금액")
+    crtm_acit_amt: JsonDecimal | None = Field(
+        default=None, description="당기계정과목금액"
+    )
     lsqt_acit_amt: JsonDecimal | None = Field(
         default=None, description="전분기계정과목금액"
     )
-    pvtr_acit_amt: JsonDecimal | None = Field(default=None, description="전기계정과목금액")
+    pvtr_acit_amt: JsonDecimal | None = Field(
+        default=None, description="전기계정과목금액"
+    )
     bpvtr_acit_amt: JsonDecimal | None = Field(
         default=None, description="전전기계정과목금액"
     )
@@ -126,11 +132,15 @@ class IncomeStatementItem(BaseModel):
     thqr_acit_amt: JsonDecimal | None = Field(
         default=None, description="당분기계정과목금액"
     )
-    crtm_acit_amt: JsonDecimal | None = Field(default=None, description="당기계정과목금액")
+    crtm_acit_amt: JsonDecimal | None = Field(
+        default=None, description="당기계정과목금액"
+    )
     lsqt_acit_amt: JsonDecimal | None = Field(
         default=None, description="전분기계정과목금액"
     )
-    pvtr_acit_amt: JsonDecimal | None = Field(default=None, description="전기계정과목금액")
+    pvtr_acit_amt: JsonDecimal | None = Field(
+        default=None, description="전기계정과목금액"
+    )
     bpvtr_acit_amt: JsonDecimal | None = Field(
         default=None, description="전전기계정과목금액"
     )
