@@ -19,6 +19,7 @@ dev = [
     "pre-commit>=4.1.0",
     "cookiecutter>=2.6.0",
     "respx>=0.22",
+    "xmltodict>=0.14",  # data-go-mcp-core[xml] 테스트용
 ]
 
 [build-system]

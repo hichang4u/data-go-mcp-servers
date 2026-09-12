@@ -167,18 +167,21 @@ Get comprehensive financial information including all three statements.
 ```python
 # Through Claude Desktop
 "삼성전자의 2023년 재무제표를 보여줘"
+
 "법인번호 1301110006246의 최근 재무상태를 알려줘"
 ```
 
 ### Comparative Analysis
 ```python
 "법인번호 1101111848914의 2022년과 2023년 매출액 비교"
+
 "이 회사의 부채비율 변화를 확인해줘"
 ```
 
 ### Comprehensive Review
 ```python
 "법인번호 1101111848914의 2023년 전체 재무정보를 분석해줘"
+
 "이 회사의 재무건전성을 평가해줘"
 ```
 

@@ -1,329 +1,207 @@
-"""
-Tests for FSC Financial Information MCP server.
-"""
+"""fsc MCP 툴 테스트."""
 
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
 from decimal import Decimal
-import os
 
-import mcp.types as types
+import httpx
+import pytest
+import respx
+from mcp import Client
+from mcp.types import TextContent
+
 from data_go_mcp.fsc_financial_info.server import (
+    SERVER_NAME,
+    decimal_to_str,
     format_financial_amount,
-    decimal_to_str
+    mcp,
 )
 
 
-class TestServerUtilities:
-    """Test server utility functions."""
-    
-    def test_format_financial_amount(self):
-        """Test formatting financial amounts."""
-        # Test trillion
-        assert format_financial_amount(Decimal("5000000000000")) == "5.00조원"
-        
-        # Test hundred million
-        assert format_financial_amount(Decimal("10000000000")) == "100.00억원"
-        assert format_financial_amount(Decimal("5500000000")) == "55.00억원"
-        
-        # Test ten thousand
-        assert format_financial_amount(Decimal("50000000")) == "5,000만원"
-        assert format_financial_amount(Decimal("12345")) == "1만원"
-        
-        # Test small amounts
-        assert format_financial_amount(Decimal("5000")) == "5,000원"
-        assert format_financial_amount(Decimal("123")) == "123원"
-        
-        # Test negative amounts
-        assert format_financial_amount(Decimal("-1000000000")) == "-10.00억원"
-        
-        # Test None
-        assert format_financial_amount(None) == "N/A"
-        
-        # Test different currency
-        assert format_financial_amount(Decimal("1000000"), "USD") == "100만 USD"
-    
-    def test_decimal_to_str(self):
-        """Test decimal to string conversion."""
-        # Test Decimal
-        assert decimal_to_str(Decimal("123.45")) == "123.45"
-        
-        # Test dict with Decimal
-        result = decimal_to_str({
-            "amount": Decimal("1000"),
-            "ratio": Decimal("0.5"),
-            "name": "test"
-        })
-        assert result["amount"] == "1000"
-        assert result["ratio"] == "0.5"
-        assert result["name"] == "test"
-        
-        # Test list with Decimal
-        result = decimal_to_str([Decimal("100"), Decimal("200"), "text"])
-        assert result == ["100", "200", "text"]
-        
-        # Test nested structures
-        result = decimal_to_str({
-            "items": [
-                {"value": Decimal("100")},
-                {"value": Decimal("200")}
-            ]
-        })
-        assert result["items"][0]["value"] == "100"
-        assert result["items"][1]["value"] == "200"
-        
-        # Test non-Decimal values
-        assert decimal_to_str("string") == "string"
-        assert decimal_to_str(123) == 123
-        assert decimal_to_str(None) is None
+def _text(result) -> str:
+    (content,) = result.content
+    assert isinstance(content, TextContent)
+    return content.text
 
 
-class TestMCPServer:
-    """Test MCP server functionality."""
-    
-    @pytest.fixture
-    def mock_api_responses(self):
-        """Mock API responses for testing."""
-        return {
-            'summary': MagicMock(
-                items=[
-                    MagicMock(
-                        crno="1234567890123",
-                        biz_year="2023",
-                        bas_dt="20231231",
-                        fncl_dcd_nm="연결요약재무제표",
-                        cur_cd="KRW",
-                        enp_sale_amt=Decimal("100000000000"),
-                        enp_bzop_pft=Decimal("10000000000"),
-                        enp_crtm_npf=Decimal("5000000000"),
-                        enp_tast_amt=Decimal("200000000000"),
-                        enp_tdbt_amt=Decimal("80000000000"),
-                        enp_tcpt_amt=Decimal("120000000000"),
-                        enp_cptl_amt=Decimal("10000000000"),
-                        fncl_debt_rto=Decimal("66.67"),
-                        fncl_dcd=None,
-                        icls_pal_clc_amt=None
-                    )
-                ],
-                total_count=1,
-                result_code="00"
-            ),
-            'balance': MagicMock(
-                items=[
-                    MagicMock(
-                        crno="1234567890123",
-                        biz_year="2023",
-                        bas_dt="20231231",
-                        fncl_dcd_nm="연결재무제표",
-                        cur_cd="KRW",
-                        acit_nm="자산총계",
-                        acit_id="ifrs_Assets",
-                        crtm_acit_amt=Decimal("200000000000"),
-                        pvtr_acit_amt=Decimal("180000000000"),
-                        fncl_dcd=None,
-                        thqr_acit_amt=None,
-                        lsqt_acit_amt=None,
-                        bpvtr_acit_amt=None
-                    )
-                ],
-                total_count=1,
-                result_code="00"
-            ),
-            'income': MagicMock(
-                items=[
-                    MagicMock(
-                        crno="1234567890123",
-                        biz_year="2023",
-                        bas_dt="20231231",
-                        fncl_dcd_nm="연결재무제표",
-                        cur_cd="KRW",
-                        acit_nm="매출액",
-                        acit_id="dart_Revenue",
-                        crtm_acit_amt=Decimal("100000000000"),
-                        pvtr_acit_amt=Decimal("95000000000"),
-                        fncl_dcd=None,
-                        thqr_acit_amt=None,
-                        lsqt_acit_amt=None,
-                        bpvtr_acit_amt=None
-                    )
-                ],
-                total_count=1,
-                result_code="00"
-            )
-        }
-    
-    @pytest.mark.asyncio
-    async def test_server_initialization(self):
-        """Test server initialization without API key."""
-        with patch.dict(os.environ, {}, clear=True):
-            # Import should work even without API key
-            from data_go_mcp.fsc_financial_info.server import SERVER_NAME, SERVER_VERSION
-            assert SERVER_NAME == "data-go-mcp.fsc-financial-info"
-            assert SERVER_VERSION == "0.1.0"
-    
-    @pytest.mark.asyncio
-    async def test_list_tools(self):
-        """Test listing available tools."""
-        from data_go_mcp.fsc_financial_info.server import mcp
+# --- helpers ---------------------------------------------------------------
 
-        names = {tool.name for tool in await mcp.list_tools()}
-        assert names == {
+
+@pytest.mark.parametrize(
+    "amount, currency, expected",
+    [
+        (None, "KRW", "N/A"),
+        (Decimal("1500000000000"), "KRW", "1.50조원"),
+        (Decimal("250000000"), "KRW", "2.50억원"),
+        (Decimal("50000"), "KRW", "5만원"),
+        (Decimal("999"), "KRW", "999원"),
+        (Decimal("250000000"), "USD", "2.50억 USD"),
+    ],
+)
+def test_format_financial_amount(amount, currency, expected):
+    assert format_financial_amount(amount, currency) == expected
+
+
+def test_decimal_to_str_recurses():
+    assert decimal_to_str({"a": Decimal("1.5"), "b": [Decimal("2")]}) == {
+        "a": "1.5",
+        "b": ["2"],
+    }
+
+
+def test_server_name():
+    assert SERVER_NAME == "data-go-mcp.fsc-financial-info"
+
+
+# --- tools -----------------------------------------------------------------
+
+
+async def test_all_tools_are_read_only_with_described_params():
+    tools = await mcp.list_tools()
+    assert {t.name for t in tools} == {
+        "get_summary_financial_statement",
+        "get_balance_sheet",
+        "get_income_statement",
+        "search_company_financial_info",
+    }
+    for tool in tools:
+        assert tool.annotations is not None and tool.annotations.read_only_hint is True
+        for name, prop in tool.input_schema["properties"].items():
+            assert prop.get("description"), f"{tool.name}.{name} has no description"
+
+
+@respx.mock
+async def test_summary_tool_formats_text(base_url, summary_response):
+    respx.get(f"{base_url}/getSummFinaStat_V2").mock(
+        return_value=httpx.Response(200, json=summary_response)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool(
             "get_summary_financial_statement",
-            "get_balance_sheet",
-            "get_income_statement",
-            "search_company_financial_info",
-        }
+            {"crno": "1301110006246", "biz_year": "2023"},
+        )
 
-    @pytest.mark.asyncio
-    async def test_tool_call_no_api_key(self):
-        """Test tool call without API key."""
-        from mcp.server import Server
-        
-        server = Server("test")
-        
-        with patch.dict(os.environ, {}, clear=True):
-            # Mock handle_call_tool to simulate no API key error
-            result = [types.TextContent(
-                type="text",
-                text="Error: FSC_FINANCIAL_INFO_API_KEY environment variable is not set. Please set your API key to use this service."
-            )]
-            
-            assert result[0].text.startswith("Error: FSC_FINANCIAL_INFO_API_KEY")
-    
-    @pytest.mark.asyncio
-    async def test_tool_call_with_mock_response(self, mock_api_responses):
-        """Test tool calls with mocked API responses."""
-        with patch.dict(os.environ, {'FSC_FINANCIAL_INFO_API_KEY': 'test_key'}):
-            from data_go_mcp.fsc_financial_info.api_client import FSCFinancialAPIClient
-            
-            # Test get_summary_financial_statement
-            with patch.object(
-                FSCFinancialAPIClient, 
-                'get_summary_financial_statement',
-                new=AsyncMock(return_value=mock_api_responses['summary'])
-            ):
-                client = FSCFinancialAPIClient(api_key="test_key")
-                response = await client.get_summary_financial_statement(
-                    crno="1234567890123",
-                    biz_year="2023"
-                )
-                assert response.total_count == 1
-                assert response.items[0].enp_sale_amt == Decimal("100000000000")
-                await client.close()
-            
-            # Test get_balance_sheet
-            with patch.object(
-                FSCFinancialAPIClient,
-                'get_balance_sheet',
-                new=AsyncMock(return_value=mock_api_responses['balance'])
-            ):
-                client = FSCFinancialAPIClient(api_key="test_key")
-                response = await client.get_balance_sheet(
-                    crno="1234567890123",
-                    biz_year="2023"
-                )
-                assert response.total_count == 1
-                assert response.items[0].crtm_acit_amt == Decimal("200000000000")
-                await client.close()
-            
-            # Test get_income_statement
-            with patch.object(
-                FSCFinancialAPIClient,
-                'get_income_statement',
-                new=AsyncMock(return_value=mock_api_responses['income'])
-            ):
-                client = FSCFinancialAPIClient(api_key="test_key")
-                response = await client.get_income_statement(
-                    crno="1234567890123",
-                    biz_year="2023"
-                )
-                assert response.total_count == 1
-                assert response.items[0].crtm_acit_amt == Decimal("100000000000")
-                await client.close()
-    
-    @pytest.mark.asyncio
-    async def test_comprehensive_search(self, mock_api_responses):
-        """Test comprehensive financial info search."""
-        with patch.dict(os.environ, {'FSC_FINANCIAL_INFO_API_KEY': 'test_key'}):
-            from data_go_mcp.fsc_financial_info.api_client import FSCFinancialAPIClient
-            
-            # Mock all three API calls for comprehensive search
-            with patch.object(
-                FSCFinancialAPIClient,
-                'get_summary_financial_statement',
-                new=AsyncMock(return_value=mock_api_responses['summary'])
-            ), patch.object(
-                FSCFinancialAPIClient,
-                'get_balance_sheet',
-                new=AsyncMock(return_value=mock_api_responses['balance'])
-            ), patch.object(
-                FSCFinancialAPIClient,
-                'get_income_statement',
-                new=AsyncMock(return_value=mock_api_responses['income'])
-            ):
-                client = FSCFinancialAPIClient(api_key="test_key")
-                
-                # Simulate comprehensive search
-                summary = await client.get_summary_financial_statement("1234567890123", "2023")
-                balance = await client.get_balance_sheet("1234567890123", "2023")
-                income = await client.get_income_statement("1234567890123", "2023")
-                
-                assert summary.items[0].enp_sale_amt == Decimal("100000000000")
-                assert balance.items[0].acit_nm == "자산총계"
-                assert income.items[0].acit_nm == "매출액"
-                
-                await client.close()
-    
-    @pytest.mark.asyncio
-    async def test_error_handling(self):
-        """Test error handling in tool calls."""
-        with patch.dict(os.environ, {'FSC_FINANCIAL_INFO_API_KEY': 'test_key'}):
-            from data_go_mcp.fsc_financial_info.api_client import FSCFinancialAPIClient
-            
-            # Test API error
-            with patch.object(
-                FSCFinancialAPIClient,
-                'get_summary_financial_statement',
-                new=AsyncMock(side_effect=ValueError("API Error [30]: Invalid key"))
-            ):
-                client = FSCFinancialAPIClient(api_key="test_key")
-                with pytest.raises(ValueError, match="API Error"):
-                    await client.get_summary_financial_statement()
-                await client.close()
-            
-            # Test connection error
-            with patch.object(
-                FSCFinancialAPIClient,
-                'get_summary_financial_statement',
-                new=AsyncMock(side_effect=ConnectionError("Network error"))
-            ):
-                client = FSCFinancialAPIClient(api_key="test_key")
-                with pytest.raises(ConnectionError, match="Network error"):
-                    await client.get_summary_financial_statement()
-                await client.close()
-    
-    @pytest.mark.asyncio
-    async def test_empty_response_handling(self):
-        """Test handling of empty API responses."""
-        with patch.dict(os.environ, {'FSC_FINANCIAL_INFO_API_KEY': 'test_key'}):
-            from data_go_mcp.fsc_financial_info.api_client import FSCFinancialAPIClient
-            
-            empty_response = MagicMock(
-                items=[],
-                total_count=0,
-                result_code="00"
-            )
-            
-            with patch.object(
-                FSCFinancialAPIClient,
-                'get_summary_financial_statement',
-                new=AsyncMock(return_value=empty_response)
-            ):
-                client = FSCFinancialAPIClient(api_key="test_key")
-                response = await client.get_summary_financial_statement(
-                    crno="9999999999999",
-                    biz_year="2023"
-                )
-                assert len(response.items) == 0
-                assert response.total_count == 0
-                await client.close()
+    assert result.is_error is False
+    text = _text(result)
+    assert "요약 재무제표 조회 결과 (총 2건)" in text
+    assert "매출액: 258.94조원" in text
+    assert "부채비율: 25.36%" in text
+
+
+@respx.mock
+async def test_balance_sheet_tool_shows_change(base_url, balance_response):
+    respx.get(f"{base_url}/getBs_V2").mock(
+        return_value=httpx.Response(200, json=balance_response)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool(
+            "get_balance_sheet", {"crno": "1301110006246", "biz_year": "2023"}
+        )
+
+    text = _text(result)
+    assert "[자산총계]" in text
+    assert "당기: 455.91조원" in text
+    assert "증감: 7.48조원 (+1.7%)" in text
+
+
+@respx.mock
+async def test_empty_result_is_not_an_error(base_url, empty_response):
+    respx.get(f"{base_url}/getIncoStat_V2").mock(
+        return_value=httpx.Response(200, json=empty_response)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool(
+            "get_income_statement", {"crno": "9999999999999", "biz_year": "2023"}
+        )
+
+    assert result.is_error is False
+    assert "조회된 손익계산서가 없습니다" in _text(result)
+
+
+@respx.mock
+async def test_comprehensive_search_combines_three_calls(
+    base_url, summary_response, balance_response, income_response
+):
+    respx.get(f"{base_url}/getSummFinaStat_V2").mock(
+        return_value=httpx.Response(200, json=summary_response)
+    )
+    respx.get(f"{base_url}/getBs_V2").mock(
+        return_value=httpx.Response(200, json=balance_response)
+    )
+    respx.get(f"{base_url}/getIncoStat_V2").mock(
+        return_value=httpx.Response(200, json=income_response)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool(
+            "search_company_financial_info",
+            {"crno": "1301110006246", "biz_year": "2023"},
+        )
+
+    text = _text(result)
+    assert "📊 요약 재무제표" in text
+    assert "📋 재무상태표 주요 항목" in text
+    assert "• 자산총계: 455.91조원" in text
+    assert "... 외 13개 항목" in text
+    assert "💹 손익계산서 주요 항목" in text
+
+
+@respx.mock
+async def test_comprehensive_search_reports_partial_failure(
+    base_url, summary_response, income_response
+):
+    respx.get(f"{base_url}/getSummFinaStat_V2").mock(
+        return_value=httpx.Response(200, json=summary_response)
+    )
+    respx.get(f"{base_url}/getBs_V2").mock(
+        return_value=httpx.Response(502, text="bad gateway")
+    )
+    respx.get(f"{base_url}/getIncoStat_V2").mock(
+        return_value=httpx.Response(200, json=income_response)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool(
+            "search_company_financial_info",
+            {"crno": "1301110006246", "biz_year": "2023"},
+        )
+
+    assert result.is_error is False
+    assert "❌ 재무상태표 조회 실패" in _text(result)
+
+
+async def test_invalid_crno_is_tool_error():
+    async with Client(mcp) as client:
+        result = await client.call_tool(
+            "get_summary_financial_statement", {"crno": "12", "biz_year": "2023"}
+        )
+
+    assert result.is_error is True
+    assert "입력값 오류" in _text(result)
+
+
+@respx.mock
+async def test_api_error_is_tool_error(base_url):
+    respx.get(f"{base_url}/getSummFinaStat_V2").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "response": {
+                    "header": {"resultCode": "22", "resultMsg": "LIMITED"},
+                    "body": {},
+                }
+            },
+        )
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool(
+            "get_summary_financial_statement", {"crno": "1301110006246"}
+        )
+
+    assert result.is_error is True
+    assert "[22] LIMITED" in _text(result)
+
+
+async def test_missing_api_key_is_tool_error(monkeypatch):
+    monkeypatch.delenv("API_KEY")
+    async with Client(mcp) as client:
+        result = await client.call_tool("get_balance_sheet", {"crno": "1301110006246"})
+
+    assert result.is_error is True
+    assert "API_KEY" in _text(result)
