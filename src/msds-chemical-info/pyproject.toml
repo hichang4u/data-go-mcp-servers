@@ -4,7 +4,8 @@ version = "0.3.0"
 description = "MCP server for Material Safety Data Sheets from Korea Occupational Safety and Health Agency"
 readme = "README.md"
 authors = [
-    { name = "Data.go.kr MCP Servers Contributors" }
+    { name = "Data.go.kr MCP Servers Contributors" },
+    { name = "hichang4u" },
 ]
 requires-python = ">=3.10"
 license = {text = "Apache-2.0"}

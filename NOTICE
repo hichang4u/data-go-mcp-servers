@@ -1,0 +1,11 @@
+data-go-mcp-servers
+Copyright 2026 hichang4u
+
+This product is derived from Koomook/data-go-mcp-servers
+(https://github.com/Koomook/data-go-mcp-servers)
+Copyright 2024-2025 Data.go.kr MCP Servers Contributors
+Licensed under the Apache License, Version 2.0.
+
+Modifications (mcp SDK 2.x migration, data-go-mcp-core, additional public
+APIs, tests and documentation) are Copyright 2026 hichang4u and are
+licensed under the same Apache License, Version 2.0.

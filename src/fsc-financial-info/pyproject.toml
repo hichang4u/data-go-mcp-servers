@@ -3,7 +3,10 @@ name = "data-go-mcp.fsc-financial-info"
 version = "0.5.0"
 description = "MCP server for Korea FSC Corporate Financial Information API (금융위원회 기업 재무정보)"
 readme = "README.md"
-authors = [{ name = "Your Name", email = "your.email@example.com" }]
+authors = [
+    { name = "Data.go.kr MCP Servers Contributors" },
+    { name = "hichang4u" },
+]
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
 keywords = ["mcp", "llm", "data.go.kr", "korea", "openapi", "financial", "corporate", "fsc"]

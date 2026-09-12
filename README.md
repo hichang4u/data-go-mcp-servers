@@ -68,4 +68,4 @@ Python 3.10+, `mcp>=2.2`. CI 는 ubuntu/windows × 3.10/3.13 에서 pytest, ruff
 
 ## 라이선스
 
-Apache-2.0. 원저작물 저작권 표시는 [LICENSE](LICENSE) 와 각 패키지에 유지한다. 이 프로젝트는 data.go.kr 및 각 기관과 무관하며, 데이터 이용은 각 API 의 이용약관을 따른다.
+Apache-2.0. 원저작물 저작권 표시는 [NOTICE](NOTICE) 와 각 패키지의 LICENSE 에 유지한다. 이 프로젝트는 data.go.kr 및 각 기관과 무관하며, 데이터 이용은 각 API 의 이용약관을 따른다.

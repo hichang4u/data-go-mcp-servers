@@ -4,7 +4,8 @@ version = "0.5.0"
 description = "MCP server for Korea National Pension Service business enrollment API from data.go.kr"
 readme = "README.md"
 authors = [
-    { name = "Data.go.kr MCP Servers Contributors" }
+    { name = "Data.go.kr MCP Servers Contributors" },
+    { name = "hichang4u" },
 ]
 requires-python = ">=3.10"
 license = {text = "Apache-2.0"}

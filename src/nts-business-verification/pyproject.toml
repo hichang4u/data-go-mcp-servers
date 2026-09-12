@@ -4,7 +4,8 @@ version = "0.3.0"
 description = "MCP server for 국세청 사업자등록정보 진위확인 및 상태조회 서비스"
 readme = "README.md"
 authors = [
-    { name = "Your Name", email = "your.email@example.com" }
+    { name = "Data.go.kr MCP Servers Contributors" },
+    { name = "hichang4u" },
 ]
 requires-python = ">=3.10"
 license = {text = "Apache-2.0"}

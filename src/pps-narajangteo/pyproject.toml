@@ -4,7 +4,8 @@ version = "0.3.0"
 description = "MCP server for 나라장터 공공데이터개방표준서비스 (Public Procurement Service Open Data Standard)"
 readme = "README.md"
 authors = [
-    { name = "DataGo MCP" }
+    { name = "Data.go.kr MCP Servers Contributors" },
+    { name = "hichang4u" },
 ]
 requires-python = ">=3.10"
 license = {text = "Apache-2.0"}
