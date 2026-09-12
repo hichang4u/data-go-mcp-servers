@@ -303,3 +303,13 @@ class TestAPIResponses:
         assert response.is_success()
         assert len(response.items) == 0
         assert response.total_count == 0
+
+
+def test_decimal_serializes_as_number_in_json():
+    import json
+
+    item = BalanceSheetItem(crno="1234567890123", biz_year="2023", crtm_acit_amt=Decimal("12.5"))
+    payload = json.loads(item.model_dump_json())
+    assert payload["crtm_acit_amt"] == 12.5
+    assert payload["pvtr_acit_amt"] is None
+    assert payload["crno"] == "1234567890123"

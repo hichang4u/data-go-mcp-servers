@@ -4,9 +4,9 @@ Data models for FSC Corporate Financial Information API.
 """
 
 from decimal import Decimal
-from typing import Literal
+from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, Field, field_serializer, field_validator
 
 
 class BaseRequest(BaseModel):
@@ -50,7 +50,15 @@ class FinancialRequest(BaseRequest):
         return v
 
 
-class SummaryFinancialStatement(BaseModel):
+class _DecimalJSONModel(BaseModel):
+    """JSON 직렬화 시 Decimal 을 숫자로 (json_encoders 대체)."""
+
+    @field_serializer("*", when_used="json")
+    def _decimal_as_float(self, value: Any) -> Any:
+        return float(value) if isinstance(value, Decimal) else value
+
+
+class SummaryFinancialStatement(_DecimalJSONModel):
     """Summary financial statement model (요약재무제표)."""
 
     bas_dt: str | None = Field(default=None, description="기준일자")
@@ -73,12 +81,9 @@ class SummaryFinancialStatement(BaseModel):
     enp_cptl_amt: Decimal | None = Field(default=None, description="기업자본금액")
     fncl_debt_rto: Decimal | None = Field(default=None, description="재무제표부채비율")
 
-    model_config = ConfigDict(
-        json_encoders={Decimal: lambda v: float(v) if v is not None else None}
-    )
 
 
-class BalanceSheetItem(BaseModel):
+class BalanceSheetItem(_DecimalJSONModel):
     """Balance sheet item model (재무상태표 항목)."""
 
     bas_dt: str | None = Field(default=None, description="기준일자")
@@ -105,12 +110,9 @@ class BalanceSheetItem(BaseModel):
         default=None, description="전전기계정과목금액"
     )
 
-    model_config = ConfigDict(
-        json_encoders={Decimal: lambda v: float(v) if v is not None else None}
-    )
 
 
-class IncomeStatementItem(BaseModel):
+class IncomeStatementItem(_DecimalJSONModel):
     """Income statement item model (손익계산서 항목)."""
 
     bas_dt: str | None = Field(default=None, description="기준일자")
@@ -137,9 +139,6 @@ class IncomeStatementItem(BaseModel):
         default=None, description="전전기계정과목금액"
     )
 
-    model_config = ConfigDict(
-        json_encoders={Decimal: lambda v: float(v) if v is not None else None}
-    )
 
 
 class APIResponse(BaseModel):
