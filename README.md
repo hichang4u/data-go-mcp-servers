@@ -40,15 +40,15 @@
 | 3. 테스트 | 깨진 테스트 수정, `respx`로 HTTP mocking 통일, 서버당 최소 1개 테스트, `integration` 마커로 실호출 분리 |
 | 4. 배포 | 버전 bump, git 직접 설치(`uvx --from git+...`) 안내 또는 별도 PyPI 네임스페이스 |
 
-## 현재 상태 (S2 완료, 2026-09-12)
+## 현재 상태 (S3 완료, 2026-09-12)
 
-| 항목 | S0 기준선 | S1 (mcp 2.2) | S2 (core 추출) |
-|---|---|---|---|
-| `uv run pytest` | 59 passed, 3 failed | 65 passed, 3 failed | **195 passed, 0 failed** |
-| 6개 서버 stdio 기동 + `list_tools` | — | 통과 | 통과 (API 키 없이도 기동) |
-| 툴 실패 → MCP `isError` | 아니오 (`{"error": …}` dict) | 아니오 | **예** (`ToolError`) |
-| `ruff check src scripts` | 917건 | 미측정 | 새 코드 0건, 원본 잔여는 S3 |
-| `pyright src` | 46 errors | 미측정 | 새 코드 0건, 원본 잔여는 S3 |
+| 항목 | S0 기준선 | S1 (mcp 2.2) | S2 (core 추출) | S3 (품질) |
+|---|---|---|---|---|
+| `uv run pytest` | 59 passed, 3 failed | 65 passed, 3 failed | 195 passed | **206 passed, 0 warnings** |
+| 6개 서버 stdio 기동 + `list_tools` | — | 통과 | 통과 (API 키 없이도 기동) | + 실호출 통합테스트 (`-m integration`) |
+| 툴 실패 → MCP `isError` | 아니오 (`{"error": …}` dict) | 아니오 | **예** (`ToolError`) | 예 |
+| `ruff check src scripts tests` | 917건 | 미측정 | 새 코드 0건 | **0건, CI 필수** |
+| `pyright src scripts tests` | 46 errors | 미측정 | 새 코드 0건 | **0 errors, CI 필수** |
 
 S2에서 한 것: 공통 패키지 `src/data-go-mcp-core`(`BaseDataGoClient`, `DataGoAPIError`, `load_api_key`,
 `tool_errors`, `READ_ONLY`, `configure_logging`) 를 만들고 6개 서버를 그 위로 이전. 모든 툴에
@@ -73,7 +73,10 @@ data.go.kr 일반 인증키 1개로 6개 API 모두 정상 응답 확인. nps/fs
 
 ```bash
 uv sync --dev --all-packages
-uv run pytest
+uv run pytest                      # integration 마커는 API_KEY 없으면 skip
+uv run pytest -m integration       # .env 의 키로 6개 API 실호출
+uv run ruff check src scripts tests && uv run pyright src scripts tests
+uv run pre-commit install          # 커밋 전 ruff/pyright 자동 실행
 uv run python -m data_go_mcp.nps_business_enrollment.server   # 서버 단독 실행
 ```
 

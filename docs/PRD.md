@@ -189,7 +189,7 @@ async def search_business(...) -> dict[str, Any]:
 | 0b. API 생존 확인 | `check_apis.py` 실행 결과를 README에 기록 | 6개 각각 살아있음/죽음 판정 | **완료** (2026-09-12, 6개 전부 정상) |
 | 1. mcp 2.x | D1, D8 해소. 임시 핀 제거 | 6개 서버 `list_tools` 동작, 기존 테스트 결과 유지 | **완료** (2026-09-12) |
 | 2. 결함 수정 | `data-go-mcp-core` 추출(§5.2) 후 6개 서버 이전, D4–D7, D9 해소, FR-2/3/4/6 | core 단위 테스트 + 서버별 기존 테스트 유지 | **완료** (2026-09-12, 195 passed; D3도 해소) |
-| 3. 테스트·품질 | D3, D11 해소, NFR-3/6 | pytest 전부 통과, ruff 0, pyright 0, CI 전부 필수 | |
+| 3. 테스트·품질 | D3, D11 해소, NFR-3/6 | pytest 전부 통과, ruff 0, pyright 0, CI 전부 필수 | **완료** (2026-09-12, 206 passed) |
 | 4. 문서·배포 | D10 해소, FR-7/8, 버전 bump(0.3.0), CHANGELOG | 새 환경에서 README만 보고 Claude Desktop 연결 성공 | |
 
 ## 7. 성공 지표

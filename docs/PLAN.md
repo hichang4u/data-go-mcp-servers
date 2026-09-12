@@ -104,7 +104,7 @@
   - `configure_logging` 이 root INFO 를 켜면서 httpx 의 `HTTP Request: GET <url?serviceKey=…>` 가 stderr 에 남음 (키 유출) → httpx/httpcore WARNING.
   - msds: xmltodict 가 빈 요소를 `None` 으로 주어 필수 필드 `ValidationError` 로 툴 전체 실패 가능 → None 제거 + 모델 기본값.
 
-## S3 — 테스트·품질 `[ ]` (1d) — D3, D11, NFR-3/6
+## S3 — 테스트·품질 `[x]` 2026-09-12 — D3, D11, NFR-3/6
 
 | # | 태스크 | 대상 |
 |---|---|---|
@@ -117,7 +117,13 @@
 | 3.7 | pyright 46건 → 0건 (주로 Optional 처리, dict 타입) | 전체 |
 | 3.8 | CI에서 ruff/pyright `continue-on-error` 제거, `pre-commit` 설정 추가 | `.github/workflows/ci.yml`, `.pre-commit-config.yaml` |
 
-- 완료 기준: pytest 전부 통과, ruff 0, pyright 0, CI 4개 매트릭스 + lint 모두 필수 green
+- 완료 기준: pytest 전부 통과, ruff 0, pyright 0, CI 4개 매트릭스 + lint 모두 필수 green → **충족**
+- 3.1–3.4 는 S2 에서 서버별 테스트를 respx/인프로세스 Client 로 전부 재작성하면서 이미 끝남.
+- 3.5: `tests/test_integration.py` (서버당 실호출 1건, `integration` 마커) + 루트 `conftest.py` 가 `.env` 를 읽어 키 없으면 skip.
+  로컬 `uv run pytest -m integration` 6 passed / 키 없이 6 skipped 확인.
+- 3.6/3.7: 잔여 ruff 7건, pyright 27건(전부 원본 모델의 `Field(None, …)`) 수정. fsc `json_encoders` 는 `field_serializer` 로 교체 → 경고 0.
+- 3.8: CI lint 필수화(src/scripts/tests), `.pre-commit-config.yaml` (uv run ruff/pyright).
+- 결과: **206 passed, 0 warnings, ruff 0, pyright 0**. 브랜치 `s3-quality`.
 
 ## S4 — 문서·배포 `[ ]` (0.5d) — D10, FR-7/8
 
@@ -140,7 +146,7 @@
 | S0b | 완료 | — |
 | S1 | 0.5d | — |
 | S2 | 완료 | — |
-| S3 | 1d | S2 |
+| S3 | 완료 | — |
 | S4 | 0.5d | S3, S0b |
 
 총 3.5d. S0b가 늦어지면 S1–S3는 mocked 응답으로 진행하고 S4 전에 반드시 완료.
