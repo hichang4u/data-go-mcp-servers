@@ -1,6 +1,6 @@
 # data-go-mcp.nps-business-enrollment
 
-국민연금공단 사업장 가입내역 MCP 서버. 툴 레퍼런스·예시·제약은 [docs/guide/servers/nps-business-enrollment.md](../../docs/guide/servers/nps-business-enrollment.md).
+국민연금공단 사업장 가입내역 + 행정안전부 법정동코드 + 근로복지공단 고용·산재보험 현황 MCP 서버 (API 3종, 각각 활용신청 필요). 툴 레퍼런스·예시·제약은 [docs/guide/servers/nps-business-enrollment.md](../../docs/guide/servers/nps-business-enrollment.md).
 
 ## 실행
 

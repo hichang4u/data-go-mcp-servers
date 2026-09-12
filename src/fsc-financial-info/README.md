@@ -1,6 +1,6 @@
 # data-go-mcp.fsc-financial-info
 
-금융위원회 기업 재무정보 MCP 서버. 툴 레퍼런스·예시·제약은 [docs/guide/servers/fsc-financial-info.md](../../docs/guide/servers/fsc-financial-info.md).
+금융위원회 기업 재무정보 + 기업기본정보(법인번호·개요) + 주식시세 MCP 서버 (API 3종, 각각 활용신청 필요). 툴 레퍼런스·예시·제약은 [docs/guide/servers/fsc-financial-info.md](../../docs/guide/servers/fsc-financial-info.md).
 
 ## 실행
 

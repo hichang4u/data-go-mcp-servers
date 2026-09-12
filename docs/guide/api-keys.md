@@ -13,16 +13,24 @@ Encoding 값(`%2B`, `%3D` 가 섞인 것)이 아니라 **Decoding 값**(`+`, `=`
 
 키가 있어도 **API 마다 활용신청**을 해야 한다. 미신청 상태면 코드 30(`등록되지 않은 서비스키`) 또는 odcloud 계열은 HTTP 401 이 온다. 전부 자동승인이며 신청 직후부터 쓸 수 있다.
 
-| 서버 | 신청 페이지 |
-|---|---|
-| nps-business-enrollment | [국민연금공단_국민연금 가입 사업장 내역](https://www.data.go.kr/data/3046071/openapi.do) 와 [행정안전부_행정표준코드_법정동코드](https://www.data.go.kr/data/15077871/openapi.do) (`find_region_code` 용), [근로복지공단_고용/산재보험 현황정보](https://www.data.go.kr/data/15059256/openapi.do) (`get_insurance_status` 용) |
-| nts-business-verification | 포털에서 "국세청_사업자등록정보 진위확인 및 상태조회 서비스" 검색 |
-| pps-narajangteo | 포털에서 "조달청_나라장터 공공데이터개방표준서비스" 검색 |
-| fsc-financial-info | [금융위원회_기업 재무정보](https://www.data.go.kr/data/15043459/openapi.do) , [금융위원회_기업기본정보](https://www.data.go.kr/data/15043184/openapi.do) (`find_corp_number` 용), [금융위원회_주식시세정보](https://www.data.go.kr/data/15094808/openapi.do) (`get_stock_price` 용) |
-| presidential-speeches | [대통령기록관_대통령연설기록(연설문)](https://www.data.go.kr/data/15084167/fileData.do) → "오픈API" 탭 |
-| msds-chemical-info | 별도 신청 없이 동작 확인됨 (2026-09) |
+한 서버가 API 여러 개를 쓰면 **그 서버의 모든 API** 에 신청해야 그 서버의 툴이 전부 동작한다. 쓰지 않을 툴의 API 는 건너뛰어도 된다 — 그 툴만 코드 30 으로 실패한다.
 
-활용목적은 "참고자료" 또는 "앱개발" 정도면 된다. 개발계정 일일 트래픽은 대개 10,000건이다.
+| 서버 | API (신청 페이지) | 쓰는 툴 |
+|---|---|---|
+| nps-business-enrollment | [국민연금공단_국민연금 가입 사업장 내역](https://www.data.go.kr/data/3046071/openapi.do) | `search_business` `get_business_detail` `get_period_status` |
+| | [행정안전부_행정표준코드_법정동코드](https://www.data.go.kr/data/15077871/openapi.do) | `find_region_code` |
+| | [근로복지공단_고용/산재보험 현황정보](https://www.data.go.kr/data/15059256/openapi.do) | `get_insurance_status` |
+| nts-business-verification | 포털에서 "국세청_사업자등록정보 진위확인 및 상태조회 서비스" 검색 | 전체 |
+| pps-narajangteo | 포털에서 "조달청_나라장터 공공데이터개방표준서비스" 검색 | 전체 |
+| fsc-financial-info | [금융위원회_기업 재무정보](https://www.data.go.kr/data/15043459/openapi.do) | `get_summary_financial_statement` `get_balance_sheet` `get_income_statement` `search_company_financial_info` |
+| | [금융위원회_기업기본정보](https://www.data.go.kr/data/15043184/openapi.do) | `find_corp_number` `get_corp_outline` |
+| | [금융위원회_주식시세정보](https://www.data.go.kr/data/15094808/openapi.do) | `get_stock_price` `search_stock_items` |
+| presidential-speeches | [대통령기록관_대통령연설기록(연설문)](https://www.data.go.kr/data/15084167/fileData.do) → "오픈API" 탭 | 전체 |
+| msds-chemical-info | 별도 신청 없이 동작 확인됨 (2026-09) | 전체 |
+
+활용목적은 "참고자료" 또는 "앱개발" 정도면 되고, 사유는 "OO 조회 서비스에 OO 정보를 함께 제공하는 용도" 한 줄이면 충분하다. 개발계정 일일 트래픽은 대개 10,000건이다.
+
+승인 페이지의 **End Point** 는 서버 코드에 이미 들어 있으니 따로 적어 둘 필요는 없다.
 
 ## 3. 키를 서버에 넘기는 방법
 

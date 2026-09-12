@@ -21,11 +21,11 @@ Windows 에서 `uv` 가 PATH 에 없으면 `python -m uv …`. 이 셸에서 이
 ## 구조
 
 - `src/data-go-mcp-core` — 공통: `BaseDataGoClient`, `DataGoAPIError`, `load_api_key`, `tool_errors`, `READ_ONLY`, `configure_logging`
-- `src/<server>/data_go_mcp/<module>/{api_client,models,server}.py` + `tests/{conftest,test_api,test_server}.py`
+- `src/<server>/data_go_mcp/<module>/{api_client,models,server}.py` + `tests/{conftest,test_api,test_server}.py`. 서버가 API 여러 개를 쓰면 `api_client.py` 에 클라이언트 클래스 여러 개(같은 `key_env_prefix`), 테스트는 `test_<api>_api.py` (nps 3종, fsc 3종)
 - `tests/` — stdio 스모크(`test_list_tools`), 실호출(`test_integration`), 루트 `conftest.py`(.env 로드, integration skip)
 - `template/` — cookiecutter. `docs/development/` — 설계·계획. `docs/guide/` — 사용자 문서.
 
-상세: [docs/development/architecture.md](docs/development/architecture.md). 새 서버: [docs/development/adding-a-server.md](docs/development/adding-a-server.md).
+상세: [docs/development/architecture.md](docs/development/architecture.md). 새 API: [docs/development/adding-a-server.md](docs/development/adding-a-server.md) — 기존 서버의 주제면 그 서버에 툴을 추가하고(설정 항목을 늘리지 않기 위해), 아니면 새 서버.
 
 ## 반드시 지킬 것
 
@@ -47,3 +47,7 @@ Windows 에서 `uv` 가 PATH 에 없으면 `python -m uv …`. 이 셸에서 이
 - `sed`/heredoc 으로 긴 파일을 쓰면 Bash 명령이 잘릴 수 있다 → 큰 파일은 Write 도구로.
 - Windows cp949 콘솔에서 이모지 `print()` 는 `UnicodeEncodeError` → 스크립트 상단 `sys.stdout.reconfigure(encoding="utf-8")`.
 - `.env` 는 서버(`load_dotenv`)와 루트 conftest 가 읽는다. 키 없는 경로를 테스트할 땐 `cwd=tmp_path` 또는 `monkeypatch.delenv`.
+- 엔드포인트는 활용신청 승인 페이지의 End Point 를 그대로 (주식시세는 `/1160100/GetStockSecuritiesInfoService_V2/…`, `service/` 없음). 문서의 파라미터가 무시되기도 한다(주식시세 `crno`) → 실호출로 확인.
+- fixture dict 는 모듈 상수를 공유한다. 테스트 안에서 고치려면 깊은 복사 먼저.
+- XML 서비스는 게이트웨이 오류도 XML 로, 200 으로 올 때도 있다 → core `_gateway_error` 가 처리 (0.1.1).
+- `ValueError` 는 `async with tool_errors():` 안에서 raise 해야 `ToolError` 가 된다.

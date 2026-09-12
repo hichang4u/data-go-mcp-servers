@@ -1,9 +1,11 @@
 ---
-description: data.go.kr API 하나를 새 MCP 서버로 추가한다 (API 문서를 붙여넣어 시작)
+description: data.go.kr API 하나를 새 MCP 서버로, 또는 기존 서버의 툴로 추가한다 (API 문서를 붙여넣어 시작)
 argument-hint: (API 문서 또는 data.go.kr 페이지 URL)
 ---
 
-새 서버를 추가한다. 절차와 규약은 @docs/development/adding-a-server.md 와 @docs/development/architecture.md 를 따른다. 아래는 그 요약이다.
+공공 API 를 추가한다. 절차와 규약은 @docs/development/adding-a-server.md 와 @docs/development/architecture.md 를 따른다. 아래는 그 요약이다.
+
+**먼저 결정**: 기존 서버의 툴을 돕거나 같은 주제 축이면 그 서버에 툴을 추가한다 (2·3 의 골격 생성을 건너뛰고 `api_client.py` 에 클라이언트 클래스 하나 더, 테스트는 `tests/test_<api>_api.py`, 등록은 adding-a-server.md 의 "기존 서버에 API 추가 시"). 주제가 다르면 새 서버.
 
 ## 1. 입력 확인
 
@@ -13,7 +15,8 @@ argument-hint: (API 문서 또는 data.go.kr 페이지 URL)
 - 응답 형식 파라미터 이름(`dataType`/`type`/`resultType`/`returnType`)과 XML 전용 여부
 - 응답 래핑: 표준 `response/header/body` 인지 odcloud(`status_code`/`data`, `currentCount`/`data`) 인지
 - 요청 파라미터(camelCase), 필수 여부, 형식·범위 제한(조회 기간 한도, 최대 건수)
-- 활용신청 완료 여부 — 안 됐으면 먼저 하게 한다 (미신청 시 코드 30)
+- 활용신청 완료 여부 — 안 됐으면 먼저 하게 한다 (미신청 시 코드 30). 승인 페이지의 **End Point** 를 받아 그대로 쓴다
+- 문서의 파라미터가 실제로 필터하는지 실호출로 확인한다 (무시되는 것이 있다). 같은 대상이 여러 행(스냅샷·일자)으로 오는지도
 - 사용 예시 프롬프트 2~3개 → 툴 설계의 기준
 
 가능하면 `uv run python -c` 나 `scripts/check_apis.py` 식으로 **실제 응답을 한 번 받아** `tests/conftest.py` fixture 로 쓴다.
@@ -46,4 +49,5 @@ uv run cookiecutter template/ -o src/
 
 - `uv run pytest` 전체 통과 (새 서버 테스트 ≥ 8개: 파라미터 전달, 파싱, 빈 결과, API 오류→`DataGoAPIError`, 툴 annotation/설명, 정상 호출, `isError` 경로, 키 없음)
 - `.env` 키로 `uv run pytest -m integration` 의 새 항목 통과
-- 커밋 `feat(<scope>): add <api_name> server`
+- 커밋 `feat(<scope>): add <api_name> server` (기존 서버면 `feat(<server>): add <tool>`)
+- 스프린트 끝 `/code-review` → 수정(테스트 먼저) → `main` merge

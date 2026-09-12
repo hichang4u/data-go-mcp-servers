@@ -36,4 +36,4 @@ async def search(keyword: Annotated[str, Field(description="검색어")]) -> dic
             return {"items": await client.search(keyword)}
 ```
 
-응답 래핑이 data.go.kr 표준(`response/header/body`)이 아니면 `_check_response(self, data) -> dict` 를 오버라이드한다. 설계 설명은 [docs/development/architecture.md](../../docs/development/architecture.md).
+응답 래핑이 data.go.kr 표준(`response/header/body`)이 아니면 `_check_response(self, data) -> dict` 를 오버라이드한다. 게이트웨이 오류(`OpenAPI_ServiceResponse`, odcloud `{"code","msg"}`)는 JSON·XML 모두 `DataGoAPIError` 로 바뀐다. 한 서버가 API 여러 개를 쓰면 클라이언트 클래스를 여러 개 두고 `key_env_prefix` 를 공유한다. 설계 설명은 [docs/development/architecture.md](../../docs/development/architecture.md).

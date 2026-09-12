@@ -8,10 +8,10 @@ src/
   data-go-mcp-core/       공통 패키지 (data_go_mcp.core)
   <server>/               서버당 독립 패키지 — pyproject.toml, data_go_mcp/<module>/, tests/
     data_go_mcp/<module>/
-      api_client.py       BaseDataGoClient 서브클래스: 엔드포인트별 메서드 + 응답 → 모델
+      api_client.py       BaseDataGoClient 서브클래스(들): 엔드포인트별 메서드 + 응답 → 모델. API 하나당 클래스 하나
       models.py           pydantic 모델 (alias = API camelCase, 속성 = snake_case)
       server.py           MCPServer 인스턴스와 @mcp.tool() 함수, main()
-    tests/                conftest.py(실응답 fixture) + test_api.py + test_server.py
+    tests/                conftest.py(실응답 fixture) + test_api.py(+ test_<api>_api.py) + test_server.py
 template/                 cookiecutter 템플릿 (새 서버 골격)
 tests/                    저장소 수준: stdio 스모크(test_list_tools), 실호출(test_integration)
 scripts/                  check_apis.py, gen_tool_docs.py, deploy_to_pypi.py, create_mcp_server.py
@@ -33,7 +33,7 @@ MCP client ──stdio──▶ server.py (MCPServer)
                          ├ load_api_key(prefix)        <PREFIX>_API_KEY > API_KEY
                          ├ _params(): serviceKey + default_params, None 제거
                          ├ httpx.AsyncClient (timeout 30s)
-                         ├ _gateway_error(): 4xx + OpenAPI_ServiceResponse / {"code","msg"} → DataGoAPIError
+                         ├ _gateway_error(): OpenAPI_ServiceResponse(JSON·XML, 4xx 또는 200) / {"code","msg"} → DataGoAPIError
                          ├ raise_for_status()
                          ├ _parse(): JSON 또는 XML(xmltodict)
                          └ _check_response(): response/header/resultCode 검사 → body 반환 (훅)
@@ -44,6 +44,21 @@ MCP client ──stdio──▶ server.py (MCPServer)
                          ▼
 MCP client ◀── CallToolResult(is_error=True, "data.go.kr 오류 [30] …") 또는 정상 결과
 ```
+
+## 서버와 API 의 관계
+
+서버는 **주제 축**(사업장, 사업자, 조달, 기업재무, 연설문, 화학물질)이고, 한 서버가 API 여러 개를 쓸 수 있다.
+사용자 설정(`mcpServers` 항목)은 서버 단위이므로, 다른 툴을 돕는 작은 조회(코드 변환, 번호 매핑)는 새 서버가 아니라
+**기존 서버에 툴을 추가**한다. 같은 서버의 클라이언트들은 `key_env_prefix` 를 공유한다(키는 하나, 활용신청은 API 마다).
+
+| 서버 | 클라이언트 (API) |
+|---|---|
+| nps | `NPSAPIClient`(국민연금 사업장) · `RegionCodeAPIClient`(행안부 법정동코드) · `InsuranceStatusAPIClient`(근로복지공단 고용·산재보험, XML) |
+| fsc | `FSCFinancialAPIClient`(재무정보) · `CorpBasicInfoAPIClient`(기업기본정보) · `StockPriceAPIClient`(주식시세) |
+| nts, pps, presidential, msds | 각 1개 |
+
+툴 결과에는 다음 툴의 입력을 그대로 만들어 준다 — `find_region_code.nps_params` → `search_business`,
+`find_corp_number.crno` → 재무제표 툴, `get_corp_outline.enp_pban_cmpy_nm` → `get_stock_price.itms_nm`.
 
 ## core 패키지 (`data_go_mcp.core`)
 
@@ -76,7 +91,9 @@ class NPSAPIClient(BaseDataGoClient):
 
 | 계열 | 서버 | 키 전달 | 형식 파라미터 | 응답 래핑 | 비고 |
 |---|---|---|---|---|---|
-| data.go.kr 표준 | nps, pps, fsc | `serviceKey` 쿼리 | `dataType=json` / `type=json` / `resultType=json` | `response.header.resultCode` + `response.body` | 미신청 시 HTTP 403 + `OpenAPI_ServiceResponse` |
+| data.go.kr 표준 | nps, pps, fsc(재무·기업기본·주식시세) | `serviceKey` 쿼리 | `dataType=json` / `type=json` / `resultType=json` | `response.header.resultCode` + `response.body` | 미신청 시 HTTP 403 + `OpenAPI_ServiceResponse`. 주식시세 경로엔 `service/` 세그먼트가 없다 |
+| data.go.kr 표준 (XML) | nps(고용·산재보험) | `serviceKey` 쿼리 | 없음 | 같음, xmltodict 로 파싱 | 게이트웨이 오류도 XML 로 (200 으로 올 때도 있음) |
+| 비표준 JSON | nps(법정동코드) | `serviceKey` 쿼리 | `type=json` | `{"StanReginCd":[{"head":[…]},{"row":[…]}]}`, 결과 없음은 `{"RESULT":{"resultCode":"INFO-3"}}` | `_check_response` 오버라이드 |
 | odcloud | nts, presidential | `serviceKey` 쿼리 | `returnType=JSON` | `status_code`/`data` (nts), `currentCount`/`data` (presidential) | 미신청 시 HTTP 401 + `{"code":-401}`. presidential 은 `cond[컬럼::EQ\|LIKE]` 서버 필터 |
 | KOSHA | msds | `serviceKey` 쿼리 | 없음 (XML 전용) | data.go.kr 표준과 동일 | data.go.kr 키 그대로 사용 가능 |
 

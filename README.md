@@ -1,6 +1,6 @@
 # data-go-mcp-servers
 
-한국 공공데이터 API 를 MCP(Model Context Protocol) 서버로 제공한다. Claude Desktop, Claude Code 등 MCP 클라이언트에서 국민연금 사업장, 사업자등록 상태, 나라장터 입찰, 기업 재무제표, 대통령 연설문, MSDS 화학물질 정보를 바로 조회할 수 있다.
+한국 공공데이터 API 를 MCP(Model Context Protocol) 서버로 제공한다. Claude Desktop, Claude Code 등 MCP 클라이언트에서 국민연금 사업장과 고용·산재보험 현황, 사업자등록 상태, 나라장터 입찰, 기업 재무제표·법인번호·주식시세, 대통령 연설문, MSDS 화학물질 정보를 바로 조회할 수 있다.
 
 [Koomook/data-go-mcp-servers](https://github.com/Koomook/data-go-mcp-servers)(Apache-2.0, 2025-09 이후 정지)를 기반으로 mcp SDK 2.x 에 맞춰 재정비한 것이다. 툴 이름과 파라미터는 원저장소와 호환된다.
 
@@ -15,7 +15,7 @@
 | [presidential-speeches](docs/guide/servers/presidential-speeches.md) | 대통령기록관 — 연설문 | `list_speeches` `search_speeches` `get_recent_speeches` |
 | [msds-chemical-info](docs/guide/servers/msds-chemical-info.md) | 안전보건공단 — MSDS | `search_chemicals` `get_chemical_section` `get_complete_msds` 외 4 |
 
-모든 툴은 조회 전용이며, 실패는 MCP 오류 결과(`isError`)로 전달된다.
+서버 6개, 툴 31개, 공공 API 10종. 모든 툴은 조회 전용이며, 실패는 MCP 오류 결과(`isError`)로 전달된다. 한 서버가 API 여러 개를 쓰는 경우(nps 3, fsc 3)는 각각 활용신청이 필요하다 — 표는 [api-keys.md](docs/guide/api-keys.md).
 
 ## 빠른 시작
 
@@ -59,7 +59,7 @@
 ```bash
 git clone https://github.com/hichang4u/data-go-mcp-servers && cd data-go-mcp-servers
 uv sync --dev --all-packages
-uv run pytest                                   # 207 tests; 실호출은 .env 에 API_KEY 를 두고 -m integration
+uv run pytest                                   # 263 tests; 실호출은 .env 에 API_KEY 를 두고 -m integration
 uv run ruff check src scripts tests && uv run pyright src scripts tests
 uv run python scripts/check_apis.py             # 10개 API 생존·권한 확인
 ```

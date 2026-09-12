@@ -19,10 +19,10 @@ uvx --from "git+https://github.com/hichang4u/data-go-mcp-servers#subdirectory=sr
 
 | `<server>` | 내용 |
 |---|---|
-| `nps-business-enrollment` | 국민연금 사업장 가입내역 |
+| `nps-business-enrollment` | 국민연금 사업장 가입내역, 법정동코드, 고용·산재보험 현황 |
 | `nts-business-verification` | 국세청 사업자등록 진위확인·상태 |
 | `pps-narajangteo` | 나라장터 입찰·낙찰·계약 |
-| `fsc-financial-info` | 금융위원회 기업 재무정보 |
+| `fsc-financial-info` | 금융위원회 기업 재무정보, 법인번호·기업 개요, 주식시세 |
 | `presidential-speeches` | 대통령기록관 연설문 |
 | `msds-chemical-info` | 안전보건공단 MSDS |
 

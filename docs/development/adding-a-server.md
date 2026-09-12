@@ -1,6 +1,15 @@
-# 새 서버 추가하기
+# 새 서버 추가하기 / 기존 서버에 API 추가하기
 
 목표 소요: API 하나당 2시간 안팎 (문서 분석 30분, 클라이언트·툴 40분, 테스트 30분, 문서 20분).
+
+## 새 서버인가, 기존 서버의 툴인가
+
+먼저 정한다. 사용자 설정은 서버 단위라 서버가 늘수록 설정이 번거롭다.
+
+- **기존 서버에 툴 추가** — 그 서버의 툴을 돕거나 같은 주제 축인 API (코드 변환, 번호 매핑, 같은 대상의 다른 면). 예: 법정동코드·고용보험 → nps, 기업기본정보·주식시세 → fsc.
+- **새 서버** — 주제가 다르고 혼자서도 쓰이는 API (날씨, 대기오염, 관광).
+
+기존 서버에 넣을 때는 1(골격 생성)을 건너뛰고 `api_client.py` 에 `BaseDataGoClient` 서브클래스를 **하나 더** 만든다 (`key_env_prefix` 는 그 서버 것을 그대로). 테스트는 `tests/test_<api>_api.py` 로 나누고, fixture 는 같은 `conftest.py` 에. 나머지 절차는 같고, 6(등록)에서 "새 서버 등록" 대신 "기존 서버에 API 추가 시" 를 따른다.
 
 ## 0. API 분석
 
@@ -11,6 +20,9 @@ data.go.kr 의 해당 API 페이지에서 확인할 것:
 - 응답 래핑: 표준 `response/header/body` 인지, odcloud 형식인지
 - 요청 파라미터의 camelCase 이름, 필수 여부, 형식·범위 제한 (조회 기간 한도 등)
 - 활용신청을 하고 `scripts/check_apis.py` 식으로 실제 응답을 한 번 받아 둔다 — **테스트 fixture 로 쓴다**
+- 엔드포인트는 활용신청 승인 페이지의 **End Point 를 그대로** 쓴다. 추측한 경로는 코드 30(미등록)이나 12(폐기)로 헷갈리게 실패한다 (주식시세: `/1160100/GetStockSecuritiesInfoService_V2/…`, `service/` 없음)
+- 문서에 있는 파라미터가 **실제로 동작하는지** 실호출로 확인한다. 무시되는 파라미터가 있다 (주식시세 `crno`, 고용산재 `v_saeopjangNm`). 필터가 없는 파라미터를 툴에 노출하면 전체 데이터가 돌아온다
+- 같은 대상이 여러 행으로 오는지 본다 (기업기본정보는 유효기간별 스냅샷, 주식시세는 일자별). 툴이 무엇을 한 건으로 볼지 정한다
 
 ## 1. 골격 생성
 
@@ -70,6 +82,19 @@ class WeatherForecastAPIClient(BaseDataGoClient):
 - [ ] API 의 범위 제한(기간, 최대 건수)을 docstring 에 적는다
 
 ## 6. 등록
+
+### 기존 서버에 API 추가 시
+
+- `tests/test_list_tools.py::SERVERS` 의 그 서버 툴 집합에 추가
+- `tests/test_integration.py::CALLS` 에 새 툴 실호출 1건
+- `scripts/check_apis.py::TARGETS` 에 `"<server> (<API 별칭>)"` 이름으로 엔드포인트 추가
+- `docs/guide/servers/<server>.md`: 첫 문단, 데이터셋 표(신청 페이지 링크, 오퍼레이션명), 활용신청 행("N개 API 모두"), 예시 프롬프트, 알아둘 것 → `uv run python scripts/gen_tool_docs.py`
+- `docs/guide/api-keys.md` 신청 표의 그 서버 행에 API 추가, `docs/guide/troubleshooting.md` 의 "결과가 비어 있을 때"
+- `README.md` 서버 표(툴 목록), `CLAUDE.md`·README 의 API 개수
+- `src/<server>/CHANGELOG.md` 에 Added, `pyproject.toml` 버전 bump (minor)
+- `docs/development/PLAN.md` 의 해당 항목에 드러난 사실 기록
+
+### 새 서버 등록 시
 
 - `tests/test_list_tools.py` 의 `SERVERS` 에 모듈과 툴 이름 추가
 - `tests/test_integration.py` 의 `CALLS` 에 실호출 1건 추가

@@ -14,7 +14,7 @@ Python 3.10+, [uv](https://docs.astral.sh/uv/). 설계는 [docs/development/arch
 
 ## 무엇을 기여할 수 있나
 
-- **새 공공 API 서버** — [docs/development/adding-a-server.md](docs/development/adding-a-server.md) 의 절차대로. 템플릿(`uv run cookiecutter template/ -o src/`)이 골격을 만든다.
+- **새 공공 API** — [docs/development/adding-a-server.md](docs/development/adding-a-server.md) 의 절차대로. 기존 서버의 주제와 맞으면 그 서버에 툴을 추가하고(클라이언트 클래스 하나 더), 아니면 템플릿(`uv run cookiecutter template/ -o src/`)으로 새 서버를 만든다.
 - **기존 서버의 툴 개선** — 툴 이름·파라미터는 하위호환을 지킨다. 바꿔야 하면 새 선택 파라미터를 추가한다.
 - **API 변경 대응** — `uv run python scripts/check_apis.py` 로 확인하고, 실응답을 `tests/conftest.py` fixture 에 반영한다.
 
@@ -34,7 +34,7 @@ Python 3.10+, [uv](https://docs.astral.sh/uv/). 설계는 [docs/development/arch
 
 - 테스트를 먼저 쓰고 실패를 본 뒤 구현한다.
 - HTTP 는 `respx`, 툴 호출은 인프로세스 `mcp.Client(mcp)`. fixture 는 실응답.
-- 서버당 `test_api.py`(클라이언트) + `test_server.py`(툴, `isError` 경로 포함), 그리고 루트 `tests/test_list_tools.py`·`test_integration.py`·`scripts/check_apis.py` 에 한 줄씩 등록.
+- 서버당 `test_api.py`(클라이언트, API 가 여럿이면 `test_<api>_api.py`) + `test_server.py`(툴, `isError` 경로 포함), 그리고 루트 `tests/test_list_tools.py`·`test_integration.py`·`scripts/check_apis.py` 에 한 줄씩 등록.
 
 ### 품질 게이트
 

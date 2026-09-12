@@ -22,6 +22,12 @@ uv run pytest tests/test_list_tools.py       # 6개 서버를 실제 stdio 서�
 
 ## 패턴
 
+서버가 API 를 여러 개 쓰면 클라이언트 테스트는 `test_<api>_api.py` 로 나눈다 (nps: `test_region_api.py`, `test_insurance_api.py`). fixture 는 한 `conftest.py` 에 두되 API 별 접두어(`region_*`, `insurance_*`)로 구분한다.
+
+fixture 가 돌려주는 dict 는 모듈 상수를 공유한다. 테스트 안에서 변형해야 하면 **깊은 복사**(`json.loads(json.dumps(x))` 또는 `copy.deepcopy`) 뒤에 한다 — 그대로 고치면 다른 테스트가 깨진다.
+
+XML 응답은 문자열 상수로 두고 `httpx.Response(200, text=xml)` 로 준다. 한 건이면 xmltodict 가 `item` 을 리스트가 아닌 dict 로 주므로 단건 fixture 도 하나 둔다.
+
 ### 클라이언트 (test_api.py)
 
 ```python
