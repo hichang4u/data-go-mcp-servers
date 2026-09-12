@@ -677,6 +677,7 @@ name = "data-go-mcp-msds-chemical-info"
 version = "0.1.1"
 source = { editable = "src/msds-chemical-info" }
 dependencies = [
+    { name = "data-go-mcp-core", extra = ["xml"] },
     { name = "httpx" },
     { name = "mcp", extra = ["cli"] },
     { name = "pydantic" },
@@ -693,6 +694,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "data-go-mcp-core", extras = ["xml"], editable = "src/data-go-mcp-core" },
     { name = "httpx", specifier = ">=0.28" },
     { name = "mcp", extras = ["cli"], specifier = ">=2.2,<3" },
     { name = "pydantic", specifier = ">=2.11" },
