@@ -35,6 +35,12 @@ CALLS = [
         "계속사업자",
     ),
     ("fsc_financial_info", "find_corp_number", {"bzno": "1248100998"}, '"crno": "1301110006246"'),
+    (
+        "fsc_financial_info",
+        "get_stock_price",
+        {"srtn_cd": "005930", "num_of_rows": 1},
+        '"itms_nm": "삼성전자"',
+    ),
     ("pps_narajangteo", "search_contracts", {"num_of_rows": 1}, '"success": true'),
     (
         "fsc_financial_info",

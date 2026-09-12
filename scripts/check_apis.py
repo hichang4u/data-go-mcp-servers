@@ -1,4 +1,4 @@
-"""각 서버가 사용하는 공공 API(8개)가 살아 있는지 최소 요청으로 확인한다.
+"""각 서버가 사용하는 공공 API(9개)가 살아 있는지 최소 요청으로 확인한다.
 
 사용법:
     API_KEY=... uv run python scripts/check_apis.py
@@ -66,6 +66,12 @@ TARGETS = [
         "GET",
         "https://apis.data.go.kr/1160100/service/GetCorpBasicInfoService_V2/getCorpOutline_V2",
         {"numOfRows": 1, "pageNo": 1, "resultType": "json", "crno": "1301110006246"},
+    ),
+    (
+        "fsc-financial-info (주식시세)",
+        "GET",
+        "https://apis.data.go.kr/1160100/GetStockSecuritiesInfoService_V2/getStockPriceInfo_V2",
+        {"numOfRows": 1, "pageNo": 1, "resultType": "json", "likeSrtnCd": "005930"},
     ),
     (
         "presidential-speeches",

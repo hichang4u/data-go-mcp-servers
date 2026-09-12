@@ -295,3 +295,101 @@ class CorpOutline(BaseModel):
             fss_corp_unq_no=g("fssCorpUnqNo"),
             snapshot_dt=raw.get("lastOpegDt") or "",
         )
+
+
+def _yyyymmdd(v: str | None, label: str) -> str | None:
+    if v is None:
+        return None
+    v = v.replace("-", "").strip()
+    if not v.isdigit() or len(v) != 8:
+        raise ValueError(f"{label}는 YYYYMMDD 형식이어야 합니다")
+    return v
+
+
+class StockPriceRequest(BaseRequest):
+    """주식시세(getStockPriceInfo_V2) 요청 모델."""
+
+    itms_nm: str | None = Field(default=None, description="종목명 (정확히 일치)")
+    like_itms_nm: str | None = Field(default=None, description="종목명 (부분 일치)")
+    srtn_cd: str | None = Field(default=None, description="단축코드 (6자리)")
+    isin_cd: str | None = Field(default=None, description="ISIN 코드 (12자리)")
+    bas_dt: str | None = Field(default=None, description="기준일자 (YYYYMMDD)")
+    begin_bas_dt: str | None = Field(default=None, description="기준일자 시작 (이상)")
+    end_bas_dt: str | None = Field(default=None, description="기준일자 끝 (이하)")
+
+    @field_validator("itms_nm", "like_itms_nm", "isin_cd")
+    @classmethod
+    def _strip(cls, v: str | None) -> str | None:
+        v = (v or "").strip()
+        return v or None
+
+    @field_validator("srtn_cd")
+    @classmethod
+    def _validate_srtn_cd(cls, v: str | None) -> str | None:
+        return _digits(v, "단축코드", 6)
+
+    @field_validator("bas_dt", "begin_bas_dt", "end_bas_dt")
+    @classmethod
+    def _validate_dates(cls, v: str | None) -> str | None:
+        return _yyyymmdd(v, "기준일자")
+
+
+def _int_or_none(v: str | int | None) -> int | None:
+    if v is None or v == "":
+        return None
+    try:
+        return int(str(v).replace(",", ""))
+    except ValueError:
+        return None
+
+
+def _float_or_none(v: str | float | None) -> float | None:
+    if v is None or v == "":
+        return None
+    try:
+        return float(str(v).replace(",", ""))
+    except ValueError:
+        return None
+
+
+class StockPrice(BaseModel):
+    """일별 주식 시세 한 건."""
+
+    bas_dt: str = Field(description="기준일자 (YYYYMMDD)")
+    srtn_cd: str = Field(description="단축코드 (6자리)")
+    isin_cd: str | None = Field(default=None, description="ISIN 코드")
+    itms_nm: str = Field(description="종목명")
+    mrkt_ctg: str | None = Field(
+        default=None, description="시장구분 (KOSPI/KOSDAQ/KONEX)"
+    )
+    clpr: int | None = Field(default=None, description="종가 (원)")
+    vs: int | None = Field(default=None, description="전일 대비 (원)")
+    flt_rt: float | None = Field(default=None, description="등락률 (%)")
+    mkp: int | None = Field(default=None, description="시가")
+    hipr: int | None = Field(default=None, description="고가")
+    lopr: int | None = Field(default=None, description="저가")
+    trqu: int | None = Field(default=None, description="거래량 (주)")
+    tr_prc: int | None = Field(default=None, description="거래대금 (원)")
+    lstg_st_cnt: int | None = Field(default=None, description="상장주식수")
+    mrkt_tot_amt: int | None = Field(default=None, description="시가총액 (원)")
+
+    @classmethod
+    def from_api(cls, raw: dict) -> "StockPrice":
+        """API camelCase 항목 → 모델."""
+        return cls(
+            bas_dt=raw.get("basDt") or "",
+            srtn_cd=raw.get("srtnCd") or "",
+            isin_cd=raw.get("isinCd") or None,
+            itms_nm=raw.get("itmsNm") or "",
+            mrkt_ctg=raw.get("mrktCtg") or None,
+            clpr=_int_or_none(raw.get("clpr")),
+            vs=_int_or_none(raw.get("vs")),
+            flt_rt=_float_or_none(raw.get("fltRt")),
+            mkp=_int_or_none(raw.get("mkp")),
+            hipr=_int_or_none(raw.get("hipr")),
+            lopr=_int_or_none(raw.get("lopr")),
+            trqu=_int_or_none(raw.get("trqu")),
+            tr_prc=_int_or_none(raw.get("trPrc")),
+            lstg_st_cnt=_int_or_none(raw.get("lstgStCnt")),
+            mrkt_tot_amt=_int_or_none(raw.get("mrktTotAmt")),
+        )

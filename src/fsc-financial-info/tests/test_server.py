@@ -64,6 +64,8 @@ async def test_all_tools_are_read_only_with_described_params():
         "search_company_financial_info",
         "find_corp_number",
         "get_corp_outline",
+        "get_stock_price",
+        "search_stock_items",
     }
     for tool in tools:
         assert tool.annotations is not None and tool.annotations.read_only_hint is True
@@ -284,3 +286,74 @@ async def test_get_corp_outline_not_found_is_tool_error(corp_base_url, empty_res
 
     assert result.is_error is True
     assert "1301110006246" in _text(result)
+
+
+# --- 주식시세 ------------------------------------------------------------------
+
+
+@respx.mock
+async def test_get_stock_price_adds_readable_market_cap(stock_base_url, stock_response):
+    respx.get(f"{stock_base_url}/getStockPriceInfo_V2").mock(
+        return_value=httpx.Response(200, json=stock_response)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool(
+            "get_stock_price", {"itms_nm": "삼성전자", "num_of_rows": 2}
+        )
+
+    assert result.is_error is False
+    data = json.loads(_text(result))
+    assert data["total_count"] == 1643
+    first = data["items"][0]
+    assert first["clpr"] == 269000
+    assert first["mrkt_tot_amt_text"] == "1,572.65조원"
+    assert (
+        data["message"]
+        == "삼성전자 (005930, KOSPI): 2 trading day(s) shown, latest 20260910"
+    )
+
+
+@respx.mock
+async def test_get_stock_price_no_match(stock_base_url, stock_empty_response):
+    respx.get(f"{stock_base_url}/getStockPriceInfo_V2").mock(
+        return_value=httpx.Response(200, json=stock_empty_response)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool("get_stock_price", {"srtn_cd": "999999"})
+
+    assert result.is_error is False
+    data = json.loads(_text(result))
+    assert data["items"] == []
+    assert (
+        data["message"]
+        == "No stock price found (check the exact 종목명 with search_stock_items)"
+    )
+
+
+async def test_get_stock_price_requires_identifier():
+    async with Client(mcp) as client:
+        result = await client.call_tool("get_stock_price", {"bas_dt": "20260910"})
+
+    assert result.is_error is True
+    assert "입력값 오류" in _text(result)
+
+
+@respx.mock
+async def test_search_stock_items_returns_items_for_latest_date(
+    stock_base_url, stock_search_responses
+):
+    probe, listing = stock_search_responses
+    respx.get(f"{stock_base_url}/getStockPriceInfo_V2").mock(
+        side_effect=[httpx.Response(200, json=probe), httpx.Response(200, json=listing)]
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool("search_stock_items", {"name": "삼성"})
+
+    assert result.is_error is False
+    data = json.loads(_text(result))
+    assert data["bas_dt"] == "20260910"
+    assert [i["srtn_cd"] for i in data["items"]] == ["000810", "000815"]
+    assert data["items"][0]["mrkt_tot_amt_text"] == "28.89조원"
+    assert (
+        data["message"] == "Found 26 item(s) matching '삼성' as of 20260910 (showing 2)"
+    )
