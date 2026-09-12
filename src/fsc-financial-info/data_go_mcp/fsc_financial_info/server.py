@@ -8,10 +8,11 @@ import logging
 import os
 import sys
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Annotated, Any, Optional
 
 from dotenv import load_dotenv
 from mcp.server.mcpserver import MCPServer
+from pydantic import Field
 
 from .api_client import FSCFinancialAPIClient
 
@@ -27,6 +28,11 @@ SERVER_NAME = "data-go-mcp.fsc-financial-info"
 SERVER_VERSION = "0.1.1"
 
 mcp = MCPServer(SERVER_NAME, version=SERVER_VERSION)
+
+CRNO_DESC = "법인등록번호 (13자리 숫자, 하이픈 제외) | Corporate registration number (13 digits)"
+BIZ_YEAR_DESC = "사업연도 (예: 2023) | Business year (e.g., 2023)"
+PAGE_NO_DESC = "페이지 번호 (기본값: 1) | Page number (default: 1)"
+NUM_OF_ROWS_DESC = "한 페이지 결과 수 (기본값: 10, 최대: 100) | Number of rows per page (default: 10, max: 100)"
 
 NO_API_KEY_MSG = (
     "Error: API_KEY environment variable is not set. "
@@ -114,10 +120,10 @@ def _format_account_items(title: str, response: Any, abs_pct: bool) -> str:
 
 @mcp.tool()
 async def get_summary_financial_statement(
-    crno: Optional[str] = None,
-    biz_year: Optional[str] = None,
-    page_no: int = 1,
-    num_of_rows: int = 10,
+    crno: Annotated[Optional[str], Field(description=CRNO_DESC)] = None,
+    biz_year: Annotated[Optional[str], Field(description=BIZ_YEAR_DESC)] = None,
+    page_no: Annotated[int, Field(description=PAGE_NO_DESC)] = 1,
+    num_of_rows: Annotated[int, Field(description=NUM_OF_ROWS_DESC)] = 10,
 ) -> str:
     """기업의 요약 재무제표를 조회합니다. 매출액, 영업이익, 당기순이익, 자산, 부채 등 주요 재무지표를 확인할 수 있습니다. | Get summary financial statements including revenue, operating profit, net income, assets, and liabilities.
 
@@ -166,10 +172,10 @@ async def get_summary_financial_statement(
 
 @mcp.tool()
 async def get_balance_sheet(
-    crno: Optional[str] = None,
-    biz_year: Optional[str] = None,
-    page_no: int = 1,
-    num_of_rows: int = 10,
+    crno: Annotated[Optional[str], Field(description=CRNO_DESC)] = None,
+    biz_year: Annotated[Optional[str], Field(description=BIZ_YEAR_DESC)] = None,
+    page_no: Annotated[int, Field(description=PAGE_NO_DESC)] = 1,
+    num_of_rows: Annotated[int, Field(description=NUM_OF_ROWS_DESC)] = 10,
 ) -> str:
     """기업의 재무상태표(대차대조표)를 조회합니다. 자산, 부채, 자본의 세부 계정과목별 금액을 확인할 수 있습니다. | Get balance sheet with detailed account items for assets, liabilities, and equity.
 
@@ -197,10 +203,10 @@ async def get_balance_sheet(
 
 @mcp.tool()
 async def get_income_statement(
-    crno: Optional[str] = None,
-    biz_year: Optional[str] = None,
-    page_no: int = 1,
-    num_of_rows: int = 10,
+    crno: Annotated[Optional[str], Field(description=CRNO_DESC)] = None,
+    biz_year: Annotated[Optional[str], Field(description=BIZ_YEAR_DESC)] = None,
+    page_no: Annotated[int, Field(description=PAGE_NO_DESC)] = 1,
+    num_of_rows: Annotated[int, Field(description=NUM_OF_ROWS_DESC)] = 10,
 ) -> str:
     """기업의 손익계산서를 조회합니다. 매출, 비용, 이익 등의 세부 계정과목별 금액을 확인할 수 있습니다. | Get income statement with detailed account items for revenue, expenses, and profit.
 
@@ -227,7 +233,10 @@ async def get_income_statement(
 
 
 @mcp.tool()
-async def search_company_financial_info(crno: str, biz_year: str) -> str:
+async def search_company_financial_info(
+    crno: Annotated[str, Field(description=CRNO_DESC)],
+    biz_year: Annotated[str, Field(description=BIZ_YEAR_DESC)],
+) -> str:
     """법인등록번호로 기업의 전체 재무정보를 통합 조회합니다. 요약 재무제표, 재무상태표, 손익계산서를 한번에 가져옵니다. | Search comprehensive financial information by corporate registration number, including summary, balance sheet, and income statement.
 
     Args:

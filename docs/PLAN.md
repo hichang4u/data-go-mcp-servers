@@ -39,7 +39,12 @@
     생성자 `on_list_tools=` 방식으로 바뀌어 import는 되지만 기동 시 `AttributeError`. → `MCPServer` 4개 툴로 재작성
     (툴 이름·파라미터·출력 문구 동일, 실 API 호출로 확인). 1.5는 이 재작성에 흡수.
   - 1.6의 스모크 테스트는 모듈 import가 아니라 실제 stdio 서브프로세스 + `ClientSession` 으로 구현 — 구현 방식과 무관하게 검증됨.
-  - mcp 2.x 클라이언트 타입은 snake_case (`CallToolResult.is_error`, 1.x의 `isError` 아님). S2/S3 테스트 작성 시 주의.
+  - mcp 2.x 클라이언트 타입은 snake_case (`CallToolResult.is_error`, `Tool.input_schema`). S2/S3 테스트 작성 시 주의.
+- 코드리뷰(`/code-review high`, 2026-09-12) 결과 2건:
+  - fsc 파라미터 설명 유실 — `MCPServer`는 docstring `Args:`를 파싱하지 않아 옛 `inputSchema`의 per-parameter description이
+    사라졌음. `Annotated[..., Field(description=...)]`로 복구 (수정 완료). **나머지 5개 서버도 같은 상태(원본부터)** → S2 2.15에서
+    annotations 달 때 함께 `Field(description=)` 적용.
+  - `tests/test_list_tools.py`가 `API_KEY`를 주입해 no-key 경로의 stdout `print()`(D5)를 못 잡음 → S2 2.16에서 no-key 변형 추가.
 
 ## S2 — core 추출 + 결함 수정 `[ ]` (1.5d) — D4–D7, D9, FR-2/3/4/6
 
@@ -74,8 +79,8 @@
 | # | 태스크 | 대상 |
 |---|---|---|
 | 2.14 | 툴의 `except Exception: return {"error": …}` → `raise ToolError(...)` (PRD §5.3 규약, FR-2) | 6개 `server.py` |
-| 2.15 | 모든 툴에 `annotations=ToolAnnotations(readOnlyHint=True, openWorldHint=True)` (FR-4) | 6개 `server.py` |
-| 2.16 | `main()`의 `print()` → `logging`(stderr). 공통 `configure_logging()`을 core에 두고 호출 (D5, FR-6) | 6개 `server.py`, `core/logging.py` |
+| 2.15 | 모든 툴에 `annotations=ToolAnnotations(readOnlyHint=True, openWorldHint=True)` (FR-4) + 파라미터 `Annotated[..., Field(description=)]` (docstring `Args:`는 스키마에 반영되지 않음) | 6개 `server.py` |
+| 2.16 | `main()`의 `print()` → `logging`(stderr). 공통 `configure_logging()`을 core에 두고 호출 (D5, FR-6). `tests/test_list_tools.py`에 `API_KEY` 없는 환경에서도 기동·`list_tools` 되는 변형 추가 | 6개 `server.py`, `core/logging.py`, `tests/` |
 | 2.17 | `deploy_to_pypi.py`의 `rm -rf`/`mv` → `shutil` (D7, NFR-7) | `scripts/deploy_to_pypi.py` |
 | 2.18 | 템플릿 훅에서 `git init` 제거 (D9); 템플릿 `api_client.py`/`server.py`를 core 기반으로 교체 | `template/` |
 
