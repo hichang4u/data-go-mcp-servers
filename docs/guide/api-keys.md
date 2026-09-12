@@ -15,7 +15,7 @@ Encoding 값(`%2B`, `%3D` 가 섞인 것)이 아니라 **Decoding 값**(`+`, `=`
 
 | 서버 | 신청 페이지 |
 |---|---|
-| nps-business-enrollment | [국민연금공단_국민연금 가입 사업장 내역](https://www.data.go.kr/data/3046071/openapi.do) |
+| nps-business-enrollment | [국민연금공단_국민연금 가입 사업장 내역](https://www.data.go.kr/data/3046071/openapi.do) 와 [행정안전부_행정표준코드_법정동코드](https://www.data.go.kr/data/15077871/openapi.do) (`find_region_code` 용) |
 | nts-business-verification | 포털에서 "국세청_사업자등록정보 진위확인 및 상태조회 서비스" 검색 |
 | pps-narajangteo | 포털에서 "조달청_나라장터 공공데이터개방표준서비스" 검색 |
 | fsc-financial-info | [금융위원회_기업 재무정보](https://www.data.go.kr/data/15043459/openapi.do) |
@@ -37,10 +37,10 @@ MCP 클라이언트 설정의 `"env"` 로 넘기는 것이 기본이고, 저장�
 
 ## 4. 확인
 
-저장소를 clone 했다면 6개 API 를 한 번에 점검할 수 있다:
+저장소를 clone 했다면 7개 API 를 한 번에 점검할 수 있다:
 
 ```bash
 uv run python scripts/check_apis.py
 ```
 
-각 줄의 `resultCode=00` 또는 `status_code OK` 가 정상이다. `30` 이면 그 API 의 활용신청이 안 된 것이다.
+각 줄의 `resultCode=00`, `INFO-0` 또는 `status_code OK` 가 정상이다. `30` 이면 그 API 의 활용신청이 안 된 것이다.

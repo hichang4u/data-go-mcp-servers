@@ -12,7 +12,12 @@ from mcp.client.stdio import StdioServerParameters, stdio_client
 
 
 SERVERS = {
-    "nps_business_enrollment": {"search_business", "get_business_detail", "get_period_status"},
+    "nps_business_enrollment": {
+        "search_business",
+        "get_business_detail",
+        "get_period_status",
+        "find_region_code",
+    },
     "nts_business_verification": {
         "validate_business",
         "check_business_status",

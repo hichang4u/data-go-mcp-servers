@@ -1,4 +1,4 @@
-"""각 서버가 사용하는 공공 API가 살아 있는지 최소 요청으로 확인한다.
+"""각 서버가 사용하는 공공 API(7개)가 살아 있는지 최소 요청으로 확인한다.
 
 사용법:
     API_KEY=... uv run python scripts/check_apis.py
@@ -24,6 +24,12 @@ TARGETS = [
         "GET",
         "https://apis.data.go.kr/B552015/NpsBplcInfoInqireServiceV2/getBassInfoSearchV2",
         {"wkplNm": "삼성전자", "numOfRows": 1, "pageNo": 1, "dataType": "json"},
+    ),
+    (
+        "nps-business-enrollment (법정동코드)",
+        "GET",
+        "https://apis.data.go.kr/1741000/StanReginCd/getStanReginCdList",
+        {"locatadd_nm": "강남구", "numOfRows": 1, "pageNo": 1, "type": "json"},
     ),
     (
         "nts-business-verification",
@@ -81,7 +87,7 @@ async def check(client: httpx.AsyncClient, name: str, method: str, url: str, ext
         else:
             r = await client.get(url, params={"serviceKey": key, **extra})
     except httpx.HTTPError as e:
-        return f"{name:28s} NETWORK ERROR {e}"
+        return f"{name:36s} NETWORK ERROR {e}"
 
     body = r.text[:200].replace("\n", " ")
     code = ""
@@ -89,9 +95,12 @@ async def check(client: httpx.AsyncClient, name: str, method: str, url: str, ext
         data = r.json()
         header = data.get("response", {}).get("header", {})
         code = header.get("resultCode", "") or str(data.get("status_code", ""))
+        if not code and "StanReginCd" in data:  # 법정동코드: head 배열 안의 RESULT
+            for entry in data["StanReginCd"][0].get("head", []):
+                code = code or entry.get("RESULT", {}).get("resultCode", "")
     except ValueError:
         pass
-    return f"{name:28s} HTTP {r.status_code}  resultCode={code or '-':4s}  {body}"
+    return f"{name:36s} HTTP {r.status_code}  resultCode={code or '-':4s}  {body}"
 
 
 async def main() -> int:

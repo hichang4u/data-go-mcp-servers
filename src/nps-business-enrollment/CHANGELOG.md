@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-09-12
+
+### Added
+- `find_region_code`: 지역명 → 법정동코드 (행정안전부 행정표준코드 `StanReginCd`). 결과의 `nps_params` 를 `search_business` 에 그대로 넘길 수 있다. 이 API 도 별도 활용신청이 필요하다.
+
+### Fixed
+- `search_business` 지역 코드 설명을 실제 형식(시도 2자리 / 시군구 3자리 / 읍면동 3자리)으로 바로잡음. 이전 설명(5자리/8자리)대로 넣으면 결과가 0건이었다.
+
 ## [0.3.0] - 2026-09-12
 
 ### Changed

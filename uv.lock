@@ -720,7 +720,7 @@ dev = [
 
 [[package]]
 name = "data-go-mcp-nps-business-enrollment"
-version = "0.3.0"
+version = "0.4.0"
 source = { editable = "src/nps-business-enrollment" }
 dependencies = [
     { name = "data-go-mcp-core" },

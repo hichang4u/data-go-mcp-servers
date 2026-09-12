@@ -8,7 +8,7 @@
 
 | 서버 | 기관 / 데이터 | 툴 |
 |---|---|---|
-| [nps-business-enrollment](docs/guide/servers/nps-business-enrollment.md) | 국민연금공단 — 사업장 가입내역 | `search_business` `get_business_detail` `get_period_status` |
+| [nps-business-enrollment](docs/guide/servers/nps-business-enrollment.md) | 국민연금공단 — 사업장 가입내역 (+ 법정동코드 조회) | `search_business` `get_business_detail` `get_period_status` `find_region_code` |
 | [nts-business-verification](docs/guide/servers/nts-business-verification.md) | 국세청 — 사업자등록 진위확인·상태 | `validate_business` `check_business_status` `batch_validate_businesses` |
 | [pps-narajangteo](docs/guide/servers/pps-narajangteo.md) | 조달청 — 나라장터 입찰·낙찰·계약 | `search_bid_announcements` `search_successful_bids` `search_contracts` `get_bid_detail` |
 | [fsc-financial-info](docs/guide/servers/fsc-financial-info.md) | 금융위원회 — 기업 재무제표 | `get_summary_financial_statement` `get_balance_sheet` `get_income_statement` `search_company_financial_info` |
@@ -61,7 +61,7 @@ git clone https://github.com/hichang4u/data-go-mcp-servers && cd data-go-mcp-ser
 uv sync --dev --all-packages
 uv run pytest                                   # 207 tests; 실호출은 .env 에 API_KEY 를 두고 -m integration
 uv run ruff check src scripts tests && uv run pyright src scripts tests
-uv run python scripts/check_apis.py             # 6개 API 생존·권한 확인
+uv run python scripts/check_apis.py             # 7개 API 생존·권한 확인
 ```
 
 Python 3.10+, `mcp>=2.2`. CI 는 ubuntu/windows × 3.10/3.13 에서 pytest, ruff, pyright 를 필수로 돌린다.
