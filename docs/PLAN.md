@@ -123,7 +123,9 @@
   로컬 `uv run pytest -m integration` 6 passed / 키 없이 6 skipped 확인.
 - 3.6/3.7: 잔여 ruff 7건, pyright 27건(전부 원본 모델의 `Field(None, …)`) 수정. fsc `json_encoders` 는 `field_serializer` 로 교체 → 경고 0.
 - 3.8: CI lint 필수화(src/scripts/tests), `.pre-commit-config.yaml` (uv run ruff/pyright).
-- 결과: **206 passed, 0 warnings, ruff 0, pyright 0**. 브랜치 `s3-quality`.
+- 코드리뷰(`/code-review main..s3-quality high`) 1건: 모델 전체 `@field_serializer("*") -> Any` 가 직렬화 스키마의 타입을 전부 `Any` 로 지움
+  → 금액 필드에만 `Annotated[Decimal, PlainSerializer(float, return_type=float)]` 별칭 적용, 스키마 타입 보존 테스트 추가.
+- 결과: **207 passed, 0 warnings, ruff 0, pyright 0**. 브랜치 `s3-quality`.
 
 ## S4 — 문서·배포 `[ ]` (0.5d) — D10, FR-7/8
 

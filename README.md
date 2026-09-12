@@ -44,7 +44,7 @@
 
 | 항목 | S0 기준선 | S1 (mcp 2.2) | S2 (core 추출) | S3 (품질) |
 |---|---|---|---|---|
-| `uv run pytest` | 59 passed, 3 failed | 65 passed, 3 failed | 195 passed | **206 passed, 0 warnings** |
+| `uv run pytest` | 59 passed, 3 failed | 65 passed, 3 failed | 195 passed | **207 passed, 0 warnings** |
 | 6개 서버 stdio 기동 + `list_tools` | — | 통과 | 통과 (API 키 없이도 기동) | + 실호출 통합테스트 (`-m integration`) |
 | 툴 실패 → MCP `isError` | 아니오 (`{"error": …}` dict) | 아니오 | **예** (`ToolError`) | 예 |
 | `ruff check src scripts tests` | 917건 | 미측정 | 새 코드 0건 | **0건, CI 필수** |

@@ -315,3 +315,11 @@ def test_decimal_serializes_as_number_in_json():
     assert payload["crtm_acit_amt"] == 12.5
     assert payload["pvtr_acit_amt"] is None
     assert payload["crno"] == "1234567890123"
+
+
+def test_json_schema_keeps_field_types():
+    schema = BalanceSheetItem.model_json_schema(mode="serialization")
+    assert schema["properties"]["crno"]["type"] == "string"
+    amount = schema["properties"]["crtm_acit_amt"]
+    assert {"type": "number"} in amount["anyOf"]
+    assert {"type": "null"} in amount["anyOf"]
