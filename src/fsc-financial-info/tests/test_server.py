@@ -1,5 +1,6 @@
 """fsc MCP 툴 테스트."""
 
+import json
 from decimal import Decimal
 
 import httpx
@@ -61,6 +62,8 @@ async def test_all_tools_are_read_only_with_described_params():
         "get_balance_sheet",
         "get_income_statement",
         "search_company_financial_info",
+        "find_corp_number",
+        "get_corp_outline",
     }
     for tool in tools:
         assert tool.annotations is not None and tool.annotations.read_only_hint is True
@@ -205,3 +208,79 @@ async def test_missing_api_key_is_tool_error(monkeypatch):
 
     assert result.is_error is True
     assert "API_KEY" in _text(result)
+
+
+# --- 기업기본정보 --------------------------------------------------------------
+
+
+@respx.mock
+async def test_find_corp_number_lists_unique_corporations(corp_base_url, corp_response):
+    respx.get(f"{corp_base_url}/getCorpOutline_V2").mock(
+        return_value=httpx.Response(200, json=corp_response)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool(
+            "find_corp_number", {"corp_name": "삼성전자(주)"}
+        )
+
+    assert result.is_error is False
+    data = json.loads(_text(result))
+    assert [i["crno"] for i in data["items"]] == ["1301110006246", "2845110008637"]
+    item = data["items"][0]
+    assert item["corp_nm"] == "삼성전자(주)"
+    assert item["bzno"] == "1248100998"
+    assert item["market"] == "유가"
+    assert item["enp_rpr_fnm"] == "전영현, 노태문"
+    assert "enp_empe_cnt" not in item  # 목록은 요약 필드만
+    assert data["message"] == "Found 2 corporation(s) in 20 record(s) on page 1"
+
+
+@respx.mock
+async def test_find_corp_number_no_match(corp_base_url, empty_response):
+    respx.get(f"{corp_base_url}/getCorpOutline_V2").mock(
+        return_value=httpx.Response(200, json=empty_response)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool("find_corp_number", {"bzno": "000-00-00000"})
+
+    assert result.is_error is False
+    data = json.loads(_text(result))
+    assert data["items"] == []
+    assert data["message"] == "No corporation found"
+
+
+async def test_find_corp_number_requires_name_or_bzno():
+    async with Client(mcp) as client:
+        result = await client.call_tool("find_corp_number", {})
+
+    assert result.is_error is True
+    assert "입력값 오류" in _text(result)
+
+
+@respx.mock
+async def test_get_corp_outline_returns_full_latest_snapshot(
+    corp_base_url, corp_response
+):
+    respx.get(f"{corp_base_url}/getCorpOutline_V2").mock(
+        return_value=httpx.Response(200, json=corp_response)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool("get_corp_outline", {"crno": "1301110006246"})
+
+    assert result.is_error is False
+    data = json.loads(_text(result))
+    assert data["enp_empe_cnt"] == 128881
+    assert data["audt_rpt_opnn_ctt"] == "적정의견"
+    assert data["snapshot_dt"] == "20260911"
+
+
+@respx.mock
+async def test_get_corp_outline_not_found_is_tool_error(corp_base_url, empty_response):
+    respx.get(f"{corp_base_url}/getCorpOutline_V2").mock(
+        return_value=httpx.Response(200, json=empty_response)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool("get_corp_outline", {"crno": "1301110006246"})
+
+    assert result.is_error is True
+    assert "1301110006246" in _text(result)

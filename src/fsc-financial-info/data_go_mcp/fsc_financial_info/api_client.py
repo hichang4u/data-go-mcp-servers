@@ -8,6 +8,8 @@ from data_go_mcp.core import BaseDataGoClient, normalize_items
 from .models import (
     BalanceSheetItem,
     BalanceSheetResponse,
+    CorpOutline,
+    CorpSearchRequest,
     FinancialRequest,
     IncomeStatementItem,
     IncomeStatementResponse,
@@ -149,3 +151,74 @@ class FSCFinancialAPIClient(BaseDataGoClient):
             **self._meta(body),
             items=[IncomeStatementItem(**self._account(i)) for i in items],
         )
+
+
+def latest_per_crno(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """같은 crno 의 스냅샷 중 ``lastOpegDt`` 가 가장 늦은 것만 남긴다 (첫 등장 순서 유지)."""
+    latest: dict[str, dict[str, Any]] = {}
+    for item in items:
+        crno = item.get("crno", "")
+        if crno not in latest or item.get("lastOpegDt", "") > latest[crno].get(
+            "lastOpegDt", ""
+        ):
+            latest[crno] = item
+    return list(latest.values())
+
+
+class CorpBasicInfoAPIClient(BaseDataGoClient):
+    """금융위원회 기업기본정보 API (GetCorpBasicInfoService_V2).
+
+    법인명·사업자등록번호 → 법인등록번호(crno) 매핑과 기업 개요에 쓴다. 응답은 유효기간별
+    스냅샷이라 같은 법인이 여러 번 오므로 최신 것만 돌려준다.
+    """
+
+    base_url = "https://apis.data.go.kr/1160100/service/GetCorpBasicInfoService_V2"
+    key_env_prefix = "FSC_FINANCIAL_INFO"
+    default_params = {"resultType": "json"}
+
+    async def _outline(
+        self, request: CorpSearchRequest
+    ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+        body = await self.get(
+            "getCorpOutline_V2",
+            {
+                "pageNo": request.page_no,
+                "numOfRows": request.num_of_rows,
+                "corpNm": request.corp_nm,
+                "bzno": request.bzno,
+                "crno": request.crno,
+            },
+        )
+        return body, normalize_items(body)
+
+    async def search_corporations(
+        self,
+        corp_name: str | None = None,
+        bzno: str | None = None,
+        page_no: int = 1,
+        num_of_rows: int = 100,
+    ) -> dict[str, Any]:
+        """법인명(부분 일치) 또는 사업자등록번호로 법인을 찾는다. ``total_count`` 는 스냅샷 건수."""
+        request = CorpSearchRequest(
+            corp_nm=corp_name, bzno=bzno, page_no=page_no, num_of_rows=num_of_rows
+        )
+        if request.corp_nm is None and request.bzno is None:
+            raise ValueError(
+                "법인명(corp_name) 또는 사업자등록번호(bzno) 중 하나는 필요합니다"
+            )
+        body, items = await self._outline(request)
+        return {
+            "items": [
+                CorpOutline.from_api(i).model_dump() for i in latest_per_crno(items)
+            ],
+            "page_no": request.page_no,
+            "num_of_rows": request.num_of_rows,
+            "total_count": int(body.get("totalCount", 0)),
+        }
+
+    async def get_corp_outline(self, crno: str) -> dict[str, Any] | None:
+        """법인등록번호로 최신 기업 개요. 없으면 ``None``."""
+        request = CorpSearchRequest(crno=crno, num_of_rows=100)
+        _, items = await self._outline(request)
+        latest = latest_per_crno(items)
+        return CorpOutline.from_api(latest[0]).model_dump() if latest else None

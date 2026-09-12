@@ -182,3 +182,112 @@ class IncomeStatementResponse(APIResponse):
     items: list[IncomeStatementItem] = Field(
         default_factory=list, description="손익계산서 항목 목록"
     )
+
+
+def _digits(v: str | None, label: str, length: int) -> str | None:
+    if v is None:
+        return None
+    v = v.replace("-", "").strip()
+    if not v.isdigit() or len(v) != length:
+        raise ValueError(f"{label}는 {length}자리 숫자여야 합니다")
+    return v
+
+
+class CorpSearchRequest(BaseRequest):
+    """기업기본정보(getCorpOutline_V2) 요청 모델. corp_nm 은 부분 일치, bzno/crno 는 정확히 일치."""
+
+    num_of_rows: int = Field(default=100, ge=1, le=100, description="한 페이지 결과 수")
+    corp_nm: str | None = Field(default=None, description="법인명 (부분 일치)")
+    bzno: str | None = Field(default=None, description="사업자등록번호 (10자리)")
+    crno: str | None = Field(default=None, description="법인등록번호 (13자리)")
+
+    @field_validator("corp_nm")
+    @classmethod
+    def _strip_name(cls, v: str | None) -> str | None:
+        v = (v or "").strip()
+        return v or None
+
+    @field_validator("bzno")
+    @classmethod
+    def _validate_bzno(cls, v: str | None) -> str | None:
+        return _digits(v, "사업자등록번호", 10)
+
+    @field_validator("crno")
+    @classmethod
+    def _validate_crno(cls, v: str | None) -> str | None:
+        return _digits(v, "법인등록번호", 13)
+
+
+def _int_or_none(v: str | int | None) -> int | None:
+    if v is None or v == "":
+        return None
+    try:
+        return int(str(v).replace(",", ""))
+    except ValueError:
+        return None
+
+
+class CorpOutline(BaseModel):
+    """기업 개요 한 스냅샷. 빈 문자열은 None 으로."""
+
+    crno: str = Field(description="법인등록번호")
+    corp_nm: str = Field(description="법인명")
+    corp_ensn_nm: str | None = Field(default=None, description="법인 영문명")
+    enp_pban_cmpy_nm: str | None = Field(default=None, description="기업 공시회사명")
+    enp_rpr_fnm: str | None = Field(default=None, description="대표자명")
+    market: str | None = Field(
+        default=None, description="상장시장 (유가/코스닥/코넥스/기타)"
+    )
+    bzno: str | None = Field(default=None, description="사업자등록번호")
+    enp_bsadr: str | None = Field(default=None, description="기본주소")
+    enp_dtadr: str | None = Field(default=None, description="상세주소")
+    enp_hmpg_url: str | None = Field(default=None, description="홈페이지")
+    enp_tlno: str | None = Field(default=None, description="전화번호")
+    enp_estb_dt: str | None = Field(default=None, description="설립일자 (YYYYMMDD)")
+    enp_stac_mm: str | None = Field(default=None, description="결산월")
+    enp_xchg_lstg_dt: str | None = Field(default=None, description="유가증권 상장일")
+    enp_kosdaq_lstg_dt: str | None = Field(default=None, description="코스닥 상장일")
+    enp_empe_cnt: int | None = Field(default=None, description="종업원 수")
+    empe_avg_cnwk_term_ctt: str | None = Field(
+        default=None, description="평균 근속연수"
+    )
+    enp_pn1_avg_slry_amt: int | None = Field(
+        default=None, description="1인 평균 급여액 (원)"
+    )
+    actn_audpn_nm: str | None = Field(default=None, description="회계감사인")
+    audt_rpt_opnn_ctt: str | None = Field(default=None, description="감사의견")
+    enp_main_biz_nm: str | None = Field(default=None, description="주요사업")
+    fss_corp_unq_no: str | None = Field(
+        default=None, description="금감원 고유번호 (DART corp_code)"
+    )
+    snapshot_dt: str = Field(description="이 정보의 최종 유효일 (lastOpegDt)")
+
+    @classmethod
+    def from_api(cls, raw: dict) -> "CorpOutline":
+        """API camelCase 항목 → 모델. 빈 문자열은 None."""
+        g = lambda k: raw.get(k) or None  # noqa: E731
+        return cls(
+            crno=raw["crno"],
+            corp_nm=raw.get("corpNm") or "",
+            corp_ensn_nm=g("corpEnsnNm"),
+            enp_pban_cmpy_nm=g("enpPbanCmpyNm"),
+            enp_rpr_fnm=g("enpRprFnm"),
+            market=g("corpRegMrktDcdNm"),
+            bzno=g("bzno"),
+            enp_bsadr=g("enpBsadr"),
+            enp_dtadr=g("enpDtadr"),
+            enp_hmpg_url=g("enpHmpgUrl"),
+            enp_tlno=g("enpTlno"),
+            enp_estb_dt=g("enpEstbDt"),
+            enp_stac_mm=g("enpStacMm"),
+            enp_xchg_lstg_dt=g("enpXchgLstgDt"),
+            enp_kosdaq_lstg_dt=g("enpKosdaqLstgDt"),
+            enp_empe_cnt=_int_or_none(raw.get("enpEmpeCnt")),
+            empe_avg_cnwk_term_ctt=g("empeAvgCnwkTermCtt"),
+            enp_pn1_avg_slry_amt=_int_or_none(raw.get("enpPn1AvgSlryAmt")),
+            actn_audpn_nm=g("actnAudpnNm"),
+            audt_rpt_opnn_ctt=g("audtRptOpnnCtt"),
+            enp_main_biz_nm=g("enpMainBizNm"),
+            fss_corp_unq_no=g("fssCorpUnqNo"),
+            snapshot_dt=raw.get("lastOpegDt") or "",
+        )

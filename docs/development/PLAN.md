@@ -148,7 +148,7 @@
 - 서버별 툴 레퍼런스는 `scripts/gen_tool_docs.py` 가 `list_tools()` 스키마에서 생성하고 CI 가 `--check` 로 어긋남을 잡는다.
 - FR-7(deprecated 표시)은 죽은 API 가 없어 적용 대상 없음. 서버 버전 0.3.0, 태그 `v0.3.0`.
 
-## S5 — 추가 공공데이터 연동 `[~]` (5.1 완료 2026-09-12)
+## S5 — 추가 공공데이터 연동 `[~]` (5.1, 5.2 완료 2026-09-12)
 
 2026-09-12 검토. 아래 API 는 **활용신청·엔드포인트·응답 구조를 아직 확인하지 않은 후보**다. 착수 전에
 `scripts/check_apis.py` 방식으로 생존·권한을 먼저 확인하고, 절차는 [adding-a-server.md](adding-a-server.md)를 따른다.
@@ -161,7 +161,7 @@
 | # | API | 형태 | 이유 | 붙일 곳 |
 |---|---|---|---|---|
 | 5.1 `[x]` | 행정안전부_행정표준코드_법정동코드 ([15077871](https://www.data.go.kr/data/15077871/openapi.do), `1741000/StanReginCd`) | 비표준 JSON: `{"StanReginCd":[{"head":[…]},{"row":[…]}]}`, 결과 없음은 `{"RESULT":{"resultCode":"INFO-3"}}` | nps 검색이 지역 코드를 요구하는데 사용자는 코드를 모른다 | nps 에 `find_region_code` 툴 (브랜치 `s5-region-code`, nps 0.4.0) |
-| 5.2 | 금융위원회_기업기본정보 (`GetCorpBasicInfoService`) | 표준 JSON, fsc 와 같은 기관 | fsc 는 법인등록번호 13자리만 받는다. 회사명/사업자번호 → 법인번호 매핑이 없어 nts → fsc 체인이 끊긴다 | fsc 에 `find_corp_number` 툴 |
+| 5.2 `[x]` | 금융위원회_기업기본정보 ([15043184](https://www.data.go.kr/data/15043184/openapi.do), `GetCorpBasicInfoService_V2/getCorpOutline_V2`; V1 은 폐기 코드 12) | 표준 JSON. `corpNm` 부분 일치, `bzno`/`crno` 정확 일치 | fsc 는 법인등록번호 13자리만 받는다. 회사명/사업자번호 → 법인번호 매핑이 없어 nts → fsc 체인이 끊긴다 | fsc 에 `find_corp_number` + `get_corp_outline` (브랜치 `s5-corp-number`, fsc 0.4.0) |
 | 5.3 | 금융위원회_주식시세정보 / KRX 상장종목 | 표준 JSON, fsc 와 같은 응답 구조 | 재무제표 옆에 시가총액·주가. 구현 비용이 가장 낮다 | fsc 에 툴 추가 또는 신규 서버 |
 | 5.4 | 고용노동부_워크넷 채용정보 또는 고용보험 사업장정보 | 확인 필요 | nps 가입자 수와 함께 기업 규모·채용 동향. 사업장명/주소코드로 조인 | 신규 서버 |
 
@@ -192,6 +192,13 @@
   없으므로 소속 읍면동 코드를 준다.
 - `ValueError` 는 `async with tool_errors():` 안에서 raise 해야 `ToolError` 로 변환된다 (밖에서 raise 하면 `UnexpectedToolError`).
 
+### 5.2 에서 드러난 것
+
+- 응답이 **유효기간(`fstOpegDt`~`lastOpegDt`)별 스냅샷**이라 같은 crno 가 여러 번 온다(삼성전자 19건). `totalCount` 도 스냅샷 수.
+  클라이언트 `latest_per_crno` 로 법인별 최신만 남기고, 툴 메시지에 "N corporation(s) in M record(s)" 로 둘을 구분.
+- 공시 대상이 아닌 법인은 대부분 필드가 빈 문자열 → `CorpOutline.from_api` 가 None 으로 정규화.
+- `corpNm` 은 LIKE 검색이라 "카카오" 는 182 레코드. 페이지(100) 안에서만 dedupe 되므로 이름을 구체적으로 주라고 문서에 적음.
+
 ### 착수 순서 제안
 
 1. 5.1 법정동코드 — 반나절. nps 사용성 즉시 개선
@@ -209,6 +216,6 @@
 | S2 | 완료 | — |
 | S3 | 완료 | — |
 | S4 | 완료 | — |
-| S5 | 진행 중 (5.1 완료) | 항목별 활용신청 |
+| S5 | 진행 중 (5.1, 5.2 완료) | 항목별 활용신청 |
 
 S0~S4 전부 2026-09-12 하루에 완료 (계획 3.5d).

@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-09-12
+
+### Added
+- `find_corp_number`: 법인명(부분 일치)·사업자등록번호 → 법인등록번호(crno). 금융위원회_기업기본정보 API (`GetCorpBasicInfoService_V2`, 별도 활용신청 필요). 유효기간별 스냅샷 중 법인별 최신만 반환.
+- `get_corp_outline`: 기업 개요 (대표자, 주소, 상장시장, 설립일, 종업원 수, 1인 평균 급여, 감사인·감사의견, 금감원 고유번호).
+
 ## [0.3.0] - 2026-09-12
 
 ### Changed
