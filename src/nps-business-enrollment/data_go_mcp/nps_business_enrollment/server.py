@@ -3,7 +3,7 @@
 import os
 import asyncio
 from typing import Optional, Dict, Any
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 from dotenv import load_dotenv
 from .api_client import NPSAPIClient
 
@@ -11,7 +11,7 @@ from .api_client import NPSAPIClient
 load_dotenv()
 
 # MCP 서버 인스턴스 생성
-mcp = FastMCP("NPS Business Enrollment")
+mcp = MCPServer("NPS Business Enrollment")
 
 
 @mcp.tool()

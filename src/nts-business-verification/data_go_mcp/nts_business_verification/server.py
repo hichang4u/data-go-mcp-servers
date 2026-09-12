@@ -3,7 +3,7 @@
 import os
 import asyncio
 from typing import Optional, Dict, Any, List
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 from dotenv import load_dotenv
 from .api_client import NtsBusinessVerificationAPIClient
 from .models import BusinessInfo, BusinessStatus
@@ -12,7 +12,7 @@ from .models import BusinessInfo, BusinessStatus
 load_dotenv()
 
 # MCP 서버 인스턴스 생성
-mcp = FastMCP("NTS Business Verification")
+mcp = MCPServer("NTS Business Verification")
 
 
 @mcp.tool()

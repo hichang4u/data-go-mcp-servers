@@ -40,16 +40,17 @@
 | 3. 테스트 | 깨진 테스트 수정, `respx`로 HTTP mocking 통일, 서버당 최소 1개 테스트, `integration` 마커로 실호출 분리 |
 | 4. 배포 | 버전 bump, git 직접 설치(`uvx --from git+...`) 안내 또는 별도 PyPI 네임스페이스 |
 
-## 현재 상태 (Phase 0 기준선, 2026-09-12)
+## 현재 상태 (S1 완료, 2026-09-12)
 
-원본 코드를 `src/`에 그대로 가져온 뒤 루트 `pyproject.toml`에 `constraint-dependencies = ["mcp<2"]`
-임시 핀을 걸어 측정했다.
+| 항목 | S0 기준선 (`mcp<2` 핀) | S1 (mcp 2.2.0) |
+|---|---|---|
+| `uv run pytest` | 59 passed, 3 failed | **65 passed, 3 failed** (실패 3건은 원본부터 깨져 있던 것, S3에서 수정) |
+| 6개 서버 stdio 기동 + `list_tools` | — | `tests/test_list_tools.py` 로 전부 통과 |
+| `ruff check src scripts` | 917건 | 미측정 (S3) |
+| `pyright src` | 46 errors | 미측정 (S3) |
 
-| 항목 | 결과 |
-|---|---|
-| `uv run pytest` | 59 passed, 3 failed (fsc 2, nps 1 — 원본부터 깨져 있던 테스트) |
-| `ruff check src scripts` | 917건 (795건 자동 수정 가능) |
-| `pyright src` | 46 errors |
+S1에서 한 것: `mcp<2` 핀 제거, 의존성 `mcp[cli]>=2.2,<3`으로 통일, 5개 서버 `FastMCP` → `MCPServer` 치환,
+fsc는 저수준 `Server` 데코레이터 API가 2.x에서 사라져 `MCPServer` 기반으로 재작성(툴 이름·파라미터·출력 문구 유지).
 
 기준선을 잡기 위해 원본에서 두 가지를 바꿨다.
 

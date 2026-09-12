@@ -21,7 +21,7 @@
 - [x] 죽은 API 없음 → FR-7 적용 대상 없음
 - 완료 기준: 6개 서버 각각 살아있음/죽음 판정이 README에 있음
 
-## S1 — mcp 2.x 전환 `[ ]` (0.5d) — D1, D8, FR-1
+## S1 — mcp 2.x 전환 `[x]` 2026-09-12 — D1, D8, FR-1
 
 | # | 태스크 | 대상 파일 |
 |---|---|---|
@@ -33,8 +33,13 @@
 | 1.6 | 루트 `tests/test_list_tools.py` 추가: 6개 서버 모듈을 import 해 `await mcp.list_tools()` 가 비어 있지 않은지 확인. `testpaths`에 `tests` 추가 | `tests/`, `pyproject.toml` |
 | 1.7 | README 기준선 표 갱신 (mcp 2.2 기준 수치) | `README.md` |
 
-- 완료 기준: mcp 2.2에서 6개 서버 `list_tools` 통과, 실패 테스트가 S0의 3건 그대로(늘지 않음)
-- 리스크: `mcp[cli]` extras 이름이 2.x에서 바뀌었을 수 있음 → 1.2에서 `uv lock` 오류로 확인
+- 완료 기준: mcp 2.2에서 6개 서버 `list_tools` 통과, 실패 테스트가 S0의 3건 그대로(늘지 않음) → **충족** (65 passed / 3 failed)
+- 실제 작업 중 추가된 것:
+  - fsc는 `FastMCP`가 아니라 저수준 `mcp.server.Server`의 `@server.list_tools()` 데코레이터를 쓰고 있었고, 2.x에서 이 API가
+    생성자 `on_list_tools=` 방식으로 바뀌어 import는 되지만 기동 시 `AttributeError`. → `MCPServer` 4개 툴로 재작성
+    (툴 이름·파라미터·출력 문구 동일, 실 API 호출로 확인). 1.5는 이 재작성에 흡수.
+  - 1.6의 스모크 테스트는 모듈 import가 아니라 실제 stdio 서브프로세스 + `ClientSession` 으로 구현 — 구현 방식과 무관하게 검증됨.
+  - mcp 2.x 클라이언트 타입은 snake_case (`CallToolResult.is_error`, 1.x의 `isError` 아님). S2/S3 테스트 작성 시 주의.
 
 ## S2 — core 추출 + 결함 수정 `[ ]` (1.5d) — D4–D7, D9, FR-2/3/4/6
 

@@ -6,10 +6,6 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "Apache-2.0"}
 
-[tool.uv]
-# Phase 0 임시 핀: 원본 코드는 mcp 1.x FastMCP 기준. Phase 1(mcp 2.x 전환)에서 제거
-constraint-dependencies = ["mcp<2"]
-
 [tool.uv.workspace]
 members = ["src/*"]
 
@@ -67,7 +63,7 @@ line-ending = "auto"
 docstring-code-format = true
 
 [tool.pytest.ini_options]
-testpaths = ["src/*/tests"]
+testpaths = ["tests", "src/*/tests"]
 # 서버마다 test_api.py/test_server.py 같은 basename을 쓰므로 importlib 모드 필요
 addopts = "--import-mode=importlib"
 asyncio_mode = "auto"

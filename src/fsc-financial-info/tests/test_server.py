@@ -164,27 +164,16 @@ class TestMCPServer:
     @pytest.mark.asyncio
     async def test_list_tools(self):
         """Test listing available tools."""
-        from data_go_mcp.fsc_financial_info.server import run_server
-        from mcp.server import Server
-        
-        server = Server("test")
-        
-        # Mock the list_tools handler
-        with patch('mcp.server.Server.list_tools') as mock_list_tools:
-            # The actual implementation would be tested through integration tests
-            # Here we just verify the structure
-            expected_tools = [
-                "get_summary_financial_statement",
-                "get_balance_sheet",
-                "get_income_statement",
-                "search_company_financial_info"
-            ]
-            
-            # Verify tool names are as expected
-            for tool_name in expected_tools:
-                assert tool_name in ["get_summary_financial_statement", "get_balance_sheet", 
-                                    "get_income_statement", "search_company_financial_info"]
-    
+        from data_go_mcp.fsc_financial_info.server import mcp
+
+        names = {tool.name for tool in await mcp.list_tools()}
+        assert names == {
+            "get_summary_financial_statement",
+            "get_balance_sheet",
+            "get_income_statement",
+            "search_company_financial_info",
+        }
+
     @pytest.mark.asyncio
     async def test_tool_call_no_api_key(self):
         """Test tool call without API key."""

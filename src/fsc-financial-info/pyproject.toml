@@ -9,11 +9,11 @@ license = { text = "Apache-2.0" }
 keywords = ["mcp", "llm", "data.go.kr", "korea", "openapi", "financial", "corporate", "fsc"]
 
 dependencies = [
-    "mcp>=1.0.0",
-    "httpx>=0.24.0",
-    "pydantic>=2.0.0",
-    "python-dotenv>=1.0.0",
-    "xmltodict>=0.13.0",
+    "httpx>=0.28",
+    "mcp[cli]>=2.2,<3",
+    "pydantic>=2.11",
+    "python-dotenv>=1.1",
+    "xmltodict>=0.14",
 ]
 
 [project.urls]

@@ -4,7 +4,7 @@ import os
 import asyncio
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 from dotenv import load_dotenv
 from .api_client import PpsNarajangteoAPIClient
 from .models import BidAnnouncement, SuccessfulBid, Contract
@@ -13,7 +13,7 @@ from .models import BidAnnouncement, SuccessfulBid, Contract
 load_dotenv()
 
 # MCP 서버 인스턴스 생성
-mcp = FastMCP("나라장터 공공데이터개방표준서비스")
+mcp = MCPServer("나라장터 공공데이터개방표준서비스")
 
 
 def format_datetime_for_api(dt: Optional[str] = None, is_end: bool = False) -> str:

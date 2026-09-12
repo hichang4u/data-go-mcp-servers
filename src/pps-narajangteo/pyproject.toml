@@ -20,11 +20,11 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "httpx>=0.28.1",
-    "mcp[cli]>=1.13.0",
-    "pydantic>=2.11.7",
-    "python-dotenv>=1.1.1",
-    "xmltodict>=0.14.2",
+    "httpx>=0.28",
+    "mcp[cli]>=2.2,<3",
+    "pydantic>=2.11",
+    "python-dotenv>=1.1",
+    "xmltodict>=0.14",
 ]
 
 [project.urls]
