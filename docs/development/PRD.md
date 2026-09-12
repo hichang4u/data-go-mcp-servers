@@ -190,7 +190,7 @@ async def search_business(...) -> dict[str, Any]:
 | 1. mcp 2.x | D1, D8 해소. 임시 핀 제거 | 6개 서버 `list_tools` 동작, 기존 테스트 결과 유지 | **완료** (2026-09-12) |
 | 2. 결함 수정 | `data-go-mcp-core` 추출(§5.2) 후 6개 서버 이전, D4–D7, D9 해소, FR-2/3/4/6 | core 단위 테스트 + 서버별 기존 테스트 유지 | **완료** (2026-09-12, 195 passed; D3도 해소) |
 | 3. 테스트·품질 | D3, D11 해소, NFR-3/6 | pytest 전부 통과, ruff 0, pyright 0, CI 전부 필수 | **완료** (2026-09-12, 207 passed) |
-| 4. 문서·배포 | D10 해소, FR-7/8, 버전 bump(0.3.0), CHANGELOG | 새 환경에서 README만 보고 Claude Desktop 연결 성공 | |
+| 4. 문서·배포 | D10 해소, FR-7/8, 버전 bump(0.3.0), CHANGELOG | 새 환경에서 README만 보고 Claude Desktop 연결 성공 | **완료** (2026-09-12, v0.3.0) |
 
 ## 7. 성공 지표
 
@@ -205,11 +205,11 @@ async def search_business(...) -> dict[str, Any]:
 | ~~1년 방치 동안 API 엔드포인트·스키마 변경~~ | 해소 — 0b에서 6개 엔드포인트 모두 정상 응답 확인. 스키마 변경은 S2 이전 시 실응답 fixture로 검증 |
 | mcp 2.x 마이너 릴리스에서 API 변동 | `<3` 상한 + CI 매트릭스로 조기 감지 |
 | ~~MSDS 키 발급처가 data.go.kr가 아닐 가능성~~ | 해소 — data.go.kr 키로 호출 확인 |
-| 원저장소 PyPI 패키지와 이름 충돌 | git 직접 설치를 1차 배포 경로로. PyPI는 별도 네임스페이스로 후속 결정 |
+| ~~원저장소 PyPI 패키지와 이름 충돌~~ | 해소 — PyPI 를 쓰지 않는다 (git 직접 설치) |
 
 ## 9. 미결 사항
 
 1. ~~MSDS(KOSHA) API 키가 data.go.kr 키와 동일한지~~ — 동일 키로 `resultCode 00` 확인 (2026-09-12, 해결)
 2. ~~공통 클라이언트 패키지 추출 여부~~ — 추출하기로 결정 (§5.2). 배포 방식은 3번과 함께 결정
-3. PyPI 재배포 네임스페이스 (`hichang4u-data-go-mcp.*` 등) 및 core 패키지 의존 해석 방식(git source vs PyPI) — Phase 4에서 결정
+3. ~~PyPI 재배포 네임스페이스 및 core 의존 해석 방식~~ — git 직접 설치로 결정 (2026-09-12). uv 가 git 체크아웃의 workspace 소스를 해석하므로 core 별도 배포 불필요. PyPI 는 필요해질 때 재검토
 4. ~~`requires-python` 하한~~ — mcp 2.2.0의 `Requires-Python: >=3.10` 확인. 3.10 유지 (해결)

@@ -127,7 +127,7 @@
   → 금액 필드에만 `Annotated[Decimal, PlainSerializer(float, return_type=float)]` 별칭 적용, 스키마 타입 보존 테스트 추가.
 - 결과: **207 passed, 0 warnings, ruff 0, pyright 0**. 브랜치 `s3-quality`.
 
-## S4 — 문서·배포 `[ ]` (0.5d) — D10, FR-7/8
+## S4 — 문서·배포 `[x]` 2026-09-12 — D10, FR-7/8
 
 | # | 태스크 | 대상 |
 |---|---|---|
@@ -139,7 +139,14 @@
 | 4.6 | 태그 `v0.3.0`, GitHub Release 노트 | git |
 | 4.7 | 새 환경(다른 venv 또는 다른 PC)에서 README만 보고 Claude Desktop 연결 → 툴 호출 1회 성공 | 검증 |
 
-- 완료 기준: PRD §7 성공 지표 3개 충족
+- 완료 기준: PRD §7 성공 지표 3개 충족 → **충족** (아래)
+- 4.3 결정: **git 직접 설치**. `uvx --from git+…#subdirectory=src/<server>` 가 저장소 전체를 받아 `workspace = true` 소스를 그대로 해석하므로
+  core 를 따로 배포할 필요 없음. `uv tool run` 으로 nts 서버 기동 → `list_tools` → `check_business_status` 실호출 확인. PyPI 는 보류.
+- 문서 구조: `README`(사용자) / `CONTRIBUTING` + `CLAUDE.md`(개발) / `docs/guide`(설치·키·문제해결·서버별 레퍼런스) /
+  `docs/development`(아키텍처·서버 추가·테스트·릴리스·PRD·PLAN) / `docs/history`(원저장소 기록) / `docs/api-specs`.
+  `creating-new-mcp-server.md`, `TEMPLATE_USAGE.md`, `.claude/subagents` 는 흡수 후 삭제.
+- 서버별 툴 레퍼런스는 `scripts/gen_tool_docs.py` 가 `list_tools()` 스키마에서 생성하고 CI 가 `--check` 로 어긋남을 잡는다.
+- FR-7(deprecated 표시)은 죽은 API 가 없어 적용 대상 없음. 서버 버전 0.3.0, 태그 `v0.3.0`.
 
 ## 일정 요약
 
@@ -149,6 +156,6 @@
 | S1 | 0.5d | — |
 | S2 | 완료 | — |
 | S3 | 완료 | — |
-| S4 | 0.5d | S3, S0b |
+| S4 | 완료 | — |
 
-총 3.5d. S0b가 늦어지면 S1–S3는 mocked 응답으로 진행하고 S4 전에 반드시 완료.
+S0~S4 전부 2026-09-12 하루에 완료 (계획 3.5d).
