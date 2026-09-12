@@ -1,6 +1,6 @@
 # PRD — data-go-mcp-servers (mcp 2.x 재정비)
 
-- 상태: Draft v0.1 (2026-09-12)
+- 상태: Draft v0.2 (2026-09-12) — core 패키지 추출 결정 반영
 - 저장소: https://github.com/hichang4u/data-go-mcp-servers
 - 기반: [Koomook/data-go-mcp-servers](https://github.com/Koomook/data-go-mcp-servers) (Apache-2.0, 2025-09-17 이후 정지)
 
@@ -102,12 +102,54 @@
 | 실행 | `mcp.run()` | 동일 (`transport="stdio"` 기본) |
 | 에러 | — | `from mcp.server.mcpserver.exceptions import ToolError` |
 
-### 5.2 공통 클라이언트 추출 (선택, P2)
+### 5.2 공통 클라이언트 패키지 `data-go-mcp-core` (결정: 추출)
 
 6개 `api_client.py`에 중복된 것: snake→camel 변환, `response.header.resultCode` 검사,
-`body.items.item` 단일/배열 정규화, 에러코드 표(fsc에만 있음), XML→dict 파싱.
-`src/data-go-mcp-core/` 패키지로 추출할 수 있으나 패키지 수가 늘어나는 비용이 있다.
-**결정 보류** — Phase 2 착수 시 서버 추가 계획 유무로 판단.
+`body.items.item` 단일/배열 정규화, 에러코드 표(fsc에만 있음), XML→dict 파싱, API 키
+로딩(FR-3), `httpx.AsyncClient` 수명 관리.
+
+`src/data-go-mcp-core/` 를 workspace 멤버로 추가하고 6개 서버가 `data-go-mcp-core`에 의존한다.
+
+```
+src/data-go-mcp-core/
+├── pyproject.toml                # name = "data-go-mcp-core"
+└── data_go_mcp/core/
+    ├── __init__.py
+    ├── client.py                 # BaseDataGoClient
+    ├── errors.py                 # DataGoAPIError, RESULT_CODES
+    ├── keys.py                   # load_api_key(server_prefix)  ← FR-3
+    └── xml.py                    # parse_xml_response (xmltodict 의존은 extras "xml")
+```
+
+`BaseDataGoClient` 계약:
+
+```python
+class BaseDataGoClient:
+    base_url: ClassVar[str]
+    key_env_prefix: ClassVar[str]        # 예: "NPS_BUSINESS_ENROLLMENT"
+    response_format: ClassVar[Literal["json", "xml"]] = "json"
+
+    def __init__(self, api_key: str | None = None, *, timeout: float = 30.0): ...
+    async def __aenter__(self) -> Self: ...
+    async def __aexit__(self, *exc) -> None: ...
+    async def get(self, endpoint: str, params: Mapping[str, Any]) -> dict[str, Any]: ...
+    async def post(self, endpoint: str, json: Any, params: Mapping[str, Any] | None = None) -> dict[str, Any]: ...
+    # get/post 는 serviceKey 주입 → 요청 → HTTP 오류 → resultCode 검사 → body 반환까지 처리
+    # None 값 파라미터 제거, items.item 단일/배열 정규화 포함
+
+def to_camel(snake: str) -> str: ...
+def normalize_items(body: Mapping[str, Any]) -> list[dict[str, Any]]: ...
+```
+
+odcloud(nts, presidential)는 `response/header` 래핑이 없고 `status_code`/`currentCount`
+구조라 `BaseDataGoClient`의 `_check_response` 훅을 오버라이드해서 대응한다.
+KOSHA(msds)는 XML 전용이므로 `response_format = "xml"`.
+
+각 서버의 `api_client.py`는 엔드포인트별 메서드와 Pydantic 파싱만 남긴다.
+git 직접 설치(`uvx --from git+...#subdirectory=src/<server>`) 시 core가 workspace 소스로
+해석되지 않으므로, 각 서버 `pyproject.toml`의 `[tool.uv.sources]`에
+`data-go-mcp-core = { git = "...", subdirectory = "src/data-go-mcp-core" }` 를 두거나
+PyPI에 core를 먼저 올려야 한다. **Phase 4에서 확정** (§9-3과 함께).
 
 ### 5.3 에러 처리 규약
 
@@ -144,7 +186,7 @@ async def search_business(...) -> dict[str, Any]:
 | 0. 기준선 | 원본 vendoring, `mcp<2` 임시 핀, CI, `check_apis.py` | CI에서 로컬과 동일한 3건 실패 재현 | **완료** (2026-09-12) |
 | 0b. API 생존 확인 | `check_apis.py` 실행 결과를 README에 기록 | 6개 각각 살아있음/죽음 판정 | 대기 (API 키 필요) |
 | 1. mcp 2.x | D1, D8 해소. 임시 핀 제거 | 6개 서버 `list_tools` 동작, 기존 테스트 결과 유지 | |
-| 2. 결함 수정 | D4–D7, D9 해소, FR-2/3/4/6 | 코드 리뷰 + 테스트 | |
+| 2. 결함 수정 | `data-go-mcp-core` 추출(§5.2) 후 6개 서버 이전, D4–D7, D9 해소, FR-2/3/4/6 | core 단위 테스트 + 서버별 기존 테스트 유지 | |
 | 3. 테스트·품질 | D3, D11 해소, NFR-3/6 | pytest 전부 통과, ruff 0, pyright 0, CI 전부 필수 | |
 | 4. 문서·배포 | D10 해소, FR-7/8, 버전 bump(0.3.0), CHANGELOG | 새 환경에서 README만 보고 Claude Desktop 연결 성공 | |
 
@@ -166,6 +208,6 @@ async def search_business(...) -> dict[str, Any]:
 ## 9. 미결 사항
 
 1. MSDS(KOSHA) API 키가 data.go.kr 키와 동일한지 — `check_apis.py` 결과로 확인
-2. 공통 클라이언트 패키지 추출 여부 (§5.2)
-3. PyPI 재배포 네임스페이스 (`hichang4u-data-go-mcp.*` 등) — Phase 4에서 결정
+2. ~~공통 클라이언트 패키지 추출 여부~~ — 추출하기로 결정 (§5.2). 배포 방식은 3번과 함께 결정
+3. PyPI 재배포 네임스페이스 (`hichang4u-data-go-mcp.*` 등) 및 core 패키지 의존 해석 방식(git source vs PyPI) — Phase 4에서 결정
 4. ~~`requires-python` 하한~~ — mcp 2.2.0의 `Requires-Python: >=3.10` 확인. 3.10 유지 (해결)

@@ -30,6 +30,8 @@
 
 ## 계획
 
+상세 요구사항·설계·결함 목록은 [docs/PRD.md](docs/PRD.md) 참조.
+
 | 단계 | 내용 |
 |---|---|
 | 0. 기준선 | 원본 clone, `mcp<2` 임시 핀으로 현재 테스트 결과 기록, 6개 API 생존 여부 실호출 확인, CI(pytest/ruff/pyright) 추가 |
