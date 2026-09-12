@@ -5,7 +5,7 @@
 | 메시지 | 뜻 | 조치 |
 |---|---|---|
 | `입력값 오류: API key is required …` | 키가 없음 | 클라이언트 설정 `env.API_KEY` 확인 |
-| `data.go.kr 오류 [30] SERVICE_KEY_IS_NOT_REGISTERED_ERROR` | 키는 있으나 그 API 에 활용신청이 안 됨, 또는 Encoding 키를 넣음 | [api-keys.md](api-keys.md) 2·1 절 |
+| `data.go.kr 오류 [30] SERVICE_KEY_IS_NOT_REGISTERED_ERROR` | 키는 있으나 그 API 에 활용신청이 안 됨, 또는 Encoding 키를 넣음. nps 는 API 가 둘(사업장, 법정동코드)이라 둘 다 신청 | [api-keys.md](api-keys.md) 2·1 절 |
 | `data.go.kr 오류 [-401] 유효하지 않은 인증키` | odcloud 계열(nts, presidential) 미신청 | 활용신청 |
 | `data.go.kr 오류 [22] …EXCEEDS` | 일일 트래픽 초과 | 다음 날 또는 운영계정 신청 |
 | `data.go.kr 오류 [12] …` | 서비스가 폐기됨 | 이슈 등록 |
@@ -23,7 +23,7 @@
 
 ## 결과가 비어 있을 때 (오류는 아님)
 
-- nps: 사업장명은 부분 일치지만 법인명 표기(㈜, (주))에 따라 다를 수 있다. 사업자번호 앞 6자리로 시도.
+- nps: 사업장명은 부분 일치지만 법인명 표기(㈜, (주))에 따라 다를 수 있다. 사업자번호 앞 6자리로 시도. 지역 코드는 시군구만 주면 무시된다 — `find_region_code` 의 `nps_params` 처럼 시도부터 함께 준다.
 - fsc: 법인등록번호(13자리)를 사업자등록번호(10자리)와 혼동하지 않았는지. 해당 연도에 공시가 없을 수 있다.
 - pps: 날짜 범위가 주말/공휴일만 포함하면 0건일 수 있다.
 - presidential: 대통령 이름은 정확히 일치해야 한다 ("문재인 대통령" ✗, "문재인" ○).
@@ -34,6 +34,6 @@
 git clone https://github.com/hichang4u/data-go-mcp-servers && cd data-go-mcp-servers
 uv sync --dev --all-packages
 echo "API_KEY=<키>" > .env
-uv run python scripts/check_apis.py     # 6개 API 생존·권한 확인
+uv run python scripts/check_apis.py     # 7개 API 생존·권한 확인
 uv run pytest -m integration            # 서버당 실호출 1건
 ```

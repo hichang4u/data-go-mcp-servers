@@ -4,9 +4,9 @@ from typing import Any, Optional
 
 from pydantic import BaseModel
 
-from data_go_mcp.core import BaseDataGoClient, normalize_items, to_camel
+from data_go_mcp.core import BaseDataGoClient, DataGoAPIError, normalize_items, to_camel
 
-from .models import BusinessDetailItem, BusinessItem, PeriodStatusItem
+from .models import BusinessDetailItem, BusinessItem, PeriodStatusItem, RegionCodeItem
 
 
 class NPSAPIClient(BaseDataGoClient):
@@ -88,3 +88,50 @@ class NPSAPIClient(BaseDataGoClient):
                 "num_of_rows": num_of_rows,
             },
         )
+
+
+class RegionCodeAPIClient(BaseDataGoClient):
+    """행정안전부 행정표준코드 법정동코드(StanReginCd) 클라이언트.
+
+    nps 검색 파라미터(시도 2자리 / 시군구 3자리 / 읍면동 3자리)가 이 API 의
+    ``sido_cd`` / ``sgg_cd`` / ``umd_cd`` 와 같아 지역명 → 코드 변환에 쓴다.
+    """
+
+    base_url = "https://apis.data.go.kr/1741000/StanReginCd"
+    key_env_prefix = "NPS_BUSINESS_ENROLLMENT"
+    default_params = {"type": "json"}
+
+    def _check_response(self, data: dict[str, Any]) -> dict[str, Any]:
+        """``{"StanReginCd": [{"head": [...]}, {"row": [...]}]}`` 또는 결과 없음 ``{"RESULT": …}``."""
+        parts = data.get("StanReginCd")
+        if not isinstance(parts, list):
+            result = data.get("RESULT") or {}
+            code = str(result.get("resultCode", ""))
+            if code == "INFO-3":  # 데이터없음
+                return {"rows": [], "total_count": 0}
+            raise DataGoAPIError(code, str(result.get("resultMsg", "")))
+        if not parts or not isinstance(parts[0], dict):
+            raise DataGoAPIError("INVALID", "예상하지 못한 응답 형식 (StanReginCd 비어 있음)")
+        head: dict[str, Any] = {}
+        for entry in parts[0].get("head", []):
+            head.update(entry)
+        code = str((head.get("RESULT") or {}).get("resultCode", ""))
+        if code != "INFO-0":
+            raise DataGoAPIError(code, str((head.get("RESULT") or {}).get("resultMsg", "")))
+        rows = parts[1].get("row", []) if len(parts) > 1 and isinstance(parts[1], dict) else []
+        return {"rows": rows, "total_count": int(head.get("totalCount", 0))}
+
+    async def search_region(
+        self, name: str, page_no: int = 1, num_of_rows: int = 100
+    ) -> dict[str, Any]:
+        """지역명(부분 일치)으로 법정동코드를 조회한다."""
+        body = await self.get(
+            "getStanReginCdList",
+            {"locatadd_nm": name, "pageNo": page_no, "numOfRows": num_of_rows},
+        )
+        return {
+            "items": [RegionCodeItem(**row).model_dump() for row in body["rows"]],
+            "page_no": page_no,
+            "num_of_rows": num_of_rows,
+            "total_count": body["total_count"],
+        }

@@ -28,6 +28,7 @@ async def test_all_tools_are_read_only_with_described_params():
         "search_business",
         "get_business_detail",
         "get_period_status",
+        "find_region_code",
     }
     for tool in tools:
         assert tool.annotations is not None and tool.annotations.read_only_hint is True
@@ -117,3 +118,78 @@ async def test_missing_api_key_is_reported_as_tool_error(monkeypatch):
 
     assert result.is_error is True
     assert "API_KEY" in _text(result)
+
+
+@respx.mock
+async def test_find_region_code_returns_levels_and_nps_params(region_base_url, region_response):
+    respx.get(f"{region_base_url}/getStanReginCdList").mock(
+        return_value=httpx.Response(200, json=region_response)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool("find_region_code", {"name": "강남구"})
+
+    assert result.is_error is False
+    data = json.loads(_text(result))
+    assert data["total_count"] == 15
+    # 페이지가 전체를 못 담으면 메시지에 드러낸다
+    assert (
+        data["message"]
+        == "Found 15 region(s); showing 3 on page 1 (use page_no or a narrower name)"
+    )
+    # 상위 단위가 먼저 오도록 정렬 (페이지 안에서): 시군구 → 읍면동 → 리
+    assert [i["name"] for i in data["items"]] == [
+        "서울특별시 강남구",
+        "서울특별시 강남구 역삼동",
+        "경기도 가평군 가평읍 읍내리",
+    ]
+    gu, dong, ri = data["items"]
+    assert gu["level"] == "시군구"
+    assert gu["nps_params"] == {"ldong_addr_mgpl_dg_cd": "11", "ldong_addr_mgpl_sggu_cd": "680"}
+    assert dong["level"] == "읍면동"
+    assert dong["nps_params"] == {
+        "ldong_addr_mgpl_dg_cd": "11",
+        "ldong_addr_mgpl_sggu_cd": "680",
+        "ldong_addr_mgpl_sggu_emd_cd": "101",
+    }
+    # 리는 nps 에 파라미터가 없으므로 소속 읍면동 코드를 준다
+    assert ri["level"] == "리"
+    assert ri["nps_params"] == {
+        "ldong_addr_mgpl_dg_cd": "41",
+        "ldong_addr_mgpl_sggu_cd": "820",
+        "ldong_addr_mgpl_sggu_emd_cd": "250",
+    }
+
+
+@respx.mock
+async def test_find_region_code_no_match_is_not_an_error(region_base_url, region_no_data_response):
+    respx.get(f"{region_base_url}/getStanReginCdList").mock(
+        return_value=httpx.Response(200, json=region_no_data_response)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool("find_region_code", {"name": "없는동네"})
+
+    assert result.is_error is False
+    data = json.loads(_text(result))
+    assert data["items"] == []
+    assert data["message"] == "No regions found matching '없는동네'"
+
+
+async def test_find_region_code_rejects_blank_name():
+    async with Client(mcp) as client:
+        result = await client.call_tool("find_region_code", {"name": "  "})
+
+    assert result.is_error is True
+    assert "입력값 오류" in _text(result)
+
+
+@respx.mock
+async def test_find_region_code_message_when_page_is_complete(region_base_url, region_response):
+    full = json.loads(json.dumps(region_response))
+    full["StanReginCd"][0]["head"][0]["totalCount"] = 3
+    respx.get(f"{region_base_url}/getStanReginCdList").mock(
+        return_value=httpx.Response(200, json=full)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool("find_region_code", {"name": "강남구"})
+
+    assert json.loads(_text(result))["message"] == "Found 3 region(s)"

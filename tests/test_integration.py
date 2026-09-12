@@ -23,6 +23,12 @@ CALLS = [
         '"total_count"',
     ),
     (
+        "nps_business_enrollment",
+        "find_region_code",
+        {"name": "서울특별시 강남구 역삼동"},
+        '"sgg_cd": "680"',
+    ),
+    (
         "nts_business_verification",
         "check_business_status",
         {"business_numbers": "1208800767"},
@@ -40,7 +46,9 @@ CALLS = [
 ]
 
 
-@pytest.mark.parametrize("module, tool, args, expected", CALLS, ids=[c[0] for c in CALLS])
+@pytest.mark.parametrize(
+    "module, tool, args, expected", CALLS, ids=[f"{c[0]}:{c[1]}" for c in CALLS]
+)
 async def test_live_tool_call(module: str, tool: str, args: dict, expected: str) -> None:
     params = StdioServerParameters(
         command=sys.executable, args=["-m", f"data_go_mcp.{module}.server"], env=dict(os.environ)
