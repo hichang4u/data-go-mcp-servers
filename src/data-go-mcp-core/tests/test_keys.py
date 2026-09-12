@@ -1,6 +1,7 @@
 """load_api_key 우선순위 테스트."""
 
 import pytest
+
 from data_go_mcp.core.keys import load_api_key
 
 

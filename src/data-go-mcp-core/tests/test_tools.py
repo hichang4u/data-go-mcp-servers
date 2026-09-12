@@ -1,16 +1,18 @@
 """서버 공통 유틸: configure_logging (stderr 전용), tool_errors (예외 → ToolError), READ_ONLY."""
 
-import httpx
 import logging
-import pytest
 import sys
-from data_go_mcp.core.errors import DataGoAPIError
-from data_go_mcp.core.logging import configure_logging
-from data_go_mcp.core.tools import READ_ONLY, tool_errors
+
+import httpx
+import pytest
 from mcp import Client
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 from mcp.types import TextContent
+
+from data_go_mcp.core.errors import DataGoAPIError
+from data_go_mcp.core.logging import configure_logging
+from data_go_mcp.core.tools import READ_ONLY, tool_errors
 
 
 def test_configure_logging_writes_to_stderr_only(capsys):

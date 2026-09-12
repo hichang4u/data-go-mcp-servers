@@ -54,7 +54,7 @@ ignore = ["C901", "E501", "E741", "F402", "F823", "D100", "D105", "D106", "D107"
 
 [tool.ruff.lint.isort]
 lines-after-imports = 2
-no-sections = true
+known-first-party = ["data_go_mcp"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

@@ -1,6 +1,6 @@
 """MCP server for National Pension Service Business Enrollment API."""
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from .server import mcp, main
 from .api_client import NPSAPIClient
@@ -9,7 +9,7 @@ from .models import (
     BusinessItem,
     BusinessDetailItem,
     PeriodStatusItem,
-    APIResponse
+    APIResponse,
 )
 
 __all__ = [
@@ -20,5 +20,5 @@ __all__ = [
     "BusinessItem",
     "BusinessDetailItem",
     "PeriodStatusItem",
-    "APIResponse"
+    "APIResponse",
 ]

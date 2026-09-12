@@ -1,11 +1,13 @@
 """BaseDataGoClient / to_camel / normalize_items 테스트 (HTTP는 respx로 가로챈다)."""
 
+from typing import Any
+
 import httpx
 import pytest
 import respx
+
 from data_go_mcp.core.client import BaseDataGoClient, normalize_items, to_camel
 from data_go_mcp.core.errors import DataGoAPIError
-from typing import Any
 
 
 BASE = "https://apis.data.go.kr/TEST/Service"
