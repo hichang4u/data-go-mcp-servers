@@ -19,12 +19,12 @@
 
 | 서버 | 기관 / API | 상태 |
 |---|---|---|
-| nps-business-enrollment | 국민연금공단 사업장 가입내역 | 예정 |
-| nts-business-verification | 국세청 사업자등록정보 진위확인·상태조회 | 예정 |
-| pps-narajangteo | 조달청 나라장터 입찰·낙찰·계약 | 예정 |
-| fsc-financial-info | 금융위원회 기업 재무정보 | 예정 |
-| presidential-speeches | 대통령기록관 연설문 | 예정 |
-| msds-chemical-info | 안전보건공단 MSDS 화학물질 정보 | 예정 |
+| nps-business-enrollment | 국민연금공단 사업장 가입내역 | core 이전 완료 |
+| nts-business-verification | 국세청 사업자등록정보 진위확인·상태조회 | core 이전 완료 |
+| pps-narajangteo | 조달청 나라장터 입찰·낙찰·계약 | core 이전 완료 |
+| fsc-financial-info | 금융위원회 기업 재무정보 | core 이전 완료 |
+| presidential-speeches | 대통령기록관 연설문 | core 이전 완료 |
+| msds-chemical-info | 안전보건공단 MSDS 화학물질 정보 | core 이전 완료 |
 
 각 서버는 `src/<server>/` 아래 독립 패키지로 두고 uv workspace로 묶는다.
 
@@ -40,24 +40,20 @@
 | 3. 테스트 | 깨진 테스트 수정, `respx`로 HTTP mocking 통일, 서버당 최소 1개 테스트, `integration` 마커로 실호출 분리 |
 | 4. 배포 | 버전 bump, git 직접 설치(`uvx --from git+...`) 안내 또는 별도 PyPI 네임스페이스 |
 
-## 현재 상태 (S1 완료, 2026-09-12)
+## 현재 상태 (S2 완료, 2026-09-12)
 
-| 항목 | S0 기준선 (`mcp<2` 핀) | S1 (mcp 2.2.0) |
-|---|---|---|
-| `uv run pytest` | 59 passed, 3 failed | **65 passed, 3 failed** (실패 3건은 원본부터 깨져 있던 것, S3에서 수정) |
-| 6개 서버 stdio 기동 + `list_tools` | — | `tests/test_list_tools.py` 로 전부 통과 |
-| `ruff check src scripts` | 917건 | 미측정 (S3) |
-| `pyright src` | 46 errors | 미측정 (S3) |
+| 항목 | S0 기준선 | S1 (mcp 2.2) | S2 (core 추출) |
+|---|---|---|---|
+| `uv run pytest` | 59 passed, 3 failed | 65 passed, 3 failed | **195 passed, 0 failed** |
+| 6개 서버 stdio 기동 + `list_tools` | — | 통과 | 통과 (API 키 없이도 기동) |
+| 툴 실패 → MCP `isError` | 아니오 (`{"error": …}` dict) | 아니오 | **예** (`ToolError`) |
+| `ruff check src scripts` | 917건 | 미측정 | 새 코드 0건, 원본 잔여는 S3 |
+| `pyright src` | 46 errors | 미측정 | 새 코드 0건, 원본 잔여는 S3 |
 
-S1에서 한 것: `mcp<2` 핀 제거, 의존성 `mcp[cli]>=2.2,<3`으로 통일, 5개 서버 `FastMCP` → `MCPServer` 치환,
-fsc는 저수준 `Server` 데코레이터 API가 2.x에서 사라져 `MCPServer` 기반으로 재작성(툴 이름·파라미터·출력 문구 유지).
-
-기준선을 잡기 위해 원본에서 두 가지를 바꿨다.
-
-- `src/fsc-financial-info/data_go_mcp/__init__.py` 삭제 — 이 파일 때문에 `data_go_mcp`가
-  일반 패키지로 잡혀 같은 환경에 두 서버 이상 설치하면 다른 서버 모듈을 import 못 했다.
-- pytest `--import-mode=importlib` — 서버마다 `test_api.py` 같은 basename을 쓰고 있어 루트에서
-  한 번에 돌리면 충돌했다.
+S2에서 한 것: 공통 패키지 `src/data-go-mcp-core`(`BaseDataGoClient`, `DataGoAPIError`, `load_api_key`,
+`tool_errors`, `READ_ONLY`, `configure_logging`) 를 만들고 6개 서버를 그 위로 이전. 모든 툴에
+`readOnlyHint` annotation 과 파라미터 설명, stderr 전용 로깅. 배포 스크립트·템플릿 Windows 대응.
+동작하지 않던 툴 수정: pps `get_bid_detail`, presidential `search_speeches`/`get_recent_speeches`.
 
 ### API 생존 확인 (`scripts/check_apis.py`, 2026-09-12)
 

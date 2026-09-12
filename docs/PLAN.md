@@ -46,7 +46,7 @@
     annotations 달 때 함께 `Field(description=)` 적용.
   - `tests/test_list_tools.py`가 `API_KEY`를 주입해 no-key 경로의 stdout `print()`(D5)를 못 잡음 → S2 2.16에서 no-key 변형 추가.
 
-## S2 — core 추출 + 결함 수정 `[ ]` (1.5d) — D4–D7, D9, FR-2/3/4/6
+## S2 — core 추출 + 결함 수정 `[x]` 2026-09-12 — D4–D7, D9, FR-2/3/4/6
 
 ### 2a. `data-go-mcp-core` (0.5d)
 
@@ -85,7 +85,19 @@
 | 2.18 | 템플릿 훅에서 `git init` 제거 (D9); 템플릿 `api_client.py`/`server.py`를 core 기반으로 교체 | `template/` |
 
 - 완료 기준: core 테스트 통과, 6개 서버가 core 위에서 동작, S0 실패 3건 외 새 실패 없음, 툴 실패가 Inspector에서 `isError`로 보임
-- 리스크: odcloud/KOSHA 응답 구조가 문서와 다를 수 있음 → S0b 실응답 샘플을 테스트 fixture로 사용
+  → **충족**. 결과 195 passed / 0 failed (S0의 실패 3건은 테스트 재작성으로 해소, D3 조기 달성). 브랜치 `s2-core`.
+- 진행 방식: superpowers TDD — 모듈/서버마다 테스트 먼저(RED 확인) → 구현(GREEN). 2b와 2c는 서버당 한 번에 처리.
+  HTTP는 respx, 툴 호출은 인프로세스 `mcp.Client(mcp)`, fixture는 S0b 실응답.
+- 실제 작업 중 드러난 것:
+  - **pps `get_bid_detail`** 은 API 범위 제한(1개월)과 맞지 않는 90일/100건 스캔이라 동작 불가였음 → 30일 창 × 999건 × 3페이지 + `start_date/end_date`.
+  - **presidential `search_speeches`** 는 현재 페이지 10건만 클라이언트 필터 → odcloud `cond[컬럼::EQ|LIKE]` 서버측 필터로 교체.
+    **`get_recent_speeches`** 는 오래된 순 목록의 1페이지(1948년)를 반환하던 버그 → 건수 확인 후 마지막 페이지.
+  - odcloud 401 `{"code":-401,"msg":…}` 형태를 core `_gateway_error` 가 `DataGoAPIError` 로 매핑 (테스트 먼저).
+  - 서버별 `pyproject.toml` 의 `[tool.pytest.ini_options]`/`[tool.ruff]` 가 루트 설정을 가리고 있었음 → 전부 제거.
+  - `tests/__init__.py` 가 세 곳에 있어 importlib 모드에서 `tests.test_server` 이름이 충돌(fsc 테스트가 nps 경로로 중복 수집) → 제거, 공용 fixture는 `conftest.py`.
+  - Windows: `deploy_to_pypi.py` 와 템플릿 훅의 이모지 `print()` 가 cp949 콘솔에서 `UnicodeEncodeError` → `sys.stdout.reconfigure(utf-8)`.
+  - 원본 pydantic 모델의 `Field(None, …)` 위치 인자를 pyright 가 필수로 봄 → 손댄 서버는 `Field(default=None, …)` 로 (나머지는 S3 3.7).
+  - ruff isort `no-sections = true` (원본 설정) 가 상대 import 를 맨 위로 올리는 등 순서를 망침 → 표준 섹션 + `known-first-party`.
 
 ## S3 — 테스트·품질 `[ ]` (1d) — D3, D11, NFR-3/6
 
@@ -122,7 +134,7 @@
 |---|---|---|
 | S0b | 완료 | — |
 | S1 | 0.5d | — |
-| S2 | 1.5d | S1. 2b의 fixture는 S0b 결과가 있으면 실응답 사용 |
+| S2 | 완료 | — |
 | S3 | 1d | S2 |
 | S4 | 0.5d | S3, S0b |
 
