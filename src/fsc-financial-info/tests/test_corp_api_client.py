@@ -89,3 +89,34 @@ async def test_get_corp_outline_rejects_bad_crno():
     async with CorpBasicInfoAPIClient() as client:
         with pytest.raises(ValueError, match="법인등록번호"):
             await client.get_corp_outline("12345")
+
+
+@respx.mock
+async def test_zero_counts_from_non_disclosing_corp_are_null(
+    corp_base_url, corp_undisclosed_response
+):
+    respx.get(f"{corp_base_url}/getCorpOutline_V2").mock(
+        return_value=httpx.Response(200, json=corp_undisclosed_response)
+    )
+    async with CorpBasicInfoAPIClient() as client:
+        outline = await client.get_corp_outline("2845110008637")
+
+    assert outline is not None
+    assert outline["enp_empe_cnt"] is None  # API 는 "0" 을 준다
+    assert outline["enp_pn1_avg_slry_amt"] is None
+
+
+@respx.mock
+async def test_get_corp_outline_follows_pages_when_snapshots_exceed_one_page(
+    corp_base_url, corp_two_page_responses
+):
+    page1, page2 = corp_two_page_responses
+    route = respx.get(f"{corp_base_url}/getCorpOutline_V2").mock(
+        side_effect=[httpx.Response(200, json=page1), httpx.Response(200, json=page2)]
+    )
+    async with CorpBasicInfoAPIClient() as client:
+        outline = await client.get_corp_outline("1301110006246")
+
+    assert route.call_count == 2
+    assert route.calls[1].request.url.params["pageNo"] == "2"
+    assert outline is not None and outline["snapshot_dt"] == "20260911"

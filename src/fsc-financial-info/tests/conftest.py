@@ -206,3 +206,15 @@ def corp_base_url() -> str:
 def corp_response() -> dict:
     """옛 스냅샷이 먼저 오도록 섞어 둔다 — 최신 선택이 순서에 의존하지 않게."""
     return wrap([_SAMSUNG_OLDER, _CHEONGPYEONG, _SAMSUNG_LATEST], total=20)
+
+
+@pytest.fixture
+def corp_two_page_responses() -> tuple[dict, dict]:
+    """스냅샷이 한 페이지(100건)를 넘는 경우: 옛 스냅샷은 1페이지, 최신은 2페이지에."""
+    return wrap([_SAMSUNG_OLDER], total=101), wrap([_SAMSUNG_LATEST], total=101)
+
+
+@pytest.fixture
+def corp_undisclosed_response() -> dict:
+    """공시 대상이 아닌 법인: 종업원 수·급여가 "0" 으로 온다."""
+    return wrap([_CHEONGPYEONG], total=1)

@@ -218,13 +218,15 @@ class CorpSearchRequest(BaseRequest):
         return _digits(v, "법인등록번호", 13)
 
 
-def _int_or_none(v: str | int | None) -> int | None:
+def _positive_int_or_none(v: str | int | None) -> int | None:
+    """공시하지 않는 법인은 "0" 으로 오므로 0 도 None 으로 본다."""
     if v is None or v == "":
         return None
     try:
-        return int(str(v).replace(",", ""))
+        n = int(str(v).replace(",", ""))
     except ValueError:
         return None
+    return n if n > 0 else None
 
 
 class CorpOutline(BaseModel):
@@ -247,7 +249,9 @@ class CorpOutline(BaseModel):
     enp_stac_mm: str | None = Field(default=None, description="결산월")
     enp_xchg_lstg_dt: str | None = Field(default=None, description="유가증권 상장일")
     enp_kosdaq_lstg_dt: str | None = Field(default=None, description="코스닥 상장일")
-    enp_empe_cnt: int | None = Field(default=None, description="종업원 수")
+    enp_empe_cnt: int | None = Field(
+        default=None, description="종업원 수 (미공시면 null)"
+    )
     empe_avg_cnwk_term_ctt: str | None = Field(
         default=None, description="평균 근속연수"
     )
@@ -282,9 +286,9 @@ class CorpOutline(BaseModel):
             enp_stac_mm=g("enpStacMm"),
             enp_xchg_lstg_dt=g("enpXchgLstgDt"),
             enp_kosdaq_lstg_dt=g("enpKosdaqLstgDt"),
-            enp_empe_cnt=_int_or_none(raw.get("enpEmpeCnt")),
+            enp_empe_cnt=_positive_int_or_none(raw.get("enpEmpeCnt")),
             empe_avg_cnwk_term_ctt=g("empeAvgCnwkTermCtt"),
-            enp_pn1_avg_slry_amt=_int_or_none(raw.get("enpPn1AvgSlryAmt")),
+            enp_pn1_avg_slry_amt=_positive_int_or_none(raw.get("enpPn1AvgSlryAmt")),
             actn_audpn_nm=g("actnAudpnNm"),
             audt_rpt_opnn_ctt=g("audtRptOpnnCtt"),
             enp_main_biz_nm=g("enpMainBizNm"),

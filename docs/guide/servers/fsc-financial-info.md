@@ -46,7 +46,8 @@
 
 Returns one item per corporation (crno, corp_nm, bzno, market, representative, address).
 total_count is the API's raw record count (one corporation can have several dated
-snapshots), so it may exceed len(items). Use get_corp_outline for the full profile.
+snapshots), so it may exceed len(items); snapshots are collapsed within the page only,
+so prefer a specific name or bzno over paging. Use get_corp_outline for the full profile.
 
 | 파라미터 | 타입 | 필수 | 기본값 | 설명 |
 |---|---|---|---|---|
@@ -76,7 +77,8 @@ Args:
 
 법인등록번호로 기업 개요를 조회합니다: 대표자, 주소, 상장시장, 설립일, 종업원 수, 평균 급여, 감사인·감사의견 등. | Get the corporate profile (representative, address, market, employees, average salary, auditor) by crno.
 
-Returns the latest snapshot (snapshot_dt). Empty fields are null.
+Returns the latest snapshot (snapshot_dt). Empty or undisclosed fields (including 0
+employees / 0 salary) are null.
 
 | 파라미터 | 타입 | 필수 | 기본값 | 설명 |
 |---|---|---|---|---|

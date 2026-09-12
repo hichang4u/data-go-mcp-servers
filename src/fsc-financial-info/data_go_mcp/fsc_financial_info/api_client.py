@@ -216,9 +216,22 @@ class CorpBasicInfoAPIClient(BaseDataGoClient):
             "total_count": int(body.get("totalCount", 0)),
         }
 
+    MAX_OUTLINE_PAGES = 5
+
     async def get_corp_outline(self, crno: str) -> dict[str, Any] | None:
-        """법인등록번호로 최신 기업 개요. 없으면 ``None``."""
+        """법인등록번호로 최신 기업 개요. 없으면 ``None``.
+
+        스냅샷이 한 페이지(100건)를 넘으면 뒷 페이지도 읽어 최신을 고른다 (최대 5페이지).
+        """
         request = CorpSearchRequest(crno=crno, num_of_rows=100)
-        _, items = await self._outline(request)
+        body, items = await self._outline(request)
+        total = int(body.get("totalCount", 0))
+        page = 1
+        while len(items) < total and page < self.MAX_OUTLINE_PAGES:
+            page += 1
+            _, more = await self._outline(request.model_copy(update={"page_no": page}))
+            items.extend(more)
+            if len(more) < request.num_of_rows:  # 짧은 페이지 = 마지막
+                break
         latest = latest_per_crno(items)
         return CorpOutline.from_api(latest[0]).model_dump() if latest else None
