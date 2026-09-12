@@ -57,3 +57,20 @@ async def test_server_lists_tools_over_stdio(module: str) -> None:
             result = await session.list_tools()
     names = {t.name for t in result.tools}
     assert names == SERVERS[module]
+
+
+@pytest.mark.parametrize("module", sorted(SERVERS))
+async def test_server_starts_without_api_key(module: str, tmp_path) -> None:
+    """API 키가 없어도 기동되고 list_tools 가 된다 (경고는 stderr 로만 — stdout 오염 시 여기서 죽는다)."""
+    env = {k: v for k, v in os.environ.items() if not k.endswith("API_KEY")}
+    params = StdioServerParameters(
+        command=sys.executable,
+        args=["-m", f"data_go_mcp.{module}.server"],
+        env=env,
+        cwd=tmp_path,  # 저장소 루트의 .env 를 load_dotenv 가 읽지 못하게
+    )
+    async with stdio_client(params) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            result = await session.list_tools()
+    assert {t.name for t in result.tools} == SERVERS[module]

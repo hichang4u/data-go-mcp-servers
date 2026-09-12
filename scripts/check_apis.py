@@ -8,9 +8,10 @@ resultCode 30/31/32 는 키 문제, 12 는 서비스 폐기, HTTP 404 는 엔드
 """
 
 import asyncio
-import httpx
 import os
 import sys
+
+import httpx
 from dotenv import load_dotenv
 
 
@@ -34,14 +35,25 @@ TARGETS = [
         "pps-narajangteo",
         "GET",
         "https://apis.data.go.kr/1230000/ao/PubDataOpnStdService/getDataSetOpnStdBidPblancInfo",
-        {"numOfRows": 1, "pageNo": 1, "type": "json",
-         "bidNtceBgnDt": "202501010000", "bidNtceEndDt": "202501020000"},
+        {
+            "numOfRows": 1,
+            "pageNo": 1,
+            "type": "json",
+            "bidNtceBgnDt": "202501010000",
+            "bidNtceEndDt": "202501020000",
+        },
     ),
     (
         "fsc-financial-info",
         "GET",
         "https://apis.data.go.kr/1160100/service/GetFinaStatInfoService_V2/getSummFinaStat_V2",
-        {"numOfRows": 1, "pageNo": 1, "resultType": "json", "bizYear": "2023", "crno": "1301110006246"},
+        {
+            "numOfRows": 1,
+            "pageNo": 1,
+            "resultType": "json",
+            "bizYear": "2023",
+            "crno": "1301110006246",
+        },
     ),
     (
         "presidential-speeches",
@@ -63,7 +75,9 @@ async def check(client: httpx.AsyncClient, name: str, method: str, url: str, ext
     key = os.environ["API_KEY"]
     try:
         if method == "POST":
-            r = await client.post(url, params={"serviceKey": key, "returnType": "JSON"}, json=extra)
+            r = await client.post(
+                url, params={"serviceKey": key, "returnType": "JSON"}, json=extra
+            )
         else:
             r = await client.get(url, params={"serviceKey": key, **extra})
     except httpx.HTTPError as e:

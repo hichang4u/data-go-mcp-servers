@@ -20,6 +20,7 @@ dev = [
     "cookiecutter>=2.6.0",
     "respx>=0.22",
     "xmltodict>=0.14",  # data-go-mcp-core[xml] 테스트용
+    "twine>=6.0",  # scripts/deploy_to_pypi.py
 ]
 
 [build-system]
