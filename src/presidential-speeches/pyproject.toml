@@ -1,6 +1,6 @@
 [project]
 name = "data-go-mcp.presidential-speeches"
-version = "0.1.0"
+version = "0.3.0"
 description = "MCP server for Access Korean presidential speech records from the Presidential Archives"
 readme = "README.md"
 authors = [
@@ -28,11 +28,11 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-org/data-go-mcp-servers"
-Repository = "https://github.com/your-org/data-go-mcp-servers"
-Documentation = "https://github.com/your-org/data-go-mcp-servers/tree/main/src/presidential-speeches"
-"Bug Tracker" = "https://github.com/your-org/data-go-mcp-servers/issues"
-Changelog = "https://github.com/your-org/data-go-mcp-servers/blob/main/src/presidential-speeches/CHANGELOG.md"
+Homepage = "https://github.com/hichang4u/data-go-mcp-servers"
+Repository = "https://github.com/hichang4u/data-go-mcp-servers"
+Documentation = "https://github.com/hichang4u/data-go-mcp-servers/tree/main/src/presidential-speeches"
+"Bug Tracker" = "https://github.com/hichang4u/data-go-mcp-servers/issues"
+Changelog = "https://github.com/hichang4u/data-go-mcp-servers/blob/main/src/presidential-speeches/CHANGELOG.md"
 
 [project.scripts]
 "data-go-mcp.presidential-speeches" = "data_go_mcp.presidential_speeches.server:main"

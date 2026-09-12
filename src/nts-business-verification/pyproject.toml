@@ -1,6 +1,6 @@
 [project]
 name = "data-go-mcp.nts-business-verification"
-version = "0.2.0"
+version = "0.3.0"
 description = "MCP server for 국세청 사업자등록정보 진위확인 및 상태조회 서비스"
 readme = "README.md"
 authors = [
@@ -28,11 +28,11 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Koomook/data-go-mcp-servers"
-Repository = "https://github.com/Koomook/data-go-mcp-servers"
-Documentation = "https://github.com/Koomook/data-go-mcp-servers/tree/main/src/nts-business-verification"
-"Bug Tracker" = "https://github.com/Koomook/data-go-mcp-servers/issues"
-Changelog = "https://github.com/Koomook/data-go-mcp-servers/blob/main/src/nts-business-verification/CHANGELOG.md"
+Homepage = "https://github.com/hichang4u/data-go-mcp-servers"
+Repository = "https://github.com/hichang4u/data-go-mcp-servers"
+Documentation = "https://github.com/hichang4u/data-go-mcp-servers/tree/main/src/nts-business-verification"
+"Bug Tracker" = "https://github.com/hichang4u/data-go-mcp-servers/issues"
+Changelog = "https://github.com/hichang4u/data-go-mcp-servers/blob/main/src/nts-business-verification/CHANGELOG.md"
 
 [project.scripts]
 "data-go-mcp.nts-business-verification" = "data_go_mcp.nts_business_verification.server:main"

@@ -1,6 +1,6 @@
 """MCP server for National Pension Service Business Enrollment API."""
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 from .server import mcp, main
 from .api_client import NPSAPIClient

@@ -1,6 +1,6 @@
 [project]
 name = "data-go-mcp.fsc-financial-info"
-version = "0.2.0"
+version = "0.3.0"
 description = "MCP server for Korea FSC Corporate Financial Information API (금융위원회 기업 재무정보)"
 readme = "README.md"
 authors = [{ name = "Your Name", email = "your.email@example.com" }]
@@ -17,10 +17,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Koomook/data-go-mcp-servers"
-Repository = "https://github.com/Koomook/data-go-mcp-servers"
-Documentation = "https://github.com/Koomook/data-go-mcp-servers#fsc-financial-info"
-Issues = "https://github.com/Koomook/data-go-mcp-servers/issues"
+Homepage = "https://github.com/hichang4u/data-go-mcp-servers"
+Repository = "https://github.com/hichang4u/data-go-mcp-servers"
+Documentation = "https://github.com/hichang4u/data-go-mcp-servers#fsc-financial-info"
+Issues = "https://github.com/hichang4u/data-go-mcp-servers/issues"
 
 [project.scripts]
 "data-go-mcp.fsc-financial-info" = "data_go_mcp.fsc_financial_info.server:main"

@@ -1,6 +1,6 @@
 [project]
 name = "data-go-mcp.msds-chemical-info"
-version = "0.1.1"
+version = "0.3.0"
 description = "MCP server for Material Safety Data Sheets from Korea Occupational Safety and Health Agency"
 readme = "README.md"
 authors = [
@@ -28,11 +28,11 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/datago-mcp/data-go-mcp-servers"
-Repository = "https://github.com/datago-mcp/data-go-mcp-servers"
-Documentation = "https://github.com/datago-mcp/data-go-mcp-servers/tree/main/src/msds-chemical-info"
-"Bug Tracker" = "https://github.com/datago-mcp/data-go-mcp-servers/issues"
-Changelog = "https://github.com/datago-mcp/data-go-mcp-servers/blob/main/src/msds-chemical-info/CHANGELOG.md"
+Homepage = "https://github.com/hichang4u/data-go-mcp-servers"
+Repository = "https://github.com/hichang4u/data-go-mcp-servers"
+Documentation = "https://github.com/hichang4u/data-go-mcp-servers/tree/main/src/msds-chemical-info"
+"Bug Tracker" = "https://github.com/hichang4u/data-go-mcp-servers/issues"
+Changelog = "https://github.com/hichang4u/data-go-mcp-servers/blob/main/src/msds-chemical-info/CHANGELOG.md"
 
 [project.scripts]
 "data-go-mcp.msds-chemical-info" = "data_go_mcp.msds_chemical_info.server:main"

@@ -1,3 +1,5 @@
+> **원저장소(Koomook/data-go-mcp-servers) 시점의 기록이다.** mcp 1.x `FastMCP`, dict 에러 반환, `NTS_BUSINESS_VERIFICATION_API_KEY` 등 현재 코드와 다른 부분이 많다. 새 서버를 추가하려면 [development/adding-a-server.md](../development/adding-a-server.md) 를 본다. 이 문서는 "API 하나를 서버로 만드는 데 약 2시간" 이라는 원저자의 경험치를 남기기 위해 수정 없이 보관한다.
+
 # 실제 사례: NTS Business Verification MCP 서버 만들기
 
 이 문서는 실제로 국세청 사업자등록정보 진위확인 API를 MCP 서버로 만든 과정을 재현 가능하도록 기록합니다.

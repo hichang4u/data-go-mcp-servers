@@ -662,7 +662,7 @@ dev = [
 
 [[package]]
 name = "data-go-mcp-fsc-financial-info"
-version = "0.2.0"
+version = "0.3.0"
 source = { editable = "src/fsc-financial-info" }
 dependencies = [
     { name = "data-go-mcp-core" },
@@ -683,7 +683,7 @@ requires-dist = [
 
 [[package]]
 name = "data-go-mcp-msds-chemical-info"
-version = "0.1.1"
+version = "0.3.0"
 source = { editable = "src/msds-chemical-info" }
 dependencies = [
     { name = "data-go-mcp-core", extra = ["xml"] },
@@ -720,7 +720,7 @@ dev = [
 
 [[package]]
 name = "data-go-mcp-nps-business-enrollment"
-version = "0.2.0"
+version = "0.3.0"
 source = { editable = "src/nps-business-enrollment" }
 dependencies = [
     { name = "data-go-mcp-core" },
@@ -757,7 +757,7 @@ dev = [
 
 [[package]]
 name = "data-go-mcp-nts-business-verification"
-version = "0.2.0"
+version = "0.3.0"
 source = { editable = "src/nts-business-verification" }
 dependencies = [
     { name = "data-go-mcp-core" },
@@ -794,7 +794,7 @@ dev = [
 
 [[package]]
 name = "data-go-mcp-pps-narajangteo"
-version = "0.1.1"
+version = "0.3.0"
 source = { editable = "src/pps-narajangteo" }
 dependencies = [
     { name = "data-go-mcp-core" },
@@ -831,7 +831,7 @@ dev = [
 
 [[package]]
 name = "data-go-mcp-presidential-speeches"
-version = "0.1.0"
+version = "0.3.0"
 source = { editable = "src/presidential-speeches" }
 dependencies = [
     { name = "data-go-mcp-core" },

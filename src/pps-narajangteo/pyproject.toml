@@ -1,6 +1,6 @@
 [project]
 name = "data-go-mcp.pps-narajangteo"
-version = "0.1.1"
+version = "0.3.0"
 description = "MCP server for 나라장터 공공데이터개방표준서비스 (Public Procurement Service Open Data Standard)"
 readme = "README.md"
 authors = [
@@ -28,11 +28,11 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/data-go-mcp-servers"
-Repository = "https://github.com/yourusername/data-go-mcp-servers"
-Documentation = "https://github.com/yourusername/data-go-mcp-servers/tree/main/src/pps-narajangteo"
-"Bug Tracker" = "https://github.com/yourusername/data-go-mcp-servers/issues"
-Changelog = "https://github.com/yourusername/data-go-mcp-servers/blob/main/src/pps-narajangteo/CHANGELOG.md"
+Homepage = "https://github.com/hichang4u/data-go-mcp-servers"
+Repository = "https://github.com/hichang4u/data-go-mcp-servers"
+Documentation = "https://github.com/hichang4u/data-go-mcp-servers/tree/main/src/pps-narajangteo"
+"Bug Tracker" = "https://github.com/hichang4u/data-go-mcp-servers/issues"
+Changelog = "https://github.com/hichang4u/data-go-mcp-servers/blob/main/src/pps-narajangteo/CHANGELOG.md"
 
 [project.scripts]
 "data-go-mcp.pps-narajangteo" = "data_go_mcp.pps_narajangteo.server:main"
