@@ -131,8 +131,12 @@ async def test_find_region_code_returns_levels_and_nps_params(region_base_url, r
     assert result.is_error is False
     data = json.loads(_text(result))
     assert data["total_count"] == 15
-    assert data["message"] == "Found 15 region(s)"
-    # 상위 단위가 먼저 오도록 정렬: 시군구 → 읍면동 → 리
+    # 페이지가 전체를 못 담으면 메시지에 드러낸다
+    assert (
+        data["message"]
+        == "Found 15 region(s); showing 3 on page 1 (use page_no or a narrower name)"
+    )
+    # 상위 단위가 먼저 오도록 정렬 (페이지 안에서): 시군구 → 읍면동 → 리
     assert [i["name"] for i in data["items"]] == [
         "서울특별시 강남구",
         "서울특별시 강남구 역삼동",
@@ -176,3 +180,16 @@ async def test_find_region_code_rejects_blank_name():
 
     assert result.is_error is True
     assert "입력값 오류" in _text(result)
+
+
+@respx.mock
+async def test_find_region_code_message_when_page_is_complete(region_base_url, region_response):
+    full = json.loads(json.dumps(region_response))
+    full["StanReginCd"][0]["head"][0]["totalCount"] = 3
+    respx.get(f"{region_base_url}/getStanReginCdList").mock(
+        return_value=httpx.Response(200, json=full)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool("find_region_code", {"name": "강남구"})
+
+    assert json.loads(_text(result))["message"] == "Found 3 region(s)"

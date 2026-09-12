@@ -44,7 +44,8 @@
 
 Look up 법정동코드 (행정안전부 행정표준코드) by region name. Each item has level
 (시도/시군구/읍면동/리) and nps_params — the exact ldong_addr_mgpl_* arguments for
-search_business. Higher-level regions are listed first.
+search_business. Within a page, higher-level regions are listed first; when
+total_count exceeds the page, narrow the name or use page_no.
 
 | 파라미터 | 타입 | 필수 | 기본값 | 설명 |
 |---|---|---|---|---|

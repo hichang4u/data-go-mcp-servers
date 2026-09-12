@@ -67,3 +67,13 @@ async def test_other_result_code_raises_data_go_error(region_base_url):
             await client.search_region("")
 
     assert exc.value.result_code == "ERROR-300"
+
+
+@respx.mock
+async def test_malformed_wrapper_raises_data_go_error(region_base_url):
+    respx.get(f"{region_base_url}/getStanReginCdList").mock(
+        return_value=httpx.Response(200, json={"StanReginCd": []})
+    )
+    async with RegionCodeAPIClient() as client:
+        with pytest.raises(DataGoAPIError):
+            await client.search_region("강남구")

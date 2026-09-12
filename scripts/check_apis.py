@@ -98,7 +98,9 @@ async def check(client: httpx.AsyncClient, name: str, method: str, url: str, ext
         if not code and "StanReginCd" in data:  # 법정동코드: head 배열 안의 RESULT
             for entry in data["StanReginCd"][0].get("head", []):
                 code = code or entry.get("RESULT", {}).get("resultCode", "")
-    except ValueError:
+        if not code and "RESULT" in data:  # 법정동코드: 결과 없음/오류는 최상위 RESULT
+            code = data["RESULT"].get("resultCode", "")
+    except (ValueError, LookupError, AttributeError, TypeError):
         pass
     return f"{name:36s} HTTP {r.status_code}  resultCode={code or '-':4s}  {body}"
 

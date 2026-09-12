@@ -178,7 +178,8 @@ async def find_region_code(
 
     Look up 법정동코드 (행정안전부 행정표준코드) by region name. Each item has level
     (시도/시군구/읍면동/리) and nps_params — the exact ldong_addr_mgpl_* arguments for
-    search_business. Higher-level regions are listed first.
+    search_business. Within a page, higher-level regions are listed first; when
+    total_count exceeds the page, narrow the name or use page_no.
     """
     name = name.strip()
     async with tool_errors():
@@ -190,11 +191,16 @@ async def find_region_code(
         item["level"] = _region_level(item)
         item["nps_params"] = _nps_params(item)
     result["items"].sort(key=lambda i: (_LEVEL_ORDER[i["level"]], i["region_cd"]))
-    result["message"] = (
-        f"Found {result['total_count']} region(s)"
-        if result["items"]
-        else f"No regions found matching '{name}'"
-    )
+    total, shown = result["total_count"], len(result["items"])
+    if not result["items"]:
+        result["message"] = f"No regions found matching '{name}'"
+    elif shown < total:
+        result["message"] = (
+            f"Found {total} region(s); showing {shown} on page {page_no} "
+            "(use page_no or a narrower name)"
+        )
+    else:
+        result["message"] = f"Found {total} region(s)"
     return result
 
 

@@ -110,13 +110,15 @@ class RegionCodeAPIClient(BaseDataGoClient):
             if code == "INFO-3":  # 데이터없음
                 return {"rows": [], "total_count": 0}
             raise DataGoAPIError(code, str(result.get("resultMsg", "")))
+        if not parts or not isinstance(parts[0], dict):
+            raise DataGoAPIError("INVALID", "예상하지 못한 응답 형식 (StanReginCd 비어 있음)")
         head: dict[str, Any] = {}
         for entry in parts[0].get("head", []):
             head.update(entry)
         code = str((head.get("RESULT") or {}).get("resultCode", ""))
         if code != "INFO-0":
             raise DataGoAPIError(code, str((head.get("RESULT") or {}).get("resultMsg", "")))
-        rows = parts[1].get("row", []) if len(parts) > 1 else []
+        rows = parts[1].get("row", []) if len(parts) > 1 and isinstance(parts[1], dict) else []
         return {"rows": rows, "total_count": int(head.get("totalCount", 0))}
 
     async def search_region(
