@@ -10,6 +10,7 @@
 import argparse
 import asyncio
 import importlib
+import inspect
 import sys
 from pathlib import Path
 from typing import Any
@@ -48,7 +49,8 @@ def render(tools: list[Any]) -> str:
         schema = tool.input_schema
         required = set(schema.get("required") or [])
         lines.append(f"### `{tool.name}`\n")
-        lines.append((tool.description or "").strip() + "\n")
+        # Python 3.13+ 는 docstring 을 dedent 해 저장하므로 버전 간 결과가 같도록 정규화한다
+        lines.append(inspect.cleandoc(tool.description or "") + "\n")
         props = schema.get("properties") or {}
         if props:
             lines.append("| 파라미터 | 타입 | 필수 | 기본값 | 설명 |")
