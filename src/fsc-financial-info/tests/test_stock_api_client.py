@@ -1,5 +1,7 @@
 """StockPriceAPIClient(주식시세정보) 테스트. HTTP 는 respx, 응답은 실응답 발췌."""
 
+import copy
+
 import httpx
 import pytest
 import respx
@@ -92,4 +94,35 @@ async def test_search_items_no_match(stock_base_url, stock_empty_response):
         result = await client.search_items("없는종목")
 
     assert route.call_count == 1
-    assert result == {"bas_dt": None, "items": [], "total_count": 0}
+    assert result == {"bas_dt": None, "items": [], "page_no": 1, "total_count": 0}
+
+
+@respx.mock
+async def test_search_items_passes_page_no_to_listing_call(
+    stock_base_url, stock_search_responses
+):
+    probe, listing = stock_search_responses
+    route = respx.get(f"{stock_base_url}/getStockPriceInfo_V2").mock(
+        side_effect=[httpx.Response(200, json=probe), httpx.Response(200, json=listing)]
+    )
+    async with StockPriceAPIClient() as client:
+        result = await client.search_items("삼성", num_of_rows=2, page_no=3)
+
+    assert route.calls[1].request.url.params["pageNo"] == "3"
+    assert result["page_no"] == 3
+
+
+@respx.mock
+async def test_search_items_row_without_bas_dt_is_api_error(
+    stock_base_url, stock_search_responses
+):
+    from data_go_mcp.core.errors import DataGoAPIError
+
+    probe = copy.deepcopy(stock_search_responses[0])
+    del probe["response"]["body"]["items"]["item"][0]["basDt"]
+    respx.get(f"{stock_base_url}/getStockPriceInfo_V2").mock(
+        return_value=httpx.Response(200, json=probe)
+    )
+    async with StockPriceAPIClient() as client:
+        with pytest.raises(DataGoAPIError):
+            await client.search_items("삼성")

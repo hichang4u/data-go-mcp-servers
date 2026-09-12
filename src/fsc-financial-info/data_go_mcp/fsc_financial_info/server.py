@@ -414,8 +414,13 @@ async def get_stock_price(
     if result["items"]:
         first = result["items"][0]
         result["message"] = (
-            f"{first['itms_nm']} ({first['srtn_cd']}, {first['mrkt_ctg']}): "
+            f"{first['itms_nm']} ({first['srtn_cd']}, {first['mrkt_ctg'] or '-'}): "
             f"{len(result['items'])} trading day(s) shown, latest {first['bas_dt']}"
+        )
+    elif bas_dt or begin_bas_dt or end_bas_dt:
+        result["message"] = (
+            "No stock price for the given date(s) — market closed or not yet published; "
+            "try without a date"
         )
     else:
         result["message"] = (
@@ -433,6 +438,7 @@ async def search_stock_items(
     num_of_rows: Annotated[
         int, Field(description="최대 종목 수 (기본값: 50, 최대: 100) | Max items")
     ] = 50,
+    page_no: Annotated[int, Field(description=PAGE_NO_DESC)] = 1,
 ) -> dict[str, Any]:
     """종목명 일부로 상장 종목을 찾습니다. 최신 거래일 기준 종목당 한 건(코드, 시장, 종가, 시가총액). | Search listed stocks by partial name; one row per item as of the latest trading day.
 
@@ -440,11 +446,13 @@ async def search_stock_items(
     """
     async with tool_errors():
         async with StockPriceAPIClient() as client:
-            result = await client.search_items(name, num_of_rows=num_of_rows)
+            result = await client.search_items(
+                name, num_of_rows=num_of_rows, page_no=page_no
+            )
     _with_market_cap_text(result["items"])
     result["message"] = (
         f"Found {result['total_count']} item(s) matching '{name}' as of {result['bas_dt']} "
-        f"(showing {len(result['items'])})"
+        f"(showing {len(result['items'])} on page {page_no})"
         if result["items"]
         else f"No listed stock matching '{name}'"
     )

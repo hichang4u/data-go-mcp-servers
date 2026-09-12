@@ -161,5 +161,6 @@ Use the returned itms_nm or srtn_cd with get_stock_price for history.
 |---|---|---|---|---|
 | `name` | string | 예 |  | 종목명 일부 (예: '삼성', '카카오') \| Partial stock name |
 | `num_of_rows` | integer |  | `50` | 최대 종목 수 (기본값: 50, 최대: 100) \| Max items |
+| `page_no` | integer |  | `1` | 페이지 번호 (기본값: 1) \| Page number (default: 1) |
 
 <!-- tools:end -->

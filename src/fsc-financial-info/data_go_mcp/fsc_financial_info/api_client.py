@@ -3,7 +3,7 @@
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
-from data_go_mcp.core import BaseDataGoClient, normalize_items
+from data_go_mcp.core import BaseDataGoClient, DataGoAPIError, normalize_items
 
 from .models import (
     BalanceSheetItem,
@@ -303,20 +303,30 @@ class StockPriceAPIClient(BaseDataGoClient):
             "total_count": int(body.get("totalCount", 0)),
         }
 
-    async def search_items(self, name: str, num_of_rows: int = 50) -> dict[str, Any]:
+    async def search_items(
+        self, name: str, num_of_rows: int = 50, page_no: int = 1
+    ) -> dict[str, Any]:
         """종목명 부분 일치로 종목 목록. 최신 거래일 하루치만 돌려줘 종목당 한 건이 되게 한다."""
         probe = StockPriceRequest(like_itms_nm=name, num_of_rows=1)
         if probe.like_itms_nm is None:
             raise ValueError("종목명(name)은 비어 있을 수 없습니다")
         _, latest = await self._prices(probe)
         if not latest:
-            return {"bas_dt": None, "items": [], "total_count": 0}
-        bas_dt = latest[0]["basDt"]
+            return {"bas_dt": None, "items": [], "page_no": page_no, "total_count": 0}
+        bas_dt = latest[0].get("basDt")
+        if not bas_dt:
+            raise DataGoAPIError("INVALID", "주식시세 응답에 basDt 가 없습니다")
         body, items = await self._prices(
-            StockPriceRequest(like_itms_nm=name, bas_dt=bas_dt, num_of_rows=num_of_rows)
+            StockPriceRequest(
+                like_itms_nm=name,
+                bas_dt=bas_dt,
+                num_of_rows=num_of_rows,
+                page_no=page_no,
+            )
         )
         return {
             "bas_dt": bas_dt,
             "items": [StockPrice.from_api(i).model_dump() for i in items],
+            "page_no": page_no,
             "total_count": int(body.get("totalCount", 0)),
         }

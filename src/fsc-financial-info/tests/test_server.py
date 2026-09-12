@@ -330,6 +330,42 @@ async def test_get_stock_price_no_match(stock_base_url, stock_empty_response):
     )
 
 
+@respx.mock
+async def test_get_stock_price_no_match_on_a_date_hints_market_closed(
+    stock_base_url, stock_empty_response
+):
+    respx.get(f"{stock_base_url}/getStockPriceInfo_V2").mock(
+        return_value=httpx.Response(200, json=stock_empty_response)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool(
+            "get_stock_price", {"srtn_cd": "005930", "bas_dt": "20260913"}
+        )
+
+    data = json.loads(_text(result))
+    assert data["message"] == (
+        "No stock price for the given date(s) — market closed or not yet published; "
+        "try without a date"
+    )
+
+
+@respx.mock
+async def test_get_stock_price_message_tolerates_missing_market(
+    stock_base_url, stock_response
+):
+    no_market = json.loads(
+        json.dumps(stock_response)
+    )  # fixture 의 공유 dict 를 건드리지 않게
+    no_market["response"]["body"]["items"]["item"][0]["mrktCtg"] = ""
+    respx.get(f"{stock_base_url}/getStockPriceInfo_V2").mock(
+        return_value=httpx.Response(200, json=no_market)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool("get_stock_price", {"itms_nm": "삼성전자"})
+
+    assert json.loads(_text(result))["message"].startswith("삼성전자 (005930, -):")
+
+
 async def test_get_stock_price_requires_identifier():
     async with Client(mcp) as client:
         result = await client.call_tool("get_stock_price", {"bas_dt": "20260910"})
@@ -354,6 +390,23 @@ async def test_search_stock_items_returns_items_for_latest_date(
     assert data["bas_dt"] == "20260910"
     assert [i["srtn_cd"] for i in data["items"]] == ["000810", "000815"]
     assert data["items"][0]["mrkt_tot_amt_text"] == "28.89조원"
-    assert (
-        data["message"] == "Found 26 item(s) matching '삼성' as of 20260910 (showing 2)"
+    assert data["message"] == (
+        "Found 26 item(s) matching '삼성' as of 20260910 (showing 2 on page 1)"
     )
+
+
+@respx.mock
+async def test_search_stock_items_accepts_page_no(
+    stock_base_url, stock_search_responses
+):
+    probe, listing = stock_search_responses
+    route = respx.get(f"{stock_base_url}/getStockPriceInfo_V2").mock(
+        side_effect=[httpx.Response(200, json=probe), httpx.Response(200, json=listing)]
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool(
+            "search_stock_items", {"name": "삼성", "page_no": 2}
+        )
+
+    assert route.calls[1].request.url.params["pageNo"] == "2"
+    assert json.loads(_text(result))["message"].endswith("(showing 2 on page 2)")
