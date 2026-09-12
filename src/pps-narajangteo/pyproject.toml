@@ -54,10 +54,3 @@ dev = [
     "pytest-cov>=4.1.0",
     "pytest-mock>=3.12.0",
 ]
-
-["tests"]
-asyncio_mode = "auto"
-python_files = "test_*.py"
-python_classes = "Test*"
-python_functions = "test_*"
-asyncio_default_fixture_loop_scope = "function"

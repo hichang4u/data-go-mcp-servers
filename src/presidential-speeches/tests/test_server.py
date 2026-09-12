@@ -130,3 +130,34 @@ async def test_api_error_is_tool_error(url_2023):
         result = await client.call_tool("list_speeches", {})
     assert result.is_error is True
     assert "유효하지 않은 인증키" in _text(result)
+
+
+@respx.mock
+async def test_get_recent_speeches_fills_short_last_page(url_2023, page_response, rows_2023):
+    # total=8565, limit=2 → 마지막 페이지(4283)에는 1건뿐 → 이전 페이지에서 채워 2건을 돌려준다
+    pages: list[str] = []
+
+    def handler(request):
+        p = request.url.params
+        pages.append(p["page"])
+        if p["perPage"] == "1":
+            return httpx.Response(200, json=page_response([rows_2023[0]], match=8565))
+        if p["page"] == "4283":
+            return httpx.Response(200, json=page_response([rows_2023[1]], page=4283, per_page=2))
+        return httpx.Response(200, json=page_response(rows_2023, page=4282, per_page=2))
+
+    respx.get(url_2023).mock(side_effect=handler)
+    async with Client(mcp) as client:
+        result = await client.call_tool("get_recent_speeches", {"limit": 2})
+
+    assert pages[1:] == ["4283", "4282"]
+    data = json.loads(_text(result))
+    assert data["count"] == 2
+    assert [s["year"] for s in data["data"]] == [2020, 2020]
+
+
+async def test_get_recent_speeches_rejects_non_positive_limit():
+    async with Client(mcp) as client:
+        result = await client.call_tool("get_recent_speeches", {"limit": 0})
+    assert result.is_error is True
+    assert "limit" in _text(result)

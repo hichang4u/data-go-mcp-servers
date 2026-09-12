@@ -21,8 +21,8 @@ class ChemicalListItem(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True)
     cas_no: Optional[str] = Field(default=None, alias="casNo", description="CAS No.")
-    chem_id: str = Field(..., alias="chemId", description="화학물질ID (6자리)")
-    chem_name_kor: str = Field(..., alias="chemNameKor", description="화학물질명(국문명)")
+    chem_id: str = Field(default="", alias="chemId", description="화학물질ID (6자리)")
+    chem_name_kor: str = Field(default="", alias="chemNameKor", description="화학물질명(국문명)")
     en_no: Optional[str] = Field(default=None, alias="enNo", description="EN No.")
     ke_no: Optional[str] = Field(default=None, alias="keNo", description="KE No.")
     un_no: Optional[str] = Field(default=None, alias="unNo", description="UN No.")
@@ -37,14 +37,14 @@ class MsdsDetailItem(BaseModel):
     """MSDS 상세정보 아이템."""
 
     model_config = ConfigDict(populate_by_name=True)
-    lev: int = Field(..., description="레벨(1~3 단계)")
-    msds_item_code: str = Field(..., alias="msdsItemCode", description="항목코드")
+    lev: int = Field(default=1, description="레벨(1~3 단계)")
+    msds_item_code: str = Field(default="", alias="msdsItemCode", description="항목코드")
     up_msds_item_code: Optional[str] = Field(
         default=None, alias="upMsdsItemCode", description="상위항목코드"
     )
-    msds_item_name_kor: str = Field(..., alias="msdsItemNameKor", description="항목명")
+    msds_item_name_kor: str = Field(default="", alias="msdsItemNameKor", description="항목명")
     msds_item_no: Optional[str] = Field(default=None, alias="msdsItemNo", description="항목구분")
-    ordr_idx: int = Field(..., alias="ordrIdx", description="순서")
+    ordr_idx: int = Field(default=0, alias="ordrIdx", description="순서")
     item_detail: Optional[str] = Field(
         default=None, alias="itemDetail", description="상세내용 - 항목에 대한 값"
     )

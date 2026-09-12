@@ -98,6 +98,11 @@
   - Windows: `deploy_to_pypi.py` 와 템플릿 훅의 이모지 `print()` 가 cp949 콘솔에서 `UnicodeEncodeError` → `sys.stdout.reconfigure(utf-8)`.
   - 원본 pydantic 모델의 `Field(None, …)` 위치 인자를 pyright 가 필수로 봄 → 손댄 서버는 `Field(default=None, …)` 로 (나머지는 S3 3.7).
   - ruff isort `no-sections = true` (원본 설정) 가 상대 import 를 맨 위로 올리는 등 순서를 망침 → 표준 섹션 + `known-first-party`.
+- 코드리뷰(`/code-review main..s2-core high`) 결과 4건, 전부 테스트 먼저 추가 후 수정:
+  - presidential `get_recent_speeches`: 마지막 페이지가 `total % limit` 건만 있을 때 limit 미만 반환 → 앞 페이지에서 채움. `limit=0` → ZeroDivisionError → 입력 검증.
+  - 서버별 `pyproject.toml` 에서 pytest 섹션 제거 시 `testpaths = ["tests"]` 의 `[` 때문에 `["tests"]` 테이블 잔재 남음 → 제거.
+  - `configure_logging` 이 root INFO 를 켜면서 httpx 의 `HTTP Request: GET <url?serviceKey=…>` 가 stderr 에 남음 (키 유출) → httpx/httpcore WARNING.
+  - msds: xmltodict 가 빈 요소를 `None` 으로 주어 필수 필드 `ValidationError` 로 툴 전체 실패 가능 → None 제거 + 모델 기본값.
 
 ## S3 — 테스트·품질 `[ ]` (1d) — D3, D11, NFR-3/6
 

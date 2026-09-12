@@ -91,3 +91,10 @@ async def test_tool_error_is_reported_as_is_error_to_client():
     (content,) = result.content
     assert isinstance(content, TextContent)
     assert "[22] LIMITED" in content.text
+
+
+def test_configure_logging_silences_httpx_request_lines():
+    # httpx 는 INFO 로 "HTTP Request: GET <url>" 을 남기는데 url 에 serviceKey 가 들어 있다
+    configure_logging("demo")
+    assert logging.getLogger("httpx").level >= logging.WARNING
+    assert logging.getLogger("httpcore").level >= logging.WARNING

@@ -112,16 +112,24 @@ async def get_recent_speeches(
     Returns count, president, data[] (최신 → 과거).
     """
     async with tool_errors():
+        if limit < 1:
+            raise ValueError(f"limit 은 1 이상이어야 합니다: {limit}")
         cond = PresidentialSpeechesAPIClient.build_cond(president=president)
         async with PresidentialSpeechesAPIClient() as client:
             probe = await client.get_speeches_2023(page=1, per_page=1, **cond)
             total = probe.match_count
-            if total == 0:
-                speeches: list[Speech2023] = []
-            else:
-                last_page = max(1, math.ceil(total / limit))
+            speeches: list[Speech2023] = []
+            if total:
+                last_page = math.ceil(total / limit)
                 response = await client.get_speeches_2023(page=last_page, per_page=limit, **cond)
-                speeches = list(reversed(response.data))
+                speeches = list(response.data)
+                # 마지막 페이지는 total % limit 건만 있을 수 있다 → 앞 페이지에서 채운다
+                if len(speeches) < limit and last_page > 1:
+                    prev = await client.get_speeches_2023(
+                        page=last_page - 1, per_page=limit, **cond
+                    )
+                    speeches = (list(prev.data) + speeches)[-limit:]
+                speeches.reverse()
     return {
         "count": len(speeches),
         "president": president,

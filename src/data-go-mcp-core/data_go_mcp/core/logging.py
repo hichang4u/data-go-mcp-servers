@@ -16,4 +16,7 @@ def configure_logging(name: str, level: int = logging.INFO) -> logging.Logger:
         handler.setFormatter(logging.Formatter(_FORMAT))
         root.addHandler(handler)
     root.setLevel(min(root.level or level, level))
+    # httpx 는 INFO 로 요청 URL(serviceKey 포함)을 남긴다 — 키가 로그에 새지 않도록 올린다
+    for noisy in ("httpx", "httpcore"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
     return logging.getLogger(name)

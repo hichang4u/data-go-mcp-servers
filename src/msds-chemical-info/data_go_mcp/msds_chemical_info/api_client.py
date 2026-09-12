@@ -5,6 +5,12 @@ from typing import Any, Iterable
 
 from data_go_mcp.core import BaseDataGoClient, normalize_items
 
+
+def _drop_empty(item: dict[str, Any]) -> dict[str, Any]:
+    """Xmltodict 는 빈 요소(<casNo/>)를 None 으로 준다 — 모델 기본값이 쓰이도록 뺀다."""
+    return {k: v for k, v in item.items() if v is not None}
+
+
 from .models import (
     SECTION_TITLES,
     ChemicalListItem,
@@ -60,7 +66,7 @@ class MsdsChemicalInfoAPIClient(BaseDataGoClient):
             },
         )
         return ChemicalListResponse(
-            items=[ChemicalListItem(**item) for item in normalize_items(body)],
+            items=[ChemicalListItem(**_drop_empty(item)) for item in normalize_items(body)],
             totalCount=int(body.get("totalCount") or 0),
             pageNo=int(body.get("pageNo") or page_no),
             numOfRows=int(body.get("numOfRows") or num_of_rows),
@@ -76,7 +82,7 @@ class MsdsChemicalInfoAPIClient(BaseDataGoClient):
         return MsdsSection(
             section_number=section_number,
             section_title=SECTION_TITLES[section_number],
-            items=[MsdsDetailItem(**item) for item in normalize_items(body)],
+            items=[MsdsDetailItem(**_drop_empty(item)) for item in normalize_items(body)],
         )
 
     async def get_sections(

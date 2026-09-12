@@ -132,3 +132,25 @@ async def test_error_code_raises_data_go_error(base_url, error_xml):
         with pytest.raises(DataGoAPIError) as exc:
             await client.search_chemicals("벤젠")
     assert exc.value.result_code == "30"
+
+
+@respx.mock
+async def test_empty_xml_elements_do_not_break_parsing(base_url):
+    # xmltodict 는 빈 요소를 None 으로 준다 — 필수 필드가 비어도 한 행 때문에 툴 전체가 죽으면 안 된다
+    xml = """<response><header><resultCode>00</resultCode><resultMsg>OK</resultMsg></header>
+<body><items><item><casNo/><chemId>000123</chemId><chemNameKor/><enNo/><keNo/><unNo/><lastDate/></item></items>
+<totalCount>1</totalCount><pageNo>1</pageNo><numOfRows>10</numOfRows></body></response>"""
+    respx.get(f"{base_url}/chemlist").mock(return_value=httpx.Response(200, text=xml))
+    async with MsdsChemicalInfoAPIClient() as client:
+        resp = await client.search_chemicals("x")
+    assert resp.items[0].chem_id == "000123"
+    assert resp.items[0].chem_name_kor == ""
+
+    detail = """<response><header><resultCode>00</resultCode><resultMsg>OK</resultMsg></header>
+<body><items><item><itemDetail/><lev/><msdsItemCode>A02</msdsItemCode><msdsItemNameKor/><ordrIdx/><upMsdsItemCode/></item></items></body></response>"""
+    respx.get(f"{base_url}/chemdetail01").mock(return_value=httpx.Response(200, text=detail))
+    async with MsdsChemicalInfoAPIClient() as client:
+        section = await client.get_chemical_detail("000123", 1)
+    assert section.items[0].msds_item_code == "A02"
+    assert section.items[0].lev == 1
+    assert section.items[0].ordr_idx == 0
