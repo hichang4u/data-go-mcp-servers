@@ -5,7 +5,7 @@
 | 메시지 | 뜻 | 조치 |
 |---|---|---|
 | `입력값 오류: API key is required …` | 키가 없음 | 클라이언트 설정 `env.API_KEY` 확인 |
-| `data.go.kr 오류 [30] SERVICE_KEY_IS_NOT_REGISTERED_ERROR` | 키는 있으나 그 API 에 활용신청이 안 됨, 또는 Encoding 키를 넣음. nps(사업장, 법정동코드)·fsc(재무정보, 기업기본정보, 주식시세)는 API 가 여럿이라 전부 신청 | [api-keys.md](api-keys.md) 2·1 절 |
+| `data.go.kr 오류 [30] SERVICE_KEY_IS_NOT_REGISTERED_ERROR` | 키는 있으나 그 API 에 활용신청이 안 됨, 또는 Encoding 키를 넣음. nps(사업장, 법정동코드, 고용산재보험)·fsc(재무정보, 기업기본정보, 주식시세)는 API 가 여럿이라 전부 신청 | [api-keys.md](api-keys.md) 2·1 절 |
 | `data.go.kr 오류 [-401] 유효하지 않은 인증키` | odcloud 계열(nts, presidential) 미신청 | 활용신청 |
 | `data.go.kr 오류 [22] …EXCEEDS` | 일일 트래픽 초과 | 다음 날 또는 운영계정 신청 |
 | `data.go.kr 오류 [12] …` | 서비스가 폐기됨 | 이슈 등록 |
@@ -34,6 +34,6 @@
 git clone https://github.com/hichang4u/data-go-mcp-servers && cd data-go-mcp-servers
 uv sync --dev --all-packages
 echo "API_KEY=<키>" > .env
-uv run python scripts/check_apis.py     # 9개 API 생존·권한 확인
+uv run python scripts/check_apis.py     # 10개 API 생존·권한 확인
 uv run pytest -m integration            # 서버당 실호출 1건
 ```

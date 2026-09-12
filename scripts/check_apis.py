@@ -1,4 +1,4 @@
-"""각 서버가 사용하는 공공 API(9개)가 살아 있는지 최소 요청으로 확인한다.
+"""각 서버가 사용하는 공공 API(10개)가 살아 있는지 최소 요청으로 확인한다.
 
 사용법:
     API_KEY=... uv run python scripts/check_apis.py
@@ -30,6 +30,12 @@ TARGETS = [
         "GET",
         "https://apis.data.go.kr/1741000/StanReginCd/getStanReginCdList",
         {"locatadd_nm": "강남구", "numOfRows": 1, "pageNo": 1, "type": "json"},
+    ),
+    (
+        "nps-business-enrollment (고용산재보험)",
+        "GET",
+        "https://apis.data.go.kr/B490001/gySjbPstateInfoService/getGySjBoheomBsshItem",
+        {"v_saeopjaDrno": "1248100998", "opaBoheomFg": "2", "numOfRows": 1, "pageNo": 1},
     ),
     (
         "nts-business-verification",

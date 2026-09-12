@@ -1,6 +1,6 @@
 [project]
 name = "data-go-mcp.nps-business-enrollment"
-version = "0.4.0"
+version = "0.5.0"
 description = "MCP server for Korea National Pension Service business enrollment API from data.go.kr"
 readme = "README.md"
 authors = [
@@ -20,7 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "data-go-mcp-core",
+    "data-go-mcp-core[xml]",
     "httpx>=0.28",
     "mcp[cli]>=2.2,<3",
     "pydantic>=2.11",

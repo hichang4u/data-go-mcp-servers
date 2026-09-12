@@ -29,6 +29,12 @@ CALLS = [
         '"sgg_cd": "680"',
     ),
     (
+        "nps_business_enrollment",
+        "get_insurance_status",
+        {"bzno": "1248100998", "insurance": "고용", "num_of_rows": 1},
+        '"insurance": "고용"',
+    ),
+    (
         "nts_business_verification",
         "check_business_status",
         {"business_numbers": "1208800767"},

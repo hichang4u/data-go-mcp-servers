@@ -29,6 +29,7 @@ async def test_all_tools_are_read_only_with_described_params():
         "get_business_detail",
         "get_period_status",
         "find_region_code",
+        "get_insurance_status",
     }
     for tool in tools:
         assert tool.annotations is not None and tool.annotations.read_only_hint is True
@@ -193,3 +194,62 @@ async def test_find_region_code_message_when_page_is_complete(region_base_url, r
         result = await client.call_tool("find_region_code", {"name": "강남구"})
 
     assert json.loads(_text(result))["message"] == "Found 3 region(s)"
+
+
+@respx.mock
+async def test_get_insurance_status_summarizes_by_kind(insurance_base_url, insurance_xml):
+    respx.get(f"{insurance_base_url}/getGySjBoheomBsshItem").mock(
+        return_value=httpx.Response(200, text=insurance_xml)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool("get_insurance_status", {"bzno": "120-88-00767"})
+
+    assert result.is_error is False
+    data = json.loads(_text(result))
+    assert data["total_count"] == 3
+    assert [i["insurance"] for i in data["items"]] == ["산재", "고용", "산재"]
+    assert data["summary"] == {
+        "산재": {"workplaces": 2, "employees": 12081},
+        "고용": {"workplaces": 1, "employees": 11070},
+    }
+    assert (
+        data["message"]
+        == "1208800767: 3 insured workplace(s) — 산재 2 (12,081명), 고용 1 (11,070명)"
+    )
+
+
+@respx.mock
+async def test_get_insurance_status_filters_kind(insurance_base_url, insurance_single_xml):
+    route = respx.get(f"{insurance_base_url}/getGySjBoheomBsshItem").mock(
+        return_value=httpx.Response(200, text=insurance_single_xml)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool(
+            "get_insurance_status", {"bzno": "1248100998", "insurance": "고용"}
+        )
+
+    assert route.calls.last.request.url.params["opaBoheomFg"] == "2"
+    data = json.loads(_text(result))
+    assert data["summary"] == {"고용": {"workplaces": 1, "employees": 128093}}
+
+
+@respx.mock
+async def test_get_insurance_status_none_found(insurance_base_url, insurance_empty_xml):
+    respx.get(f"{insurance_base_url}/getGySjBoheomBsshItem").mock(
+        return_value=httpx.Response(200, text=insurance_empty_xml)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool("get_insurance_status", {"bzno": "9999999999"})
+
+    assert result.is_error is False
+    data = json.loads(_text(result))
+    assert data["items"] == [] and data["summary"] == {}
+    assert data["message"] == "9999999999: no insured workplace found"
+
+
+async def test_get_insurance_status_bad_bzno_is_tool_error():
+    async with Client(mcp) as client:
+        result = await client.call_tool("get_insurance_status", {"bzno": "12"})
+
+    assert result.is_error is True
+    assert "입력값 오류" in _text(result)
