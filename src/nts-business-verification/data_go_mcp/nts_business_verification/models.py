@@ -23,14 +23,20 @@ class BusinessStatus(BaseModel):
     """사업자 상태 정보."""
 
     b_no: str = Field(..., description="사업자등록번호")
-    b_stt: Optional[str] = Field(default=None, description="사업자등록상태 (계속사업자/휴업자/폐업자)")
+    b_stt: Optional[str] = Field(
+        default=None, description="사업자등록상태 (계속사업자/휴업자/폐업자)"
+    )
     b_stt_cd: Optional[str] = Field(default=None, description="사업자등록상태코드 (01/02/03)")
     tax_type: Optional[str] = Field(default=None, description="과세유형메세지")
     tax_type_cd: Optional[str] = Field(default=None, description="과세유형코드")
     end_dt: Optional[str] = Field(default=None, description="폐업일 (YYYYMMDD)")
     utcc_yn: Optional[str] = Field(default=None, description="단위과세전환폐업여부 (Y/N)")
-    tax_type_change_dt: Optional[str] = Field(default=None, description="과세유형전환일자 (YYYYMMDD)")
-    invoice_apply_dt: Optional[str] = Field(default=None, description="세금계산서적용일자 (YYYYMMDD)")
+    tax_type_change_dt: Optional[str] = Field(
+        default=None, description="과세유형전환일자 (YYYYMMDD)"
+    )
+    invoice_apply_dt: Optional[str] = Field(
+        default=None, description="세금계산서적용일자 (YYYYMMDD)"
+    )
     rbf_tax_type: Optional[str] = Field(default=None, description="직전과세유형메세지")
     rbf_tax_type_cd: Optional[str] = Field(default=None, description="직전과세유형코드")
 
@@ -55,8 +61,12 @@ class ValidateResult(BaseModel):
     b_no: str = Field(..., description="사업자등록번호")
     valid: str = Field(..., description="진위확인 결과 (01: 일치, 02: 불일치)")
     valid_msg: Optional[str] = Field(default="", description="진위확인 메시지")
-    request_param: Optional[ValidateRequestParam] = Field(default=None, description="요청 파라미터")
-    status: Optional[BusinessStatus] = Field(default=None, description="사업자 상태 정보 (일치 시)")
+    request_param: Optional[ValidateRequestParam] = Field(
+        default=None, description="요청 파라미터"
+    )
+    status: Optional[BusinessStatus] = Field(
+        default=None, description="사업자 상태 정보 (일치 시)"
+    )
 
 
 class ValidateRequest(BaseModel):

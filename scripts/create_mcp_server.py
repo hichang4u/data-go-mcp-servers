@@ -11,7 +11,7 @@ from typing import Any, Dict
 def run_command(cmd: str, check: bool = True) -> bool:
     """Run a shell command."""
     try:
-        result = subprocess.run(cmd, shell=True, check=check, capture_output=True, text=True)
+        subprocess.run(cmd, shell=True, check=check, capture_output=True, text=True)
         return True
     except subprocess.CalledProcessError:
         return False

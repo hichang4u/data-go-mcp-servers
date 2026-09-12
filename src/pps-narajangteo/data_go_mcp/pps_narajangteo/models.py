@@ -31,8 +31,12 @@ class BidAnnouncement(BaseModel):
     data_base_date: str = Field(alias="dataBssDate", description="데이터기준일자")
 
     # 선택 항목
-    bid_notice_order: Optional[str] = Field(None, alias="bidNtceOrd", description="입찰공고차수")
-    reference_notice_no: Optional[str] = Field(None, alias="refNtceNo", description="참조공고번호")
+    bid_notice_order: Optional[str] = Field(
+        default=None, alias="bidNtceOrd", description="입찰공고차수"
+    )
+    reference_notice_no: Optional[str] = Field(
+        default=None, alias="refNtceNo", description="참조공고번호"
+    )
     reference_notice_order: Optional[str] = Field(
         None, alias="refNtceOrd", description="참조공고차수"
     )
@@ -102,18 +106,30 @@ class BidAnnouncement(BaseModel):
     common_receipt_agreement_close_time: Optional[str] = Field(
         None, alias="cmmnReciptAgrmntClseTm", description="공동수급협정마감시각"
     )
-    bid_begin_date: Optional[str] = Field(None, alias="bidBeginDate", description="입찰개시일자")
-    bid_begin_time: Optional[str] = Field(None, alias="bidBeginTm", description="입찰개시시각")
-    bid_close_date: Optional[str] = Field(None, alias="bidClseDate", description="입찰마감일자")
-    bid_close_time: Optional[str] = Field(None, alias="bidClseTm", description="입찰마감시각")
+    bid_begin_date: Optional[str] = Field(
+        default=None, alias="bidBeginDate", description="입찰개시일자"
+    )
+    bid_begin_time: Optional[str] = Field(
+        default=None, alias="bidBeginTm", description="입찰개시시각"
+    )
+    bid_close_date: Optional[str] = Field(
+        default=None, alias="bidClseDate", description="입찰마감일자"
+    )
+    bid_close_time: Optional[str] = Field(
+        default=None, alias="bidClseTm", description="입찰마감시각"
+    )
     assign_budget_amount: Optional[str] = Field(
         None, alias="asignBdgtAmt", description="배정예산금액(설계금액)"
     )
-    presumption_price: Optional[str] = Field(None, alias="presmptPrce", description="추정가격")
+    presumption_price: Optional[str] = Field(
+        default=None, alias="presmptPrce", description="추정가격"
+    )
     reservation_price_decision_method_name: Optional[str] = Field(
         None, alias="rsrvtnPrceDcsnMthdNm", description="예정가격결정방법명"
     )
-    region_limit_yn: Optional[str] = Field(None, alias="rgnLmtYn", description="지역제한여부")
+    region_limit_yn: Optional[str] = Field(
+        default=None, alias="rgnLmtYn", description="지역제한여부"
+    )
     participation_possible_region_name: Optional[str] = Field(
         None, alias="prtcptPsblRgnNm", description="참가가능지역명"
     )
@@ -123,7 +139,9 @@ class BidAnnouncement(BaseModel):
     bid_price_possible_industry_type_name: Optional[str] = Field(
         None, alias="bidprcPsblIndstrytyNm", description="투찰가능업종명"
     )
-    bid_notice_url: Optional[str] = Field(None, alias="bidNtceUrl", description="입찰공고URL")
+    bid_notice_url: Optional[str] = Field(
+        default=None, alias="bidNtceUrl", description="입찰공고URL"
+    )
 
 
 class SuccessfulBid(BaseModel):
@@ -147,7 +165,9 @@ class SuccessfulBid(BaseModel):
     data_base_date: str = Field(alias="dataBssDate", description="데이터기준일자")
 
     # 선택 항목
-    bid_notice_order: Optional[str] = Field(None, alias="bidNtceOrd", description="입찰공고차수")
+    bid_notice_order: Optional[str] = Field(
+        default=None, alias="bidNtceOrd", description="입찰공고차수"
+    )
     bidwinner_decision_method_name: Optional[str] = Field(
         None, alias="bidwinrDcsnMthdNm", description="낙찰자결정방법명"
     )
@@ -160,10 +180,14 @@ class SuccessfulBid(BaseModel):
     success_lowest_limit_rate: Optional[str] = Field(
         None, alias="sucsfLwstlmtRt", description="낙찰하한율"
     )
-    presumption_price: Optional[str] = Field(None, alias="presmptPrce", description="추정가격")
-    reservation_price: Optional[str] = Field(None, alias="rsrvtnPrce", description="예정가격")
-    base_amount: Optional[str] = Field(None, alias="bssAmt", description="기초금액")
-    opening_rank: Optional[str] = Field(None, alias="opengRank", description="개찰순위")
+    presumption_price: Optional[str] = Field(
+        default=None, alias="presmptPrce", description="추정가격"
+    )
+    reservation_price: Optional[str] = Field(
+        default=None, alias="rsrvtnPrce", description="예정가격"
+    )
+    base_amount: Optional[str] = Field(default=None, alias="bssAmt", description="기초금액")
+    opening_rank: Optional[str] = Field(default=None, alias="opengRank", description="개찰순위")
     bid_price_corp_business_no: Optional[str] = Field(
         None, alias="bidprcCorpBizrno", description="투찰업체사업자등록번호"
     )
@@ -173,18 +197,22 @@ class SuccessfulBid(BaseModel):
     bid_price_corp_ceo_name: Optional[str] = Field(
         None, alias="bidprcCorpCeoNm", description="투찰업체대표자명"
     )
-    bid_price_amount: Optional[str] = Field(None, alias="bidprcAmt", description="투찰금액")
-    bid_price_rate: Optional[str] = Field(None, alias="bidprcRt", description="투찰율")
-    bid_price_date: Optional[str] = Field(None, alias="bidprcDate", description="투찰일자")
-    bid_price_time: Optional[str] = Field(None, alias="bidprcTm", description="투찰시각")
-    success_yn: Optional[str] = Field(None, alias="sucsfYn", description="낙찰여부")
+    bid_price_amount: Optional[str] = Field(
+        default=None, alias="bidprcAmt", description="투찰금액"
+    )
+    bid_price_rate: Optional[str] = Field(default=None, alias="bidprcRt", description="투찰율")
+    bid_price_date: Optional[str] = Field(default=None, alias="bidprcDate", description="투찰일자")
+    bid_price_time: Optional[str] = Field(default=None, alias="bidprcTm", description="투찰시각")
+    success_yn: Optional[str] = Field(default=None, alias="sucsfYn", description="낙찰여부")
     disqualification_reason: Optional[str] = Field(
         None, alias="dqlfctnRsn", description="부적격사유"
     )
     final_success_amount: Optional[str] = Field(
         None, alias="fnlSucsfAmt", description="최종낙찰금액"
     )
-    final_success_rate: Optional[str] = Field(None, alias="fnlSucsfRt", description="최종낙찰율")
+    final_success_rate: Optional[str] = Field(
+        default=None, alias="fnlSucsfRt", description="최종낙찰율"
+    )
     final_success_date: Optional[str] = Field(
         None, alias="fnlSucsfDate", description="최종낙찰일자"
     )
@@ -250,16 +278,26 @@ class Contract(BaseModel):
     contract_info_url: Optional[str] = Field(
         None, alias="cntrctInfoUrl", description="계약정보URL"
     )
-    bid_notice_no: Optional[str] = Field(None, alias="bidNtceNo", description="입찰공고번호")
-    bid_notice_order: Optional[str] = Field(None, alias="bidNtceOrd", description="입찰공고차수")
-    bid_notice_name: Optional[str] = Field(None, alias="bidNtceNm", description="입찰공고명")
-    opening_date: Optional[str] = Field(None, alias="opengDate", description="개찰일자")
-    opening_time: Optional[str] = Field(None, alias="opengTm", description="개찰시각")
-    reservation_price: Optional[str] = Field(None, alias="rsrvtnPrce", description="예정가격")
+    bid_notice_no: Optional[str] = Field(
+        default=None, alias="bidNtceNo", description="입찰공고번호"
+    )
+    bid_notice_order: Optional[str] = Field(
+        default=None, alias="bidNtceOrd", description="입찰공고차수"
+    )
+    bid_notice_name: Optional[str] = Field(
+        default=None, alias="bidNtceNm", description="입찰공고명"
+    )
+    opening_date: Optional[str] = Field(default=None, alias="opengDate", description="개찰일자")
+    opening_time: Optional[str] = Field(default=None, alias="opengTm", description="개찰시각")
+    reservation_price: Optional[str] = Field(
+        default=None, alias="rsrvtnPrce", description="예정가격"
+    )
     private_contract_reason: Optional[str] = Field(
         None, alias="prvtcntrctRsn", description="수의계약사유"
     )
-    bid_notice_url: Optional[str] = Field(None, alias="bidNtceUrl", description="입찰공고URL")
+    bid_notice_url: Optional[str] = Field(
+        default=None, alias="bidNtceUrl", description="입찰공고URL"
+    )
     contract_institution_code: Optional[str] = Field(
         None, alias="cntrctInsttCd", description="계약기관코드"
     )
@@ -290,7 +328,9 @@ class Contract(BaseModel):
     demand_institution_official_email: Optional[str] = Field(
         None, alias="dmndInsttOfclEmailAdrs", description="수요기관담당자이메일주소"
     )
-    domestic_corp_yn: Optional[str] = Field(None, alias="dmstcCorpYn", description="국내업체여부")
+    domestic_corp_yn: Optional[str] = Field(
+        default=None, alias="dmstcCorpYn", description="국내업체여부"
+    )
     representative_corp_ceo_name: Optional[str] = Field(
         None, alias="rprsntCorpCeoNm", description="대표업체대표자명"
     )

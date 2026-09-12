@@ -20,8 +20,8 @@ class BaseRequest(BaseModel):
 class FinancialRequest(BaseRequest):
     """Request model for financial statements queries."""
 
-    crno: str | None = Field(None, description="법인등록번호 (13자리)")
-    biz_year: str | None = Field(None, description="사업연도 (4자리)")
+    crno: str | None = Field(default=None, description="법인등록번호 (13자리)")
+    biz_year: str | None = Field(default=None, description="사업연도 (4자리)")
 
     @field_validator("crno")
     @classmethod
@@ -53,23 +53,25 @@ class FinancialRequest(BaseRequest):
 class SummaryFinancialStatement(BaseModel):
     """Summary financial statement model (요약재무제표)."""
 
-    bas_dt: str | None = Field(None, description="기준일자")
+    bas_dt: str | None = Field(default=None, description="기준일자")
     crno: str = Field(description="법인등록번호")
-    cur_cd: str | None = Field(None, description="통화 코드")
+    cur_cd: str | None = Field(default=None, description="통화 코드")
     biz_year: str = Field(description="사업연도")
-    fncl_dcd: str | None = Field(None, description="재무제표구분코드")
-    fncl_dcd_nm: str | None = Field(None, description="재무제표구분코드명")
+    fncl_dcd: str | None = Field(default=None, description="재무제표구분코드")
+    fncl_dcd_nm: str | None = Field(default=None, description="재무제표구분코드명")
 
     # Financial metrics (amounts)
-    enp_sale_amt: Decimal | None = Field(None, description="기업매출금액")
-    enp_bzop_pft: Decimal | None = Field(None, description="기업영업이익")
-    icls_pal_clc_amt: Decimal | None = Field(None, description="포괄손익계산금액")
-    enp_crtm_npf: Decimal | None = Field(None, description="기업당기순이익")
-    enp_tast_amt: Decimal | None = Field(None, description="기업총자산금액")
-    enp_tdbt_amt: Decimal | None = Field(None, description="기업총부채금액")
-    enp_tcpt_amt: Decimal | None = Field(None, description="기업총자본금액")
-    enp_cptl_amt: Decimal | None = Field(None, description="기업자본금액")
-    fncl_debt_rto: Decimal | None = Field(None, description="재무제표부채비율")
+    enp_sale_amt: Decimal | None = Field(default=None, description="기업매출금액")
+    enp_bzop_pft: Decimal | None = Field(default=None, description="기업영업이익")
+    icls_pal_clc_amt: Decimal | None = Field(
+        default=None, description="포괄손익계산금액"
+    )
+    enp_crtm_npf: Decimal | None = Field(default=None, description="기업당기순이익")
+    enp_tast_amt: Decimal | None = Field(default=None, description="기업총자산금액")
+    enp_tdbt_amt: Decimal | None = Field(default=None, description="기업총부채금액")
+    enp_tcpt_amt: Decimal | None = Field(default=None, description="기업총자본금액")
+    enp_cptl_amt: Decimal | None = Field(default=None, description="기업자본금액")
+    fncl_debt_rto: Decimal | None = Field(default=None, description="재무제표부채비율")
 
     model_config = ConfigDict(
         json_encoders={Decimal: lambda v: float(v) if v is not None else None}
@@ -79,23 +81,29 @@ class SummaryFinancialStatement(BaseModel):
 class BalanceSheetItem(BaseModel):
     """Balance sheet item model (재무상태표 항목)."""
 
-    bas_dt: str | None = Field(None, description="기준일자")
+    bas_dt: str | None = Field(default=None, description="기준일자")
     crno: str = Field(description="법인등록번호")
-    cur_cd: str | None = Field(None, description="통화 코드")
+    cur_cd: str | None = Field(default=None, description="통화 코드")
     biz_year: str = Field(description="사업연도")
-    fncl_dcd: str | None = Field(None, description="재무제표구분코드")
-    fncl_dcd_nm: str | None = Field(None, description="재무제표구분코드명")
+    fncl_dcd: str | None = Field(default=None, description="재무제표구분코드")
+    fncl_dcd_nm: str | None = Field(default=None, description="재무제표구분코드명")
 
     # Account information
-    acit_id: str | None = Field(None, description="계정과목ID")
-    acit_nm: str | None = Field(None, description="계정과목명")
+    acit_id: str | None = Field(default=None, description="계정과목ID")
+    acit_nm: str | None = Field(default=None, description="계정과목명")
 
     # Period amounts
-    thqr_acit_amt: Decimal | None = Field(None, description="당분기계정과목금액")
-    crtm_acit_amt: Decimal | None = Field(None, description="당기계정과목금액")
-    lsqt_acit_amt: Decimal | None = Field(None, description="전분기계정과목금액")
-    pvtr_acit_amt: Decimal | None = Field(None, description="전기계정과목금액")
-    bpvtr_acit_amt: Decimal | None = Field(None, description="전전기계정과목금액")
+    thqr_acit_amt: Decimal | None = Field(
+        default=None, description="당분기계정과목금액"
+    )
+    crtm_acit_amt: Decimal | None = Field(default=None, description="당기계정과목금액")
+    lsqt_acit_amt: Decimal | None = Field(
+        default=None, description="전분기계정과목금액"
+    )
+    pvtr_acit_amt: Decimal | None = Field(default=None, description="전기계정과목금액")
+    bpvtr_acit_amt: Decimal | None = Field(
+        default=None, description="전전기계정과목금액"
+    )
 
     model_config = ConfigDict(
         json_encoders={Decimal: lambda v: float(v) if v is not None else None}
@@ -105,23 +113,29 @@ class BalanceSheetItem(BaseModel):
 class IncomeStatementItem(BaseModel):
     """Income statement item model (손익계산서 항목)."""
 
-    bas_dt: str | None = Field(None, description="기준일자")
+    bas_dt: str | None = Field(default=None, description="기준일자")
     crno: str = Field(description="법인등록번호")
-    cur_cd: str | None = Field(None, description="통화 코드")
+    cur_cd: str | None = Field(default=None, description="통화 코드")
     biz_year: str = Field(description="사업연도")
-    fncl_dcd: str | None = Field(None, description="재무제표구분코드")
-    fncl_dcd_nm: str | None = Field(None, description="재무제표구분코드명")
+    fncl_dcd: str | None = Field(default=None, description="재무제표구분코드")
+    fncl_dcd_nm: str | None = Field(default=None, description="재무제표구분코드명")
 
     # Account information
-    acit_id: str | None = Field(None, description="계정과목ID")
-    acit_nm: str | None = Field(None, description="계정과목명")
+    acit_id: str | None = Field(default=None, description="계정과목ID")
+    acit_nm: str | None = Field(default=None, description="계정과목명")
 
     # Period amounts
-    thqr_acit_amt: Decimal | None = Field(None, description="당분기계정과목금액")
-    crtm_acit_amt: Decimal | None = Field(None, description="당기계정과목금액")
-    lsqt_acit_amt: Decimal | None = Field(None, description="전분기계정과목금액")
-    pvtr_acit_amt: Decimal | None = Field(None, description="전기계정과목금액")
-    bpvtr_acit_amt: Decimal | None = Field(None, description="전전기계정과목금액")
+    thqr_acit_amt: Decimal | None = Field(
+        default=None, description="당분기계정과목금액"
+    )
+    crtm_acit_amt: Decimal | None = Field(default=None, description="당기계정과목금액")
+    lsqt_acit_amt: Decimal | None = Field(
+        default=None, description="전분기계정과목금액"
+    )
+    pvtr_acit_amt: Decimal | None = Field(default=None, description="전기계정과목금액")
+    bpvtr_acit_amt: Decimal | None = Field(
+        default=None, description="전전기계정과목금액"
+    )
 
     model_config = ConfigDict(
         json_encoders={Decimal: lambda v: float(v) if v is not None else None}
