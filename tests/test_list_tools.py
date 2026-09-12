@@ -34,6 +34,8 @@ SERVERS = {
         "get_balance_sheet",
         "get_income_statement",
         "search_company_financial_info",
+        "find_corp_number",
+        "get_corp_outline",
     },
     "presidential_speeches": {"list_speeches", "search_speeches", "get_recent_speeches"},
     "msds_chemical_info": {

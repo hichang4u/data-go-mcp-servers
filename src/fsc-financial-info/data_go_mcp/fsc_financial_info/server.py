@@ -11,9 +11,10 @@ from typing import Annotated, Any
 from data_go_mcp.core import READ_ONLY, configure_logging, load_api_key, tool_errors
 from dotenv import load_dotenv
 from mcp.server.mcpserver import MCPServer
+from mcp.server.mcpserver.exceptions import ToolError
 from pydantic import Field
 
-from .api_client import FSCFinancialAPIClient
+from .api_client import CorpBasicInfoAPIClient, FSCFinancialAPIClient
 
 load_dotenv()
 
@@ -27,7 +28,10 @@ except PackageNotFoundError:  # 소스 트리에서 직접 실행할 때
 
 mcp = MCPServer(SERVER_NAME, version=SERVER_VERSION)
 
-CRNO_DESC = "법인등록번호 (13자리 숫자, 하이픈 제외) | Corporate registration number (13 digits)"
+CRNO_DESC = (
+    "법인등록번호 (13자리 숫자, 하이픈 제외; 모르면 find_corp_number 로 조회) | "
+    "Corporate registration number (13 digits)"
+)
 BIZ_YEAR_DESC = "사업연도 (예: 2023) | Business year (e.g., 2023)"
 PAGE_NO_DESC = "페이지 번호 (기본값: 1) | Page number (default: 1)"
 NUM_OF_ROWS_DESC = "한 페이지 결과 수 (기본값: 10, 최대: 100) | Number of rows per page (default: 10, max: 100)"
@@ -270,6 +274,80 @@ async def search_company_financial_info(
                 result_lines.append(f"❌ {fail_label} 조회 실패: {e}")
 
     return "\n".join(result_lines)
+
+
+_SUMMARY_FIELDS = (
+    "crno",
+    "corp_nm",
+    "corp_ensn_nm",
+    "bzno",
+    "market",
+    "enp_rpr_fnm",
+    "enp_bsadr",
+    "enp_estb_dt",
+    "snapshot_dt",
+)
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def find_corp_number(
+    corp_name: Annotated[
+        str | None,
+        Field(
+            description="법인명 (부분 일치, 예: '삼성전자(주)') | Corporate name (partial match)"
+        ),
+    ] = None,
+    bzno: Annotated[
+        str | None,
+        Field(
+            description="사업자등록번호 (10자리, 하이픈 허용) | Business registration number"
+        ),
+    ] = None,
+    page_no: Annotated[int, Field(description=PAGE_NO_DESC)] = 1,
+    num_of_rows: Annotated[
+        int,
+        Field(
+            description="한 페이지 조회 레코드 수 (기본값: 100, 최대: 100) | Records per page"
+        ),
+    ] = 100,
+) -> dict[str, Any]:
+    """법인명 또는 사업자등록번호로 법인등록번호(crno)를 찾습니다. 다른 재무정보 툴의 crno 입력에 씁니다. | Find the 13-digit corporate registration number (crno) by name or business number.
+
+    Returns one item per corporation (crno, corp_nm, bzno, market, representative, address).
+    total_count is the API's raw record count (one corporation can have several dated
+    snapshots), so it may exceed len(items); snapshots are collapsed within the page only,
+    so prefer a specific name or bzno over paging. Use get_corp_outline for the full profile.
+    """
+    async with tool_errors():
+        async with CorpBasicInfoAPIClient() as client:
+            result = await client.search_corporations(
+                corp_name=corp_name, bzno=bzno, page_no=page_no, num_of_rows=num_of_rows
+            )
+    result["items"] = [{k: i[k] for k in _SUMMARY_FIELDS} for i in result["items"]]
+    result["message"] = (
+        f"Found {len(result['items'])} corporation(s) in {result['total_count']} record(s) "
+        f"on page {page_no}"
+        if result["items"]
+        else "No corporation found"
+    )
+    return result
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def get_corp_outline(
+    crno: Annotated[str, Field(description=CRNO_DESC)],
+) -> dict[str, Any]:
+    """법인등록번호로 기업 개요를 조회합니다: 대표자, 주소, 상장시장, 설립일, 종업원 수, 평균 급여, 감사인·감사의견 등. | Get the corporate profile (representative, address, market, employees, average salary, auditor) by crno.
+
+    Returns the latest snapshot (snapshot_dt). Empty or undisclosed fields (including 0
+    employees / 0 salary) are null.
+    """
+    async with tool_errors():
+        async with CorpBasicInfoAPIClient() as client:
+            outline = await client.get_corp_outline(crno)
+        if outline is None:
+            raise ToolError(f"법인등록번호 {crno} 에 해당하는 기업기본정보가 없습니다")
+    return outline
 
 
 def main() -> None:
