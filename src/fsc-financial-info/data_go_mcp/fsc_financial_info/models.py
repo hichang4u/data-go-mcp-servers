@@ -82,7 +82,6 @@ class SummaryFinancialStatement(_DecimalJSONModel):
     fncl_debt_rto: Decimal | None = Field(default=None, description="재무제표부채비율")
 
 
-
 class BalanceSheetItem(_DecimalJSONModel):
     """Balance sheet item model (재무상태표 항목)."""
 
@@ -111,7 +110,6 @@ class BalanceSheetItem(_DecimalJSONModel):
     )
 
 
-
 class IncomeStatementItem(_DecimalJSONModel):
     """Income statement item model (손익계산서 항목)."""
 
@@ -138,7 +136,6 @@ class IncomeStatementItem(_DecimalJSONModel):
     bpvtr_acit_amt: Decimal | None = Field(
         default=None, description="전전기계정과목금액"
     )
-
 
 
 class APIResponse(BaseModel):

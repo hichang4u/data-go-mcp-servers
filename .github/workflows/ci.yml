@@ -19,18 +19,15 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: uv sync --dev --all-packages
+      # integration 마커는 API_KEY 가 없으면 자동 skip
       - run: uv run pytest -q
 
   lint:
-    # Phase 0 기준선: ruff 917건 / pyright 46건. 정리 전까지는 실패해도 CI를 막지 않는다.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --dev --all-packages
-      - run: uv run ruff check src scripts
-        continue-on-error: true
-      - run: uv run ruff format --check src scripts
-        continue-on-error: true
-      - run: uv run pyright src
-        continue-on-error: true
+      - run: uv run ruff check src scripts tests
+      - run: uv run ruff format --check src scripts tests
+      - run: uv run pyright src scripts tests
