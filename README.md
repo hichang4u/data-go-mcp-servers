@@ -38,6 +38,34 @@
 | 3. 테스트 | 깨진 테스트 수정, `respx`로 HTTP mocking 통일, 서버당 최소 1개 테스트, `integration` 마커로 실호출 분리 |
 | 4. 배포 | 버전 bump, git 직접 설치(`uvx --from git+...`) 안내 또는 별도 PyPI 네임스페이스 |
 
+## 현재 상태 (Phase 0 기준선, 2026-09-12)
+
+원본 코드를 `src/`에 그대로 가져온 뒤 루트 `pyproject.toml`에 `constraint-dependencies = ["mcp<2"]`
+임시 핀을 걸어 측정했다.
+
+| 항목 | 결과 |
+|---|---|
+| `uv run pytest` | 59 passed, 3 failed (fsc 2, nps 1 — 원본부터 깨져 있던 테스트) |
+| `ruff check src scripts` | 917건 (795건 자동 수정 가능) |
+| `pyright src` | 46 errors |
+
+기준선을 잡기 위해 원본에서 두 가지를 바꿨다.
+
+- `src/fsc-financial-info/data_go_mcp/__init__.py` 삭제 — 이 파일 때문에 `data_go_mcp`가
+  일반 패키지로 잡혀 같은 환경에 두 서버 이상 설치하면 다른 서버 모듈을 import 못 했다.
+- pytest `--import-mode=importlib` — 서버마다 `test_api.py` 같은 basename을 쓰고 있어 루트에서
+  한 번에 돌리면 충돌했다.
+
+API 생존 확인: `API_KEY=... uv run python scripts/check_apis.py`
+
+## 개발
+
+```bash
+uv sync --dev --all-packages
+uv run pytest
+uv run python -m data_go_mcp.nps_business_enrollment.server   # 서버 단독 실행
+```
+
 ## 요구사항
 
 - Python 3.10+

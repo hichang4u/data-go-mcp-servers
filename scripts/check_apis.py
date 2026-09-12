@@ -8,10 +8,9 @@ resultCode 30/31/32 는 키 문제, 12 는 서비스 폐기, HTTP 404 는 엔드
 """
 
 import asyncio
+import httpx
 import os
 import sys
-
-import httpx
 from dotenv import load_dotenv
 
 
@@ -60,6 +59,7 @@ TARGETS = [
 
 
 async def check(client: httpx.AsyncClient, name: str, method: str, url: str, extra: dict) -> str:
+    """엔드포인트 하나를 호출하고 한 줄 요약을 돌려준다."""
     key = os.environ["API_KEY"]
     try:
         if method == "POST":
@@ -81,6 +81,7 @@ async def check(client: httpx.AsyncClient, name: str, method: str, url: str, ext
 
 
 async def main() -> int:
+    """모든 대상을 병렬로 확인하고 결과를 출력한다."""
     if not os.getenv("API_KEY"):
         print("API_KEY 환경변수가 필요합니다 (.env 또는 export)", file=sys.stderr)
         return 1
