@@ -4,9 +4,9 @@
 
 ```bash
 uv run pytest                    # 전체 (integration 마커는 API_KEY 없으면 skip)
-uv run pytest -m integration     # 실호출 — 루트 .env 의 API_KEY 를 conftest 가 읽는다
+uv run pytest -m integration     # 실호출 — 루트 .env (.env.example 참고) 를 conftest 가 읽는다
 uv run pytest src/nps-business-enrollment/tests -q
-uv run pytest tests/test_list_tools.py       # 6개 서버를 실제 stdio 서브프로세스로 띄워 list_tools
+uv run pytest tests/test_list_tools.py       # 7개 서버를 실제 stdio 서브프로세스로 띄워 list_tools
 ```
 
 설정은 루트 `pyproject.toml` 하나다 (`asyncio_mode = "auto"`, `--import-mode=importlib`, `testpaths = ["tests", "src/*/tests"]`). **서버별 `pyproject.toml` 에 `[tool.pytest.ini_options]` 를 두지 않는다** — 그 디렉터리에서 실행하면 루트 설정이 가려진다.
@@ -70,11 +70,11 @@ async def test_api_error_is_reported_as_tool_error(base_url):
 
 ### 키 없는 경우
 
-`monkeypatch.delenv("API_KEY")` 후 툴을 부르면 `is_error=True` 에 "API_KEY" 가 포함돼야 한다. 서버 기동 자체는 키 없이도 된다 (`tests/test_list_tools.py::test_server_starts_without_api_key`).
+`monkeypatch.delenv("API_KEY")` 후 툴을 부르면 `is_error=True` 에 "API_KEY" 가 포함돼야 한다. `shared_key=False` 인 서버는 반대로 `API_KEY` 가 있어도 `<SERVER>_API_KEY` 가 없으면 실패해야 한다 (dart `test_missing_dart_key_is_error_even_with_common_api_key`). 서버 기동 자체는 키 없이도 된다 (`tests/test_list_tools.py::test_server_starts_without_api_key`).
 
 ### 실호출 (integration)
 
-`tests/test_integration.py` — 서버당 툴 1회. 루트 `tests/conftest.py` 가 `.env` 를 로드하고 `API_KEY` 가 없으면 `integration` 마커를 skip 한다. CI 에는 키가 없으므로 hermetic.
+`tests/test_integration.py` — 서버당 툴 1회. 루트 `tests/conftest.py` 가 `.env` 를 로드하고 `API_KEY` 가 없으면 `integration` 마커를 skip 한다. data.go.kr 키로 안 되는 서버는 `test_integration.py::KEY_ENV` 에 서버별 변수를 적어 그 항목만 따로 skip 한다 (dart: `DART_DISCLOSURE_API_KEY`). CI 에는 키가 없으므로 hermetic.
 
 ## 품질 게이트 (CI 필수)
 

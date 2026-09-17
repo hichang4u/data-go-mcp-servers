@@ -76,6 +76,12 @@ claude mcp add nts-business-verification -e API_KEY=<인증키> -- uvx --from "g
 }
 ```
 
+`dart-disclosure` 는 `-e DART_DISCLOSURE_API_KEY=<OpenDART 인증키>` 로 넘긴다 (`API_KEY` 는 이 서버에 쓰이지 않는다):
+
+```
+claude mcp add dart-disclosure -e DART_DISCLOSURE_API_KEY=<OpenDART 인증키> -- uvx --from "git+https://github.com/hichang4u/data-go-mcp-servers#subdirectory=src/dart-disclosure" data-go-mcp.dart-disclosure
+```
+
 ## Cline / Cursor / 기타 MCP 클라이언트
 
 stdio 서버를 등록하는 곳에 같은 `command`/`args`/`env` 를 넣으면 된다.
@@ -99,4 +105,4 @@ MCP Inspector 로 툴 목록과 호출을 눈으로 확인할 수 있다:
 npx @modelcontextprotocol/inspector uvx --from "git+https://github.com/hichang4u/data-go-mcp-servers#subdirectory=src/nts-business-verification" data-go-mcp.nts-business-verification
 ```
 
-키를 안 넣으면 서버는 뜨지만 툴 호출이 "API key is required …" 오류로 실패한다.
+키를 안 넣으면 서버는 뜨지만 툴 호출이 "API key is required …" 오류로 실패한다. 오류 문구에 어떤 변수를 채워야 하는지(`API_KEY` 또는 `DART_DISCLOSURE_API_KEY`)와 발급처가 적혀 있다.

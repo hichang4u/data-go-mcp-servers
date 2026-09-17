@@ -40,7 +40,7 @@
 }
 ```
 
-다른 서버는 `nts-business-verification` 을 서버명으로 바꾸면 된다. Claude Code, Cline, clone 해서 쓰는 방법은 [docs/guide/installation.md](docs/guide/installation.md).
+다른 서버는 `nts-business-verification` 을 서버명으로 바꾸면 된다. `dart-disclosure` 만 `"env": { "DART_DISCLOSURE_API_KEY": "<OpenDART 인증키>" }` (data.go.kr 키와 별개, [api-keys.md](docs/guide/api-keys.md) 4절). Claude Code, Cline, clone 해서 쓰는 방법은 [docs/guide/installation.md](docs/guide/installation.md).
 
 ```
 > 사업자등록번호 120-88-00767 상태 조회해줘
@@ -60,9 +60,10 @@
 ```bash
 git clone https://github.com/hichang4u/data-go-mcp-servers && cd data-go-mcp-servers
 uv sync --dev --all-packages
-uv run pytest                                   # 263 tests; 실호출은 .env 에 API_KEY 를 두고 -m integration
+cp .env.example .env                            # API_KEY (data.go.kr), DART_DISCLOSURE_API_KEY (OpenDART) 채우기 — 실호출 테스트용
+uv run pytest                                   # 334 tests; 실호출은 -m integration
 uv run ruff check src scripts tests && uv run pyright src scripts tests
-uv run python scripts/check_apis.py             # 10개 API 생존·권한 확인
+uv run python scripts/check_apis.py             # 11개 API 생존·권한 확인
 ```
 
 Python 3.10+, `mcp>=2.2`. CI 는 ubuntu/windows × 3.10/3.13 에서 pytest, ruff, pyright 를 필수로 돌린다.

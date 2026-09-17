@@ -6,7 +6,7 @@
 git clone https://github.com/hichang4u/data-go-mcp-servers && cd data-go-mcp-servers
 uv sync --dev --all-packages
 uv run pre-commit install
-echo "API_KEY=<data.go.kr 인증키>" > .env      # 실호출 테스트용, 커밋되지 않는다
+cp .env.example .env                           # 실호출 테스트용 키 (주석 참고), 커밋되지 않는다
 uv run pytest
 ```
 
@@ -55,7 +55,7 @@ Conventional Commits: `feat(nps): …`, `fix(core): …`, `docs: …`, `test: �
 
 ### 환경변수
 
-키는 `API_KEY`(공통) 또는 `<SERVER>_API_KEY`(서버별, 우선). 문서·예시·템플릿 모두 이 규칙을 따른다. 키를 코드나 fixture 에 넣지 않는다.
+키는 `API_KEY`(공통) 또는 `<SERVER>_API_KEY`(서버별, 우선). 문서·예시·템플릿 모두 이 규칙을 따른다. data.go.kr 이 아닌 포털(OpenDART)의 서버는 `shared_key = False` 로 공통 키를 끄고 `<SERVER>_API_KEY` 만 받는다 — 그 키를 `.env.example` 에 주석과 함께 추가한다. 키를 코드나 fixture 에 넣지 않는다.
 
 ### 문서
 

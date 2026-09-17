@@ -42,7 +42,7 @@
 
 ### 비목표
 - 원저장소 PyPI 네임스페이스(`data-go-mcp.*`)로의 배포 — 소유권이 없다.
-- 새로운 공공 API 서버 추가 — 기존 6종 정비가 끝난 뒤 별도 PRD. → 정비 완료 후 [PLAN.md](PLAN.md) S5 로 진행 (2026-09-13, v0.4.0: 기존 서버에 API 4종 추가, 새 서버는 만들지 않음).
+- 새로운 공공 API 서버 추가 — 기존 6종 정비가 끝난 뒤 별도 PRD. → 정비 완료 후 [PLAN.md](PLAN.md) S5 로 진행 (2026-09-13, v0.4.0: 기존 서버에 API 4종 추가, 새 서버는 만들지 않음). S6 (2026-09-17, v0.5.0) 에서 첫 새 서버 `dart-disclosure` — data.go.kr 밖(OpenDART) 이라 core 에 공통 키 fallback 을 끄는 옵션이 생겼다.
 - HTTP/SSE 전송 지원 — stdio만 대상. (MCPServer가 지원하므로 나중에 켤 수는 있음)
 - 원저장소로의 upstream PR — 응답 가능성이 낮아 우선순위 없음. 단 fork 관계와 라이선스 표시는 유지.
 
@@ -192,10 +192,11 @@ async def search_business(...) -> dict[str, Any]:
 | 3. 테스트·품질 | D3, D11 해소, NFR-3/6 | pytest 전부 통과, ruff 0, pyright 0, CI 전부 필수 | **완료** (2026-09-12, 207 passed) |
 | 4. 문서·배포 | D10 해소, FR-7/8, 버전 bump(0.3.0), CHANGELOG | 새 환경에서 README만 보고 Claude Desktop 연결 성공 | **완료** (2026-09-12, v0.3.0) |
 | 5. 확장 (PRD 범위 밖, PLAN S5) | 법정동코드·고용산재보험 → nps, 기업기본정보·주식시세 → fsc | 툴별 실호출 통과, API 당 코드리뷰 | **완료** (2026-09-13, v0.4.0, 263 passed) |
+| 6. 새 서버 (PLAN S6) | OpenDART → `dart-disclosure`, core 0.2.0 | 실호출 6툴 통과, 코드리뷰 6건 처리 | **완료** (2026-09-17, v0.5.0, 334 passed) |
 
 ## 7. 성공 지표
 
-- `uvx --from git+https://github.com/hichang4u/data-go-mcp-servers#subdirectory=src/<server> data-go-mcp.<server>` 가 6개 모두 기동
+- `uvx --from git+https://github.com/hichang4u/data-go-mcp-servers#subdirectory=src/<server> data-go-mcp.<server>` 가 7개 모두 기동
 - CI 4개 매트릭스 전부 green, ruff/pyright 필수화
 - 서버 1개 추가 소요 ≤ 2시간 (템플릿 → 테스트 → README)
 

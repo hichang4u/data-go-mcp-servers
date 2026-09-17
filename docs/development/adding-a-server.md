@@ -23,6 +23,7 @@ data.go.kr 의 해당 API 페이지에서 확인할 것:
 - 엔드포인트는 활용신청 승인 페이지의 **End Point 를 그대로** 쓴다. 추측한 경로는 코드 30(미등록)이나 12(폐기)로 헷갈리게 실패한다 (주식시세: `/1160100/GetStockSecuritiesInfoService_V2/…`, `service/` 없음)
 - 문서에 있는 파라미터가 **실제로 동작하는지** 실호출로 확인한다. 무시되는 파라미터가 있다 (주식시세 `crno`, 고용산재 `v_saeopjangNm`). 필터가 없는 파라미터를 툴에 노출하면 전체 데이터가 돌아온다
 - 같은 대상이 여러 행으로 오는지 본다 (기업기본정보는 유효기간별 스냅샷, 주식시세는 일자별). 툴이 무엇을 한 건으로 볼지 정한다
+- **data.go.kr 밖의 API 인가** (OpenDART 처럼 키 발급처가 다른 곳). 그렇다면 클라이언트에 `shared_key = False`, `key_url = "<발급처>"`, `key_param` 을 두어 공통 `API_KEY` 로 조용히 실패하지 않게 한다. `.env.example` 에 그 키를 주석과 함께 추가하고, `tests/test_integration.py::KEY_ENV` 와 `scripts/check_apis.py::TARGETS`(키 환경변수·파라미터 이름) 에 등록한다. 예: `src/dart-disclosure`
 
 ## 1. 골격 생성
 
@@ -63,7 +64,8 @@ class WeatherForecastAPIClient(BaseDataGoClient):
 ```
 
 - 응답이 XML 이면 `response_format = "xml"`, `pyproject.toml` 의존성을 `data-go-mcp-core[xml]` 로.
-- 래핑이 다르면 `_check_response` 오버라이드 (예: `src/nts-business-verification`).
+- 래핑이 다르면 `_check_response` 오버라이드 (예: `src/nts-business-verification`, 평면 `{"status","message"}` 는 `src/dart-disclosure`).
+- 바이너리(ZIP) 응답은 `self.http.get` 을 직접 쓰고 오류 본문(XML)을 `DataGoAPIError` 로 바꾼다 (dart `_get_zip`). 이름 검색 API 가 없어 마스터 목록이 필요하면 파싱 결과를 패키지에 동봉하고 갱신 스크립트를 둔다 (dart `corp_codes.json.gz`, `scripts/harvest_dart_corp_codes.py`).
 - 검증 실패는 `ValueError` 로 던진다. dict 로 오류를 돌려주지 않는다.
 
 ## 4. 모델
@@ -102,6 +104,7 @@ class WeatherForecastAPIClient(BaseDataGoClient):
 - `scripts/gen_tool_docs.py` 의 `SERVERS` 에 추가 → `docs/guide/servers/<server>.md` 작성 후 `uv run python scripts/gen_tool_docs.py`
 - 루트 `README.md` 서버 표, `docs/guide/installation.md` 표, `docs/guide/api-keys.md` 신청 표에 한 줄씩
 - `src/<server>/README.md`, `CHANGELOG.md`
+- `CLAUDE.md`·README·`check_apis.py` docstring 의 서버·API 개수, `docs/development/PLAN.md` 에 드러난 사실 기록
 
 ## 7. 확인
 

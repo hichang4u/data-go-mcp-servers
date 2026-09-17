@@ -42,20 +42,20 @@ Encoding 값(`%2B`, `%3D` 가 섞인 것)이 아니라 **Decoding 값**(`+`, `=`
 
 보통 `API_KEY` 하나면 된다. 서버별 변수는 API 마다 다른 계정의 키를 써야 할 때만 쓴다.
 
-MCP 클라이언트 설정의 `"env"` 로 넘기는 것이 기본이고, 저장소를 clone 해서 실행할 때는 루트의 `.env` 파일(`API_KEY=…`)도 읽는다.
-
-## 4. 확인
-
-저장소를 clone 했다면 10개 API 를 한 번에 점검할 수 있다:
-
-```bash
-uv run python scripts/check_apis.py
-```
-
-각 줄의 `resultCode=00`, `INFO-0` 또는 `status_code OK` 가 정상이다. `30` 이면 그 API 의 활용신청이 안 된 것이다.
+MCP 클라이언트 설정의 `"env"` 로 넘기는 것이 기본이고, 저장소를 clone 해서 실행할 때는 루트의 `.env` 파일도 읽는다 (`.env.example` 을 복사해 채운다).
 
 ## 4. OpenDART 키 (dart-disclosure)
 
 금융감독원 전자공시는 data.go.kr 을 거치지 않는다. [opendart.fss.or.kr](https://opendart.fss.or.kr) 회원가입 → **인증키 신청/관리** → 인증키 신청. 즉시 발급되고 활용신청 절차는 없다. 한도는 키당 일 20,000건.
 
 서버에는 `DART_DISCLOSURE_API_KEY` 로만 넘긴다. 공통 `API_KEY` 는 이 서버에 쓰이지 않으며, 없으면 `입력값 오류: API key is required. Set DART_DISCLOSURE_API_KEY …` 가 난다. 잘못된 키는 `OpenDART 오류 [010] 등록되지 않은 인증키입니다.`
+
+## 5. 확인
+
+저장소를 clone 했다면 11개 API 를 한 번에 점검할 수 있다 (키가 없는 항목은 SKIP):
+
+```bash
+uv run python scripts/check_apis.py
+```
+
+각 줄의 `resultCode=00`, `INFO-0` 또는 `status_code OK` 가 정상이다. `30` 이면 그 API 의 활용신청이 안 된 것이다.

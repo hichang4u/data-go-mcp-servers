@@ -39,7 +39,7 @@
 ```bash
 git clone https://github.com/hichang4u/data-go-mcp-servers && cd data-go-mcp-servers
 uv sync --dev --all-packages
-echo "API_KEY=<키>" > .env
-uv run python scripts/check_apis.py     # 10개 API 생존·권한 확인
+cp .env.example .env                    # API_KEY, (DART 를 쓰면) DART_DISCLOSURE_API_KEY 채우기
+uv run python scripts/check_apis.py     # 11개 API 생존·권한 확인 (키 없는 항목은 SKIP)
 uv run pytest -m integration            # 서버당 실호출 1건
 ```
