@@ -229,7 +229,7 @@
 
 각 항목은 브랜치 `s5-<slug>` 에서 TDD 로 진행하고, 툴 추가 시 `gen_tool_docs.py` 와 `docs/guide/api-keys.md` 의 활용신청 표를 갱신한다.
 
-## S6 — OpenDART 전자공시 `[x]` 2026-09-17 — 새 서버 `dart-disclosure`
+## S6 — OpenDART 전자공시 `[x]` 2026-09-17, 태그 `v0.5.0` — 새 서버 `dart-disclosure`
 
 첫 **data.go.kr 밖** 서버. 검토 배경: fsc 의 재무 툴은 연간·요약 위주고 공시 목록·원문, 분기 재무제표, 사업보고서 세부는 DART 만 준다.
 비교 대상이던 hjsh200219/korea-public-data-mcp(TS, 호스팅형, 운영자 키)의 DART action 구성(6개)과 기업코드 스냅샷 동봉 방식을 참고했다 (라이선스 없음 → 코드는 새로 씀).
