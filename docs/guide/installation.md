@@ -7,7 +7,7 @@
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) — `uvx` 명령이 여기서 나온다
   - macOS/Linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`
   - Windows: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
-- data.go.kr 인증키 → [api-keys.md](api-keys.md)
+- data.go.kr 인증키 → [api-keys.md](api-keys.md). `dart-disclosure` 는 OpenDART 인증키가 따로 필요하다
 
 ## 실행 명령
 
@@ -25,6 +25,7 @@ uvx --from "git+https://github.com/hichang4u/data-go-mcp-servers#subdirectory=sr
 | `fsc-financial-info` | 금융위원회 기업 재무정보, 법인번호·기업 개요, 주식시세 |
 | `presidential-speeches` | 대통령기록관 연설문 |
 | `msds-chemical-info` | 안전보건공단 MSDS |
+| `dart-disclosure` | 금융감독원 DART 전자공시 — 기업 개황, 공시 목록·원문, 재무제표 (키: `DART_DISCLOSURE_API_KEY`) |
 
 특정 커밋/태그에 고정하려면 `data-go-mcp-servers@v0.4.0#subdirectory=…` 처럼 `@` 뒤에 붙인다.
 
@@ -51,7 +52,7 @@ uvx --from "git+https://github.com/hichang4u/data-go-mcp-servers#subdirectory=sr
 }
 ```
 
-여러 서버를 쓰면 항목을 나란히 추가한다. 키는 하나로 전부 쓸 수 있다. 저장 후 Claude Desktop 을 완전히 종료하고 다시 연다.
+여러 서버를 쓰면 항목을 나란히 추가한다. 키는 하나로 전부 쓸 수 있다 (`dart-disclosure` 만 `"env": { "DART_DISCLOSURE_API_KEY": "<OpenDART 인증키>" }`). 저장 후 Claude Desktop 을 완전히 종료하고 다시 연다.
 
 Windows 에서 `uvx` 를 못 찾으면 `"command"` 에 전체 경로(`C:\Users\<you>\.local\bin\uvx.exe`)를 쓴다.
 

@@ -229,6 +229,21 @@
 
 각 항목은 브랜치 `s5-<slug>` 에서 TDD 로 진행하고, 툴 추가 시 `gen_tool_docs.py` 와 `docs/guide/api-keys.md` 의 활용신청 표를 갱신한다.
 
+## S6 — OpenDART 전자공시 `[x]` 2026-09-17 — 새 서버 `dart-disclosure`
+
+첫 **data.go.kr 밖** 서버. 검토 배경: fsc 의 재무 툴은 연간·요약 위주고 공시 목록·원문, 분기 재무제표, 사업보고서 세부는 DART 만 준다.
+비교 대상이던 hjsh200219/korea-public-data-mcp(TS, 호스팅형, 운영자 키)의 DART action 구성(6개)과 기업코드 스냅샷 동봉 방식을 참고했다 (라이선스 없음 → 코드는 새로 씀).
+
+### 드러난 것
+
+- OpenDART 키는 data.go.kr 키와 무관한데 `load_api_key` 가 `API_KEY` 로 fallback 하면 조용히 `[010]` 이 난다 → core 0.2.0 에 `BaseDataGoClient.shared_key=False` / `key_url`, `DataGoAPIError(source=)`(오류 접두어 `OpenDART 오류`). 루트 conftest 의 integration skip 은 `API_KEY` 기준이라 `test_integration.py` 에 `KEY_ENV` 로 서버별 키 skip 을 추가.
+- 응답은 `{"status","message",...}` 평면. `013` 은 "조회된 데이타가 없습니다" — 없는 `corp_code` 도 013. `list.json` 의 항목에는 문서와 달리 `pblntf_ty` 가 없고 `report_nm` 에 꼬리 공백이 붙는다.
+- `list.json` 은 `bgn_de` 생략 시 **당일만** 검색한다 (회사 지정해도) → 클라이언트가 기본 시작일을 채운다 (회사 있으면 1년, 없으면 30일; 회사 없이 3개월 초과는 `[100]`).
+- `corpCode.xml` 은 ZIP(30MB XML, 119,352개사, 상장 3,990). 이름 검색 API 가 없어 필수 → 파싱 결과를 `corp_codes.json.gz`(1.5MB) 로 동봉. 영문명은 상장사만 넣어 1.2MB 절약. `corp_name` 은 `삼성전자`, `company.json` 은 `삼성전자(주)` 로 표기가 다르다.
+- `document.xml` ZIP 에는 본문 `<rcept_no>.xml` 과 첨부 `<rcept_no>_NNNNN.xml` 이 함께 있고 파일 순서는 본문이 마지막일 수 있다 → 이름으로 고른다. 본문은 HTML 인데 meta 는 euc-kr, 실제 바이트는 UTF-8. 사업보고서 본문 6.3MB → 텍스트 66만 자 → `offset`/`max_chars` 페이징.
+- ZIP 엔드포인트의 오류(잘못된 접수번호, 키)는 HTTP 200 + XML `<result><status>` → `_get_zip` 이 `PK` 매직으로 분기.
+- 주요계정(`fnlttSinglAcnt`) 금액은 쉼표 포함 문자열, 전체 재무제표(`fnlttSinglAcntAll`)는 쉼표 없음 → 모델 validator 가 둘 다 int 로. 사업보고서 전체 계정은 213행 → `sj_div` 클라이언트 필터.
+
 ## 일정 요약
 
 | 스프린트 | 예상 | 선행 조건 |
