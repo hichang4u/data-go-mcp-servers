@@ -18,6 +18,15 @@ def base_url() -> str:
 
 
 @pytest.fixture(autouse=True)
+def _fresh_document_cache():
+    from data_go_mcp.dart_disclosure.api_client import clear_document_cache
+
+    clear_document_cache()
+    yield
+    clear_document_cache()
+
+
+@pytest.fixture(autouse=True)
 def _key(monkeypatch):
     # data.go.kr 공통 키는 DART 에 쓰이면 안 되므로 일부러 다른 값으로 둔다.
     monkeypatch.setenv("API_KEY", "data-go-key")

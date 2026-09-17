@@ -363,3 +363,30 @@ async def test_download_corp_codes_error_xml_raises(client, base_url):
     async with client:
         with pytest.raises(DataGoAPIError, match=r"\[010\]"):
             await client.download_corp_codes()
+
+
+@respx.mock
+async def test_default_bgn_de_is_anchored_on_end_de(client, base_url, disclosure_list_response):
+    route = respx.get(f"{base_url}/list.json").mock(
+        return_value=httpx.Response(200, json=disclosure_list_response)
+    )
+    async with client:
+        await client.list_disclosures(corp_code="00126380", end_de="20231231")
+    assert route.calls.last.request.url.params["bgn_de"] == "20221231"
+
+
+async def test_bgn_de_after_end_de_is_rejected(client):
+    with pytest.raises(ValueError, match="bgn_de"):
+        await client.list_disclosures(bgn_de="20250201", end_de="20250101")
+
+
+@respx.mock
+async def test_get_document_is_cached_per_rcept_no(client, base_url, document_zip):
+    route = respx.get(f"{base_url}/document.xml").mock(
+        return_value=httpx.Response(200, content=document_zip)
+    )
+    async with client:
+        first = await client.get_document("20250325800172")
+        second = await client.get_document("20250325800172")
+    assert route.call_count == 1
+    assert first == second

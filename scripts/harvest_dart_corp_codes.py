@@ -9,6 +9,7 @@
 
 import asyncio
 import datetime as dt
+import os
 import sys
 from pathlib import Path
 
@@ -35,7 +36,7 @@ async def main() -> int:
     TARGET.write_bytes(dump_snapshot(entries, today))
     listed = sum(1 for e in entries if e["stock_code"])
     print(
-        f"{TARGET.relative_to(Path.cwd())}: {len(entries)} companies ({listed} listed), "
+        f"{os.path.relpath(TARGET)}: {len(entries)} companies ({listed} listed), "
         f"{TARGET.stat().st_size // 1024} KB, generated {today}"
     )
     return 0

@@ -209,3 +209,19 @@ async def test_missing_dart_key_is_error_even_with_common_api_key(monkeypatch):
     assert result.is_error is True
     assert "DART_DISCLOSURE_API_KEY" in _text(result)
     assert "or API_KEY" not in _text(result)
+
+
+@respx.mock
+async def test_get_disclosure_document_pages_download_once(base_url, document_zip):
+    route = respx.get(f"{base_url}/document.xml").mock(
+        return_value=httpx.Response(200, content=document_zip)
+    )
+    async with Client(mcp) as client:
+        for offset in (0, 5, 10):
+            _data(
+                await client.call_tool(
+                    "get_disclosure_document",
+                    {"rcept_no": "20250325800172", "offset": offset, "max_chars": 5},
+                )
+            )
+    assert route.call_count == 1

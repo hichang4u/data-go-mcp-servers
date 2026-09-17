@@ -4,7 +4,7 @@ OpenDART 는 필드명이 이미 snake_case 라 alias 가 필요 없다. 금액�
 정수로 바꾸고, ``"-"`` / ``""`` 는 ``None`` 으로 정리한다.
 """
 
-from typing import Optional
+from typing import Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -50,14 +50,26 @@ def _blank_to_none(value: object) -> object:
     return value
 
 
-def _to_amount(value: object) -> Optional[int]:
-    """``"514,531,948,000,000"`` / ``"514531948000000"`` → int. 빈 값·``-`` 는 None."""
-    if value is None or isinstance(value, int):
+Amount = Optional[Union[int, float]]
+
+
+def _to_amount(value: object) -> Amount:
+    """``"514,531,948,000,000"`` / ``"514531948000000"`` → int. 빈 값·``-`` 는 None.
+
+    소수(주당 지표 등)는 float. 파싱이 안 되는 값은 None — 한 셀 때문에 호출 전체가 실패하지 않도록.
+    """
+    if value is None or isinstance(value, (int, float)):
         return value
     text = str(value).replace(",", "").strip()
     if text in ("", "-"):
         return None
-    return int(text)
+    try:
+        return int(text)
+    except ValueError:
+        try:
+            return float(text)
+        except ValueError:
+            return None
 
 
 class Company(BaseModel):
@@ -138,19 +150,19 @@ class KeyAccount(BaseModel):
     account_nm: Optional[str] = Field(default=None, description="계정명")
     thstrm_nm: Optional[str] = Field(default=None, description="당기명 (예: 제 56 기)")
     thstrm_dt: Optional[str] = Field(default=None, description="당기 기준일/기간")
-    thstrm_amount: Optional[int] = Field(default=None, description="당기 금액")
+    thstrm_amount: Amount = Field(default=None, description="당기 금액")
     frmtrm_nm: Optional[str] = Field(default=None, description="전기명")
     frmtrm_dt: Optional[str] = Field(default=None, description="전기 기준일/기간")
-    frmtrm_amount: Optional[int] = Field(default=None, description="전기 금액")
+    frmtrm_amount: Amount = Field(default=None, description="전기 금액")
     bfefrmtrm_nm: Optional[str] = Field(default=None, description="전전기명")
     bfefrmtrm_dt: Optional[str] = Field(default=None, description="전전기 기준일/기간")
-    bfefrmtrm_amount: Optional[int] = Field(default=None, description="전전기 금액")
+    bfefrmtrm_amount: Amount = Field(default=None, description="전전기 금액")
     ord: Optional[int] = Field(default=None, description="계정 표시 순서")
     currency: Optional[str] = Field(default=None, description="통화")
 
     @field_validator("thstrm_amount", "frmtrm_amount", "bfefrmtrm_amount", "ord", mode="before")
     @classmethod
-    def _amount(cls, value: object) -> Optional[int]:
+    def _amount(cls, value: object) -> Amount:
         return _to_amount(value)
 
 
@@ -170,17 +182,15 @@ class FinancialStatementItem(BaseModel):
     account_nm: Optional[str] = Field(default=None, description="계정명")
     account_detail: Optional[str] = Field(default=None, description="계정 상세 (자본변동표 등)")
     thstrm_nm: Optional[str] = Field(default=None, description="당기명")
-    thstrm_amount: Optional[int] = Field(default=None, description="당기 금액")
-    thstrm_add_amount: Optional[int] = Field(
-        default=None, description="당기 누적 금액 (분기·반기)"
-    )
+    thstrm_amount: Amount = Field(default=None, description="당기 금액")
+    thstrm_add_amount: Amount = Field(default=None, description="당기 누적 금액 (분기·반기)")
     frmtrm_nm: Optional[str] = Field(default=None, description="전기명")
-    frmtrm_amount: Optional[int] = Field(default=None, description="전기 금액")
+    frmtrm_amount: Amount = Field(default=None, description="전기 금액")
     frmtrm_q_nm: Optional[str] = Field(default=None, description="전기 분기명")
-    frmtrm_q_amount: Optional[int] = Field(default=None, description="전기 분기 금액")
-    frmtrm_add_amount: Optional[int] = Field(default=None, description="전기 누적 금액")
+    frmtrm_q_amount: Amount = Field(default=None, description="전기 분기 금액")
+    frmtrm_add_amount: Amount = Field(default=None, description="전기 누적 금액")
     bfefrmtrm_nm: Optional[str] = Field(default=None, description="전전기명")
-    bfefrmtrm_amount: Optional[int] = Field(default=None, description="전전기 금액")
+    bfefrmtrm_amount: Amount = Field(default=None, description="전전기 금액")
     ord: Optional[int] = Field(default=None, description="계정 표시 순서")
     currency: Optional[str] = Field(default=None, description="통화")
 
@@ -195,7 +205,7 @@ class FinancialStatementItem(BaseModel):
         mode="before",
     )
     @classmethod
-    def _amount(cls, value: object) -> Optional[int]:
+    def _amount(cls, value: object) -> Amount:
         return _to_amount(value)
 
     @field_validator("account_detail", mode="before")

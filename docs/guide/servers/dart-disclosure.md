@@ -32,9 +32,9 @@
 - 모든 조회의 키는 **고유번호(`corp_code`, 8자리)** 다. 종목코드·법인등록번호와 다르다. `find_corp_code` 로 회사명이나 6자리 종목코드에서 찾는다.
 - `find_corp_code` 는 API 를 부르지 않고 패키지에 동봉한 전체 기업 목록 스냅샷(약 12만 개사)을 검색한다. 결과의 `snapshot_date` 이후에 등록된 회사는 없을 수 있다. 같은 이름의 비상장 법인이 많으므로(`신한` 11개) `listed_only` 를 켜거나 `get_company` 로 확인한다.
 - `get_company` 의 `jurir_no`(법인등록번호 13자리)는 fsc-financial-info 툴의 `crno` 로 그대로 쓸 수 있다.
-- `list_disclosures` 는 `corp_code` 없이 부르면 검색 기간이 **3개월 이내**여야 한다 (API 제한). `bgn_de` 를 생략하면 회사 지정 시 1년, 아니면 30일 전부터 검색한다 — API 기본값(당일만)을 그대로 두면 거의 항상 0건이라 서버가 채운다.
+- `list_disclosures` 는 `corp_code` 없이 부르면 검색 기간이 **3개월 이내**여야 한다 (API 제한). `bgn_de` 를 생략하면 회사 지정 시 1년, 아니면 30일 전부터(`end_de` 를 주면 그 날 기준) 검색한다 — API 기본값(당일만)을 그대로 두면 거의 항상 0건이라 서버가 채운다.
 - 재무제표 툴(`get_key_accounts`, `get_financial_statements`)은 **2015년 이후 상장사** 정기보고서만 제공한다. 금액은 원 단위 정수. `get_financial_statements` 는 사업보고서 한 건이 200행 안팎이라 `sj_div` 로 한 표만 받는 것이 좋다. 분기 보고서의 `thstrm_add_amount` 가 누적 금액.
-- `get_disclosure_document` 는 원문 HTML 을 텍스트로 바꿔 준다. 사업보고서는 60만 자 이상이라 기본 20,000자씩 `offset` 으로 나눠 읽는다. 표는 셀이 공백으로 이어진 한 줄이 된다. 첨부(감사보고서 등)는 `attachment_files` 에 이름만.
+- `get_disclosure_document` 는 원문 HTML 을 텍스트로 바꿔 준다. 사업보고서는 60만 자 이상이라 기본 20,000자씩 `offset` 으로 나눠 읽는다 (최근 4건은 프로세스 안에 캐시되어 페이지마다 다시 받지 않는다). 표는 셀이 공백으로 이어진 한 줄이 된다. 첨부(감사보고서 등)는 `attachment_files` 에 이름만.
 - 오류 메시지는 `OpenDART 오류 [코드]` 로 온다. `010`/`011` 키 문제, `020` 일일 한도 초과, `100` 파라미터 오류(기간 3개월 초과 등), `013` 은 결과 없음(오류가 아니라 빈 결과).
 
 ## 툴
@@ -74,7 +74,8 @@ hm_url, induty_code, est_dt, acc_mt.
 공시 원문을 텍스트로 조회합니다. 사업보고서는 수십만 자라 offset/max_chars 로 나눠 읽습니다. | Get the full text of a disclosure document, paged by offset/max_chars.
 
 Returns rcept_no, file_name, attachment_files, text, offset, next_offset, total_chars, truncated.
-When truncated is true, call again with offset=next_offset.
+When truncated is true, call again with offset=next_offset (the document is cached in-process,
+so paging does not re-download it).
 
 | 파라미터 | 타입 | 필수 | 기본값 | 설명 |
 |---|---|---|---|---|
@@ -121,7 +122,7 @@ get_financial_statements for every account line.
 Returns items (rcept_no, corp_name, report_nm, flr_nm, rcept_dt, rm), page_no, page_count,
 total_count, total_page. Pass rcept_no to get_disclosure_document for the full text.
 Without corp_code the date range must be 3 months or less (API limit). Omitting bgn_de
-searches the last year (with corp_code) or last 30 days (without).
+searches the last year (with corp_code) or last 30 days (without), counted back from end_de.
 
 | 파라미터 | 타입 | 필수 | 기본값 | 설명 |
 |---|---|---|---|---|

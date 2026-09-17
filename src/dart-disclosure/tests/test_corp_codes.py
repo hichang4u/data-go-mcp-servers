@@ -3,6 +3,7 @@
 import pytest
 
 from data_go_mcp.dart_disclosure.corp_codes import (
+    CorpCodeEntry,
     load_snapshot,
     parse_corp_code_zip,
     search_corp_codes,
@@ -70,3 +71,16 @@ def test_bundled_snapshot_loads_and_contains_samsung():
     assert len(snapshot.generated) == 8 and snapshot.generated.isdigit()
     hit = search_corp_codes("삼성전자", listed_only=True)["items"][0]
     assert hit["corp_code"] == "00126380" and hit["stock_code"] == "005930"
+
+
+def test_stock_code_with_letters_matches_case_insensitively():
+    entries: list[CorpCodeEntry] = [
+        {
+            "corp_code": "01234567",
+            "corp_name": "BNK제3호스팩",
+            "stock_code": "0068Y0",
+            "corp_eng_name": "",
+        }
+    ]
+    assert search_corp_codes("0068y0", entries)["total_count"] == 1
+    assert search_corp_codes("0068Y0", entries)["total_count"] == 1

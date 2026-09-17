@@ -113,7 +113,7 @@ async def list_disclosures(
     Returns items (rcept_no, corp_name, report_nm, flr_nm, rcept_dt, rm), page_no, page_count,
     total_count, total_page. Pass rcept_no to get_disclosure_document for the full text.
     Without corp_code the date range must be 3 months or less (API limit). Omitting bgn_de
-    searches the last year (with corp_code) or last 30 days (without).
+    searches the last year (with corp_code) or last 30 days (without), counted back from end_de.
     """
     async with tool_errors():
         async with Client() as client:
@@ -199,7 +199,8 @@ async def get_disclosure_document(
     """공시 원문을 텍스트로 조회합니다. 사업보고서는 수십만 자라 offset/max_chars 로 나눠 읽습니다. | Get the full text of a disclosure document, paged by offset/max_chars.
 
     Returns rcept_no, file_name, attachment_files, text, offset, next_offset, total_chars, truncated.
-    When truncated is true, call again with offset=next_offset.
+    When truncated is true, call again with offset=next_offset (the document is cached in-process,
+    so paging does not re-download it).
     """
     async with tool_errors():
         async with Client() as client:

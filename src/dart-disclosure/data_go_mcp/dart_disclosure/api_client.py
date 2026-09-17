@@ -13,6 +13,7 @@ import html
 import io
 import re
 import zipfile
+from collections import OrderedDict
 from typing import Any, Optional
 from xml.etree import ElementTree as ET
 
@@ -34,6 +35,10 @@ from .models import (
 SOURCE = "OpenDART"
 NO_DATA = "013"
 MAX_PAGE_COUNT = 100
+DOCUMENT_CACHE_SIZE = 4  # 원문은 페이지마다 다시 받지 않도록 프로세스 안에서 몇 건 기억한다
+
+# rcept_no → get_document 결과. 서버는 툴 호출마다 클라이언트를 새로 만들므로 모듈 수준.
+_document_cache: "OrderedDict[str, dict[str, Any]]" = OrderedDict()
 
 _DATE = re.compile(r"^\d{8}$")
 _CORP_CODE = re.compile(r"^\d{8}$")
@@ -62,11 +67,16 @@ def _choice(value: Optional[str], choices: dict[str, str], name: str) -> Optiona
 def default_bgn_de(*, has_corp_code: bool, today: Optional[dt.date] = None) -> str:
     """bgn_de 기본값. API 는 생략하면 당일만 검색하므로 회사 지정 시 1년, 아니면 1개월 전으로 잡는다.
 
-    corp_code 없이는 3개월까지만 허용되므로 여유 있게 30일.
+    corp_code 없이는 3개월까지만 허용되므로 여유 있게 30일. ``today`` 자리에 end_de 를 주면 그 날 기준.
     """
     today = today or dt.date.today()
     delta = dt.timedelta(days=365 if has_corp_code else 30)
     return (today - delta).strftime("%Y%m%d")
+
+
+def clear_document_cache() -> None:
+    """원문 캐시를 비운다 (테스트용)."""
+    _document_cache.clear()
 
 
 def html_to_text(markup: str) -> str:
@@ -139,11 +149,14 @@ class DartDisclosureAPIClient(BaseDataGoClient):
         """
         if corp_code is not None:
             _require(_CORP_CODE, corp_code, "corp_code", "8자리 숫자")
-        if bgn_de is None:
-            bgn_de = default_bgn_de(has_corp_code=corp_code is not None)
-        _require(_DATE, bgn_de, "bgn_de", "YYYYMMDD")
         if end_de is not None:
             _require(_DATE, end_de, "end_de", "YYYYMMDD")
+        if bgn_de is None:
+            anchor = dt.datetime.strptime(end_de, "%Y%m%d").date() if end_de else None
+            bgn_de = default_bgn_de(has_corp_code=corp_code is not None, today=anchor)
+        _require(_DATE, bgn_de, "bgn_de", "YYYYMMDD")
+        if end_de is not None and bgn_de > end_de:
+            raise ValueError(f"bgn_de({bgn_de}) 가 end_de({end_de}) 보다 늦습니다")
         _choice(pblntf_ty, PBLNTF_TYPES, "pblntf_ty")
         if page_no < 1:
             raise ValueError(f"page_no 는 1 이상이어야 합니다: {page_no}")
@@ -215,8 +228,15 @@ class DartDisclosureAPIClient(BaseDataGoClient):
     # -- 원문 -----------------------------------------------------------------
 
     async def get_document(self, rcept_no: str) -> dict[str, Any]:
-        """공시 원문 (document.xml). ZIP 안의 ``<rcept_no>.xml`` (HTML) 을 텍스트로 바꾼다."""
+        """공시 원문 (document.xml). ZIP 안의 ``<rcept_no>.xml`` (HTML) 을 텍스트로 바꾼다.
+
+        사업보고서는 수 MB 라 최근 ``DOCUMENT_CACHE_SIZE`` 건은 프로세스 안에 캐시한다 (페이징용).
+        """
         _require(_RCEPT_NO, rcept_no, "rcept_no", "14자리 숫자")
+        cached = _document_cache.get(rcept_no)
+        if cached is not None:
+            _document_cache.move_to_end(rcept_no)
+            return dict(cached)
         with await self._get_zip("document.xml", {"rcept_no": rcept_no}) as archive:
             names = archive.namelist()
             main = f"{rcept_no}.xml"
@@ -228,12 +248,16 @@ class DartDisclosureAPIClient(BaseDataGoClient):
             markup = raw.decode("utf-8")
         except UnicodeDecodeError:
             markup = raw.decode("cp949", errors="replace")
-        return {
+        doc = {
             "rcept_no": rcept_no,
             "file_name": main,
             "attachment_files": [n for n in names if n != main],
             "text": html_to_text(markup),
         }
+        _document_cache[rcept_no] = doc
+        while len(_document_cache) > DOCUMENT_CACHE_SIZE:
+            _document_cache.popitem(last=False)
+        return dict(doc)
 
     # -- 기업코드 ------------------------------------------------------------
 

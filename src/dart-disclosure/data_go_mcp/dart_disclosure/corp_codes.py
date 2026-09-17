@@ -132,7 +132,9 @@ def search_corp_codes(
             continue
         name = _norm(entry["corp_name"])
         eng = _norm(entry["corp_eng_name"])
-        if q == name or q == entry["stock_code"]:
+        if (
+            q == name or q == entry["stock_code"].casefold()
+        ):  # 스팩·리츠 종목코드엔 영문자가 섞인다
             rank = 0
         elif name.startswith(q):
             rank = 1
