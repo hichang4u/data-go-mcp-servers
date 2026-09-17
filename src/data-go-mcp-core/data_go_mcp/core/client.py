@@ -11,7 +11,7 @@ from typing import Any, ClassVar, Literal, Mapping
 import httpx
 
 from .errors import DataGoAPIError
-from .keys import load_api_key
+from .keys import DATA_GO_KR_URL, load_api_key
 
 
 def to_camel(snake: str) -> str:
@@ -45,6 +45,8 @@ class BaseDataGoClient:
     key_param: ClassVar[str] = "serviceKey"
     default_params: ClassVar[Mapping[str, Any]] = {}
     response_format: ClassVar[Literal["json", "xml"]] = "json"
+    shared_key: ClassVar[bool] = True  # False: 공통 API_KEY 를 쓰지 않는다 (data.go.kr 외 포털)
+    key_url: ClassVar[str] = DATA_GO_KR_URL  # 키 없을 때 안내할 발급처
 
     def __init__(
         self,
@@ -53,7 +55,9 @@ class BaseDataGoClient:
         timeout: float = 30.0,
         http: httpx.AsyncClient | None = None,
     ) -> None:
-        self.api_key = load_api_key(self.key_env_prefix, explicit=api_key)
+        self.api_key = load_api_key(
+            self.key_env_prefix, explicit=api_key, shared=self.shared_key, key_url=self.key_url
+        )
         self.http = http or httpx.AsyncClient(timeout=timeout)
 
     async def __aenter__(self):
