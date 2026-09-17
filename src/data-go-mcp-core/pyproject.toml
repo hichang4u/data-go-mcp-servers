@@ -1,6 +1,6 @@
 [project]
 name = "data-go-mcp-core"
-version = "0.1.1"
+version = "0.2.0"
 description = "Shared client, error and key-loading utilities for data-go-mcp servers"
 readme = "README.md"
 requires-python = ">=3.10"

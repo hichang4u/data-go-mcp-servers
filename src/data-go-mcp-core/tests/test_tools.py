@@ -98,3 +98,9 @@ def test_configure_logging_silences_httpx_request_lines():
     configure_logging("demo")
     assert logging.getLogger("httpx").level >= logging.WARNING
     assert logging.getLogger("httpcore").level >= logging.WARNING
+
+
+async def test_api_error_message_uses_error_source():
+    with pytest.raises(ToolError, match=r"^OpenDART 오류 \[010\]"):
+        async with tool_errors():
+            raise DataGoAPIError("010", "등록되지 않은 인증키입니다.", source="OpenDART")

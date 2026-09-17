@@ -16,11 +16,15 @@ RESULT_CODES: dict[str, str] = {
 
 
 class DataGoAPIError(Exception):
-    """API가 HTTP 200으로 응답했지만 ``resultCode`` 가 정상(00)이 아닐 때."""
+    """API가 HTTP 200으로 응답했지만 ``resultCode`` 가 정상(00)이 아닐 때.
 
-    def __init__(self, result_code: str, result_msg: str) -> None:
+    ``source`` 는 오류 메시지에 붙는 API 제공처 이름. data.go.kr 이 아닌 포털(OpenDART)은 바꿔 쓴다.
+    """
+
+    def __init__(self, result_code: str, result_msg: str, *, source: str = "data.go.kr") -> None:
         self.result_code = result_code
         self.result_msg = result_msg
+        self.source = source
         super().__init__(self._format())
 
     def _format(self) -> str:
