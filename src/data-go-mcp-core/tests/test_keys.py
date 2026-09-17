@@ -40,3 +40,26 @@ def test_blank_value_counts_as_missing(monkeypatch):
 
     with pytest.raises(ValueError):
         load_api_key("NPS_BUSINESS_ENROLLMENT")
+
+
+def test_shared_false_ignores_common_api_key(monkeypatch):
+    monkeypatch.setenv("API_KEY", "data-go-key")
+    monkeypatch.delenv("DART_DISCLOSURE_API_KEY", raising=False)
+
+    with pytest.raises(ValueError, match="DART_DISCLOSURE_API_KEY") as exc_info:
+        load_api_key("DART_DISCLOSURE", shared=False)
+    assert "or API_KEY" not in str(exc_info.value)
+
+
+def test_shared_false_still_reads_prefixed_key(monkeypatch):
+    monkeypatch.setenv("API_KEY", "data-go-key")
+    monkeypatch.setenv("DART_DISCLOSURE_API_KEY", "dart-key")
+
+    assert load_api_key("DART_DISCLOSURE", shared=False) == "dart-key"
+
+
+def test_shared_false_uses_custom_key_url(monkeypatch):
+    monkeypatch.delenv("DART_DISCLOSURE_API_KEY", raising=False)
+
+    with pytest.raises(ValueError, match="opendart.fss.or.kr"):
+        load_api_key("DART_DISCLOSURE", shared=False, key_url="https://opendart.fss.or.kr")

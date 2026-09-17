@@ -56,16 +56,18 @@ MCP client ◀── CallToolResult(is_error=True, "data.go.kr 오류 [30] …")
 | nps | `NPSAPIClient`(국민연금 사업장) · `RegionCodeAPIClient`(행안부 법정동코드) · `InsuranceStatusAPIClient`(근로복지공단 고용·산재보험, XML) |
 | fsc | `FSCFinancialAPIClient`(재무정보) · `CorpBasicInfoAPIClient`(기업기본정보) · `StockPriceAPIClient`(주식시세) |
 | nts, pps, presidential, msds | 각 1개 |
+| dart | `DartDisclosureAPIClient`(OpenDART; `shared_key=False`, `key_param="crtfc_key"`) + 동봉 기업코드 스냅샷(`corp_codes.py`) |
 
 툴 결과에는 다음 툴의 입력을 그대로 만들어 준다 — `find_region_code.nps_params` → `search_business`,
-`find_corp_number.crno` → 재무제표 툴, `get_corp_outline.enp_pban_cmpy_nm` → `get_stock_price.itms_nm`.
+`find_corp_number.crno` → 재무제표 툴, `get_corp_outline.enp_pban_cmpy_nm` → `get_stock_price.itms_nm`,
+`find_corp_code.corp_code` → dart 툴 전부, `get_company.jurir_no` → fsc `crno`, `list_disclosures.rcept_no` → `get_disclosure_document`.
 
 ## core 패키지 (`data_go_mcp.core`)
 
 | 모듈 | 제공 | 비고 |
 |---|---|---|
-| `keys` | `load_api_key(prefix, explicit=None)` | 우선순위: 인자 > `<PREFIX>_API_KEY` > `API_KEY`. 없으면 `ValueError` |
-| `errors` | `DataGoAPIError(result_code, result_msg)`, `RESULT_CODES` | `str()` 은 `[30] MSG (등록되지 않은 서비스키)` 형태 |
+| `keys` | `load_api_key(prefix, explicit=None, *, shared=True, key_url=…)` | 우선순위: 인자 > `<PREFIX>_API_KEY` > `API_KEY`(`shared=False` 면 제외). 없으면 `ValueError` |
+| `errors` | `DataGoAPIError(result_code, result_msg, *, source="data.go.kr")`, `RESULT_CODES` | `str()` 은 `[30] MSG (등록되지 않은 서비스키)` 형태. `source` 는 `tool_errors` 의 접두어 |
 | `client` | `BaseDataGoClient`, `to_camel`, `normalize_items` | 아래 계약 참조 |
 | `xml` | `parse_xml_response(text)` | extra `xml` (xmltodict). 빈 요소는 `None` |
 | `tools` | `tool_errors()`, `READ_ONLY` | 툴 본문을 감싸는 async context manager / `ToolAnnotations(read_only_hint, open_world_hint)` |
@@ -80,6 +82,8 @@ class NPSAPIClient(BaseDataGoClient):
     default_params = {"dataType": "json"}        # 모든 요청에 붙는 파라미터
     response_format = "json"                     # 또는 "xml"
     key_param = "serviceKey"                     # 키 파라미터 이름
+    shared_key = True                            # False: 공통 API_KEY 를 쓰지 않음 (data.go.kr 외 포털)
+    key_url = "https://www.data.go.kr"           # 키 없을 때 안내할 발급처
 ```
 
 - `await self.get(endpoint, params)` / `await self.post(endpoint, json=, params=)` → 언래핑된 body(dict)
@@ -96,6 +100,7 @@ class NPSAPIClient(BaseDataGoClient):
 | 비표준 JSON | nps(법정동코드) | `serviceKey` 쿼리 | `type=json` | `{"StanReginCd":[{"head":[…]},{"row":[…]}]}`, 결과 없음은 `{"RESULT":{"resultCode":"INFO-3"}}` | `_check_response` 오버라이드 |
 | odcloud | nts, presidential | `serviceKey` 쿼리 | `returnType=JSON` | `status_code`/`data` (nts), `currentCount`/`data` (presidential) | 미신청 시 HTTP 401 + `{"code":-401}`. presidential 은 `cond[컬럼::EQ\|LIKE]` 서버 필터 |
 | KOSHA | msds | `serviceKey` 쿼리 | 없음 (XML 전용) | data.go.kr 표준과 동일 | data.go.kr 키 그대로 사용 가능 |
+| OpenDART | dart | `crtfc_key` 쿼리 (별도 키, `API_KEY` 미사용) | 엔드포인트 확장자 `.json` | `{"status": "000", "message", …}` 평면, `013` 은 결과 없음 | `corpCode.xml`/`document.xml` 은 ZIP, 오류만 XML (200) |
 
 ## 에러 규약
 

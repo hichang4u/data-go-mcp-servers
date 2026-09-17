@@ -22,7 +22,7 @@ async def tool_errors() -> AsyncIterator[None]:
     except ToolError:
         raise
     except DataGoAPIError as e:
-        raise ToolError(f"data.go.kr 오류 {e}") from e
+        raise ToolError(f"{e.source} 오류 {e}") from e
     except httpx.HTTPStatusError as e:
         body = e.response.text[:200]
         raise ToolError(f"HTTP {e.response.status_code}: {body}") from e

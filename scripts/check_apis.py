@@ -1,4 +1,4 @@
-"""각 서버가 사용하는 공공 API(10개)가 살아 있는지 최소 요청으로 확인한다.
+"""각 서버가 사용하는 공공 API(11개)가 살아 있는지 최소 요청으로 확인한다.
 
 사용법:
     API_KEY=... uv run python scripts/check_apis.py
@@ -91,19 +91,36 @@ TARGETS = [
         "https://msds.kosha.or.kr/openapi/service/msdschem/chemlist",
         {"searchWrd": "benzene", "searchCnd": 0, "numOfRows": 1, "pageNo": 1},
     ),
+    # OpenDART 는 data.go.kr 키가 아니다 — 키 환경변수와 파라미터 이름을 따로 준다
+    (
+        "dart-disclosure",
+        "GET",
+        "https://opendart.fss.or.kr/api/company.json",
+        {"corp_code": "00126380"},
+        "DART_DISCLOSURE_API_KEY",
+        "crtfc_key",
+    ),
 ]
 
 
-async def check(client: httpx.AsyncClient, name: str, method: str, url: str, extra: dict) -> str:
+async def check(
+    client: httpx.AsyncClient,
+    name: str,
+    method: str,
+    url: str,
+    extra: dict,
+    key_env: str = "API_KEY",
+    key_param: str = "serviceKey",
+) -> str:
     """엔드포인트 하나를 호출하고 한 줄 요약을 돌려준다."""
-    key = os.environ["API_KEY"]
+    key = os.getenv(key_env)
+    if not key:
+        return f"{name:36s} SKIP ({key_env} not set)"
     try:
         if method == "POST":
-            r = await client.post(
-                url, params={"serviceKey": key, "returnType": "JSON"}, json=extra
-            )
+            r = await client.post(url, params={key_param: key, "returnType": "JSON"}, json=extra)
         else:
-            r = await client.get(url, params={"serviceKey": key, **extra})
+            r = await client.get(url, params={key_param: key, **extra})
     except httpx.HTTPError as e:
         return f"{name:36s} NETWORK ERROR {e}"
 
@@ -113,6 +130,7 @@ async def check(client: httpx.AsyncClient, name: str, method: str, url: str, ext
         data = r.json()
         header = data.get("response", {}).get("header", {})
         code = header.get("resultCode", "") or str(data.get("status_code", ""))
+        code = code or str(data.get("status", ""))  # OpenDART: "000" 정상
         if not code and "StanReginCd" in data:  # 법정동코드: head 배열 안의 RESULT
             for entry in data["StanReginCd"][0].get("head", []):
                 code = code or entry.get("RESULT", {}).get("resultCode", "")

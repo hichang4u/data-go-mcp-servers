@@ -28,3 +28,13 @@ def test_result_codes_table_covers_documented_codes():
     assert RESULT_CODES["12"].startswith("NO_OPENAPI_SERVICE_ERROR")
     assert RESULT_CODES["22"].startswith("LIMITED_NUMBER_OF_SERVICE_REQUESTS_EXCEEDS_ERROR")
     assert RESULT_CODES["99"].startswith("UNKNOWN_ERROR")
+
+
+def test_source_defaults_to_data_go_kr():
+    assert DataGoAPIError("30", "KEY").source == "data.go.kr"
+
+
+def test_custom_source_is_kept():
+    err = DataGoAPIError("010", "등록되지 않은 인증키입니다.", source="OpenDART")
+    assert err.source == "OpenDART"
+    assert str(err) == "[010] 등록되지 않은 인증키입니다."

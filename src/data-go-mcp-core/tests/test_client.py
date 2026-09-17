@@ -239,3 +239,17 @@ async def test_xml_gateway_error_maps_to_data_go_error(status):
 
     assert exc.value.result_code == "30"
     assert "SERVICE_KEY_IS_NOT_REGISTERED_ERROR" in exc.value.result_msg
+
+
+def test_shared_key_false_client_ignores_common_api_key(monkeypatch):
+    monkeypatch.setenv("API_KEY", "data-go-key")
+    monkeypatch.delenv("OTHER_PORTAL_API_KEY", raising=False)
+
+    class OtherPortalClient(BaseDataGoClient):
+        base_url = "https://example.test/api"
+        key_env_prefix = "OTHER_PORTAL"
+        shared_key = False
+        key_url = "https://example.test"
+
+    with pytest.raises(ValueError, match="OTHER_PORTAL_API_KEY"):
+        OtherPortalClient()

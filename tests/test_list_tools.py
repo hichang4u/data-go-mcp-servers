@@ -50,6 +50,14 @@ SERVERS = {
         "get_chemical_section",
         "get_complete_msds",
     },
+    "dart_disclosure": {
+        "find_corp_code",
+        "get_company",
+        "list_disclosures",
+        "get_key_accounts",
+        "get_financial_statements",
+        "get_disclosure_document",
+    },
 }
 
 

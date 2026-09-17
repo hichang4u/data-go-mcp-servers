@@ -5,7 +5,7 @@
 1. [data.go.kr](https://www.data.go.kr) 회원가입 → 로그인
 2. 마이페이지 → **일반 인증키(Decoding)** 값을 복사
 
-키는 하나로 이 저장소의 모든 서버에 쓸 수 있다. 안전보건공단(MSDS)도 같은 키로 호출된다.
+키는 하나로 이 저장소의 모든 서버에 쓸 수 있다. 안전보건공단(MSDS)도 같은 키로 호출된다. 예외는 `dart-disclosure` — 아래 4절.
 
 Encoding 값(`%2B`, `%3D` 가 섞인 것)이 아니라 **Decoding 값**(`+`, `=` 가 그대로인 것, 보통 `==` 로 끝남)을 써야 한다. Encoding 값을 넣으면 서버가 한 번 더 인코딩해 `SERVICE_KEY_IS_NOT_REGISTERED_ERROR`(코드 30)가 난다.
 
@@ -27,6 +27,7 @@ Encoding 값(`%2B`, `%3D` 가 섞인 것)이 아니라 **Decoding 값**(`+`, `=`
 | | [금융위원회_주식시세정보](https://www.data.go.kr/data/15094808/openapi.do) | `get_stock_price` `search_stock_items` |
 | presidential-speeches | [대통령기록관_대통령연설기록(연설문)](https://www.data.go.kr/data/15084167/fileData.do) → "오픈API" 탭 | 전체 |
 | msds-chemical-info | 별도 신청 없이 동작 확인됨 (2026-09) | 전체 |
+| dart-disclosure | data.go.kr 아님 — 4절 | 전체 |
 
 활용목적은 "참고자료" 또는 "앱개발" 정도면 되고, 사유는 "OO 조회 서비스에 OO 정보를 함께 제공하는 용도" 한 줄이면 충분하다. 개발계정 일일 트래픽은 대개 10,000건이다.
 
@@ -52,3 +53,9 @@ uv run python scripts/check_apis.py
 ```
 
 각 줄의 `resultCode=00`, `INFO-0` 또는 `status_code OK` 가 정상이다. `30` 이면 그 API 의 활용신청이 안 된 것이다.
+
+## 4. OpenDART 키 (dart-disclosure)
+
+금융감독원 전자공시는 data.go.kr 을 거치지 않는다. [opendart.fss.or.kr](https://opendart.fss.or.kr) 회원가입 → **인증키 신청/관리** → 인증키 신청. 즉시 발급되고 활용신청 절차는 없다. 한도는 키당 일 20,000건.
+
+서버에는 `DART_DISCLOSURE_API_KEY` 로만 넘긴다. 공통 `API_KEY` 는 이 서버에 쓰이지 않으며, 없으면 `입력값 오류: API key is required. Set DART_DISCLOSURE_API_KEY …` 가 난다. 잘못된 키는 `OpenDART 오류 [010] 등록되지 않은 인증키입니다.`

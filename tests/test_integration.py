@@ -56,13 +56,20 @@ CALLS = [
     ),
     ("presidential_speeches", "search_speeches", {"president": "노무현", "per_page": 1}, "노무현"),
     ("msds_chemical_info", "search_chemicals", {"search_term": "71-43-2"}, "벤젠"),
+    ("dart_disclosure", "get_company", {"corp_code": "00126380"}, '"jurir_no": "1301110006246"'),
 ]
+
+# data.go.kr 키로는 안 되는 서버: 서버별 키가 없으면 그 항목만 skip
+KEY_ENV = {"dart_disclosure": "DART_DISCLOSURE_API_KEY"}
 
 
 @pytest.mark.parametrize(
     "module, tool, args, expected", CALLS, ids=[f"{c[0]}:{c[1]}" for c in CALLS]
 )
 async def test_live_tool_call(module: str, tool: str, args: dict, expected: str) -> None:
+    key_env = KEY_ENV.get(module)
+    if key_env and not os.getenv(key_env):
+        pytest.skip(f"{key_env} not set")
     params = StdioServerParameters(
         command=sys.executable, args=["-m", f"data_go_mcp.{module}.server"], env=dict(os.environ)
     )

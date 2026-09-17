@@ -30,6 +30,7 @@ SERVERS = {
     "fsc-financial-info": "fsc_financial_info",
     "presidential-speeches": "presidential_speeches",
     "msds-chemical-info": "msds_chemical_info",
+    "dart-disclosure": "dart_disclosure",
 }
 
 

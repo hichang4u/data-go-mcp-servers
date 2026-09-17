@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0] - 2026-09-17
+
+### Added
+- `BaseDataGoClient.shared_key` (기본 `True`) — `False` 면 `load_api_key` 가 공통 `API_KEY` 를 보지 않는다. data.go.kr 키로는 호출이 안 되는 포털(OpenDART)용. `key_url` 로 키 발급처 안내 문구를 바꾼다.
+- `DataGoAPIError(source=)` — `tool_errors` 의 오류 접두어(`data.go.kr 오류`)를 제공처에 맞게 바꾼다 (`OpenDART 오류 [013] …`).
+
 ## [0.1.1] - 2026-09-13
 
 ### Fixed
