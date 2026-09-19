@@ -28,7 +28,7 @@ uvx --from "git+https://github.com/hichang4u/data-go-mcp-servers#subdirectory=sr
 | `dart-disclosure` | 금융감독원 DART 전자공시 — 기업 개황, 공시 목록·원문, 재무제표 (키: `DART_DISCLOSURE_API_KEY`) |
 | `all-servers` | 위 7개 전부를 한 프로세스로 ([아래](#통합-서버-all-servers)) |
 
-특정 커밋/태그에 고정하려면 `data-go-mcp-servers@v0.5.0#subdirectory=…` 처럼 `@` 뒤에 붙인다.
+특정 커밋/태그에 고정하려면 `data-go-mcp-servers@v0.6.0#subdirectory=…` 처럼 `@` 뒤에 붙인다.
 
 ## Claude Desktop
 

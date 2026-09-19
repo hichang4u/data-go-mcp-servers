@@ -244,7 +244,7 @@
 - ZIP 엔드포인트의 오류(잘못된 접수번호, 키)는 HTTP 200 + XML `<result><status>` → `_get_zip` 이 `PK` 매직으로 분기.
 - 주요계정(`fnlttSinglAcnt`) 금액은 쉼표 포함 문자열, 전체 재무제표(`fnlttSinglAcntAll`)는 쉼표 없음 → 모델 validator 가 둘 다 int 로. 사업보고서 전체 계정은 213행 → `sj_div` 클라이언트 필터.
 
-## S7 — Smithery 등록 `[ ]` 2026-09-19 착수 — 통합 서버 `all-servers` + MCPB 번들
+## S7 — Smithery 등록 `[~]` 2026-09-19, 태그 `v0.6.0` (publish 는 미완) — 통합 서버 `all-servers` + MCPB 번들
 
 시작은 서버별 `smithery.yaml` 9개(구형 `startCommand: stdio` + `commandFunction`)였는데, 2026-09-19 Smithery 문서(`build/publish`, `concepts/cli`, `build/session-config`)에는 `smithery.yaml` 이 전혀 없다 — 등록 경로는 **URL(Streamable HTTP)** 과 **MCPB 번들(stdio)** 둘뿐이고 CLI 도 `npx @smithery/cli install` 이 아니라 `smithery mcp add`. yaml 은 전부 버렸다.
 
