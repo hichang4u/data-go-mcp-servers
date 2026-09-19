@@ -2,9 +2,9 @@
 # 릴리스 때 tag 를 새 버전으로 올린다 (docs/development/release.md).
 [project]
 name = "data-go-mcp-bundle"
-version = "0.6.0"
+version = "0.6.1"
 requires-python = ">=3.10"
 dependencies = ["data-go-mcp.all-servers"]
 
 [tool.uv.sources]
-"data-go-mcp.all-servers" = { git = "https://github.com/hichang4u/data-go-mcp-servers", subdirectory = "src/all-servers", tag = "v0.6.0" }
+"data-go-mcp.all-servers" = { git = "https://github.com/hichang4u/data-go-mcp-servers", subdirectory = "src/all-servers", tag = "v0.6.1" }
