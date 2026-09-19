@@ -34,12 +34,12 @@ PyPI 는 쓰지 않는다. 원저장소의 `data-go-mcp.*` 네임스페이스는
 7. MCPB 번들과 Smithery (통합 서버의 툴이나 키 항목이 바뀌었거나 새 태그를 태우려면):
    ```bash
    # mcpb/manifest.json 의 version, mcpb/pyproject.toml 의 version 과 tag 를 새 태그로
-   uv run python scripts/gen_mcpb_manifest.py --pack   # manifest 의 tools 갱신 + dist/data-go-mcp.mcpb
+   uv run python scripts/gen_mcpb_manifest.py --pack   # manifest 의 tools 갱신 + dist/data-go-mcp.mcpb (Smithery 용), dist/data-go-mcp-desktop.mcpb (Claude Desktop 드래그 설치용)
    npm install -g smithery@latest && smithery auth login
    smithery mcp publish ./dist/data-go-mcp.mcpb -n hichang4u/data-go-mcp
    ```
    태그가 push 된 뒤에 pack 해야 번들이 동작한다 (`tag = "vX.Y.Z"` 를 uv 가 받는다).
-   `npx @anthropic-ai/mcpb validate/pack` 은 쓰지 않는다 — Smithery 는 `tools[].inputSchema` 를 요구하고 MCPB 스키마는 그 키를 거부한다. 이 번들은 Smithery 전용이며, Claude Desktop 에 직접 드래그해 설치하는 것은 검증하지 않았다.
+   `npx @anthropic-ai/mcpb validate/pack` 은 쓰지 않는다 — Smithery 는 `tools[].inputSchema` 를 요구하고 MCPB 스키마는 그 키를 거부한다(Claude Desktop 직접 설치 시 "확장 프로그램 미리보기 실패"). 그래서 Desktop 용은 `inputSchema` 를 뺀 별도 번들이다. Claude Desktop 에서 기존 확장을 지우고 `-desktop.mcpb` 를 드래그하면 새 태그로 `.venv` 를 다시 만든다.
 
 ## 문서 갱신 체크
 
