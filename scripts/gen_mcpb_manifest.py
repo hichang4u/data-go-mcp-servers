@@ -6,7 +6,7 @@ Smithery 는 stdio 번들의 툴 목록을 실행해 보지 않고 manifest 의 
 Claude Desktop 직접 설치("확장 프로그램 미리보기 실패")가 거부한다. 그래서 번들을 둘 만든다:
 
 - ``dist/data-go-mcp.mcpb`` — Smithery 용 (inputSchema 포함)
-- ``dist/data-go-mcp-desktop.mcpb`` — Claude Desktop 드래그 설치용 (tools 는 name/description 만)
+- ``dist/data-go-mcp-desktop.mcpb`` — Claude Desktop 드래그 설치용 (``type: uv``, tools 는 name/description 만)
 """
 
 import argparse
@@ -41,9 +41,15 @@ async def tools() -> list[dict[str, Any]]:
 
 
 def desktop_manifest(manifest: dict[str, Any]) -> dict[str, Any]:
-    """MCPB 스키마가 받는 형태 — tools 에서 inputSchema 를 뺀다."""
+    """Claude Desktop 용 — tools 에서 inputSchema 를 빼고 server.type 은 uv.
+
+    ``type: uv`` 면 호스트가 자체 uv 로 의존성을 설치·실행한다. ``python`` 이면 ``mcp_config`` 의
+    ``uv`` 를 PATH 에서 찾아 ``spawn uv ENOENT`` 가 난다 (2026-09-20 확인). Smithery CLI 는
+    반대로 ``uv`` 타입을 모르므로 그쪽은 ``python`` 으로 둔다.
+    """
     return {
         **manifest,
+        "server": {**manifest["server"], "type": "uv"},
         "tools": [{"name": t["name"], "description": t["description"]} for t in manifest["tools"]],
     }
 

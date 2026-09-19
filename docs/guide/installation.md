@@ -107,9 +107,9 @@ smithery mcp add hichang4u/data-go-mcp --client claude     # Claude Desktop
 smithery mcp add hichang4u/data-go-mcp --client cursor
 ```
 
-설치 때 data.go.kr 인증키(필수)와 OpenDART 인증키(선택)를 묻고, 클라이언트 설정의 `API_KEY` / `DART_DISCLOSURE_API_KEY` 로 넣는다. 번들은 `uv` 로 저장소의 태그 하나에 고정된 패키지를 설치해 실행한다 — 번들 안에 코드는 없다.
+설치 때 data.go.kr 인증키(필수)와 OpenDART 인증키(선택)를 묻고, 클라이언트 설정의 `API_KEY` / `DART_DISCLOSURE_API_KEY` 로 넣는다. 번들은 `uv` 로 저장소의 태그 하나에 고정된 패키지를 설치해 실행한다 — 번들 안에 코드는 없고, 이 경로는 PATH 에 `uv` 가 있어야 한다.
 
-Claude Desktop 에 번들을 직접 설치하려면 [GitHub Releases](https://github.com/hichang4u/data-go-mcp-servers/releases) 의 `data-go-mcp-desktop.mcpb` 를 설정 → 확장 프로그램 창에 드래그한다 (`uv` 가 PATH 에 있어야 한다).
+Claude Desktop 에 번들을 직접 설치하려면 [GitHub Releases](https://github.com/hichang4u/data-go-mcp-servers/releases) 의 `data-go-mcp-desktop.mcpb` 를 설정 → 확장 프로그램 창에 드래그한다 (Claude Desktop 이 자체 uv 로 설치하므로 uv 를 따로 깔 필요 없다).
 
 배포 절차(번들 만들기·올리기)는 [release.md](../development/release.md).
 
