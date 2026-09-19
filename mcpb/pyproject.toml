@@ -1,0 +1,10 @@
+# MCPB 번들용 프로젝트. 호스트(Claude Desktop 등)가 uv 로 의존성을 설치하고 src/server.py 를 실행한다.
+# 릴리스 때 tag 를 새 버전으로 올린다 (docs/development/release.md).
+[project]
+name = "data-go-mcp-bundle"
+version = "0.6.0"
+requires-python = ">=3.10"
+dependencies = ["data-go-mcp.all-servers"]
+
+[tool.uv.sources]
+"data-go-mcp.all-servers" = { git = "https://github.com/hichang4u/data-go-mcp-servers", subdirectory = "src/all-servers", tag = "v0.6.0" }

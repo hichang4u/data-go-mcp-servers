@@ -6,6 +6,7 @@
 pyproject.toml            uv workspace 루트 (members = src/*). ruff/pyright/pytest 설정은 여기 하나뿐
 src/
   data-go-mcp-core/       공통 패키지 (data_go_mcp.core)
+  all-servers/            통합 서버 — 다른 서버 전부의 툴을 한 MCPServer 로 (Smithery/MCPB 용, 자동 탐색)
   <server>/               서버당 독립 패키지 — pyproject.toml, data_go_mcp/<module>/, tests/
     data_go_mcp/<module>/
       api_client.py       BaseDataGoClient 서브클래스(들): 엔드포인트별 메서드 + 응답 → 모델. API 하나당 클래스 하나

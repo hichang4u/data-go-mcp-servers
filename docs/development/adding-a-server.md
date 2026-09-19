@@ -98,6 +98,7 @@ class WeatherForecastAPIClient(BaseDataGoClient):
 
 ### 새 서버 등록 시
 
+- `src/all-servers/pyproject.toml` 의 `dependencies` 와 `[tool.uv.sources]` 에 새 패키지 추가 (통합 서버가 자동 탐색하지만 uvx 는 선언된 의존성만 설치한다 — `src/all-servers/tests` 가 누락을 잡는다). 키가 별도인 서버면 `mcpb/manifest.json` 의 `user_config`·`env` 에도 한 칸
 - `tests/test_list_tools.py` 의 `SERVERS` 에 모듈과 툴 이름 추가
 - `tests/test_integration.py` 의 `CALLS` 에 실호출 1건 추가
 - `scripts/check_apis.py` 의 `TARGETS` 에 엔드포인트 추가

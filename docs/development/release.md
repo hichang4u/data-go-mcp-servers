@@ -4,6 +4,8 @@
 
 **git 직접 설치**가 기본이다. 사용자는 `uvx --from "git+…#subdirectory=src/<server>" data-go-mcp.<server>` 로 실행하며, uv 가 저장소를 받아 워크스페이스(`[tool.uv.sources] data-go-mcp-core = { workspace = true }`)를 그대로 해석하므로 core 를 따로 배포할 필요가 없다 (2026-09-12 확인).
 
+**Smithery** 에는 통합 서버(`src/all-servers`)가 MCPB 번들 하나로 올라간다 (`hichang4u/data-go-mcp`). 번들(`mcpb/`)에는 코드가 없고 `pyproject.toml` 이 저장소 태그 하나를 가리킨다 — 호스트가 `uv run` 으로 설치·실행한다 (MCPB `server.type: uv`). Smithery 는 `smithery.yaml` 을 더 이상 읽지 않는다 (2026-09-19 문서 기준: URL 또는 MCPB 만).
+
 PyPI 는 쓰지 않는다. 원저장소의 `data-go-mcp.*` 네임스페이스는 우리 것이 아니고, git 설치로 충분하다. 필요해지면 `scripts/deploy_to_pypi.py` (core 를 먼저 올리도록 정렬돼 있음)와 새 네임스페이스를 정한다.
 
 ## 버전
@@ -29,6 +31,16 @@ PyPI 는 쓰지 않는다. 원저장소의 `data-go-mcp.*` 네임스페이스는
    uvx --refresh --from "git+https://github.com/hichang4u/data-go-mcp-servers@v0.5.0#subdirectory=src/nts-business-verification" data-go-mcp.nts-business-verification
    ```
    (키 없이 실행하면 경고 후 stdin 을 기다린다 — Ctrl+C.) 가능하면 Claude Desktop 에 등록해 툴 호출 1회.
+7. MCPB 번들과 Smithery (통합 서버의 툴이나 키 항목이 바뀌었거나 새 태그를 태우려면):
+   ```bash
+   # mcpb/manifest.json 의 version, mcpb/pyproject.toml 의 version 과 tag 를 새 태그로
+   npx -y @anthropic-ai/mcpb validate mcpb/manifest.json
+   npx -y @anthropic-ai/mcpb pack mcpb dist/data-go-mcp.mcpb
+   # Claude Desktop → 설정 → 확장 프로그램 → dist/data-go-mcp.mcpb 드래그해 툴 36개가 뜨는지 확인
+   npm install -g smithery@latest && smithery auth login
+   smithery mcp publish ./dist/data-go-mcp.mcpb -n hichang4u/data-go-mcp
+   ```
+   태그가 push 된 뒤에 pack 해야 번들이 동작한다 (`tag = "vX.Y.Z"` 를 uv 가 받는다).
 
 ## 문서 갱신 체크
 
