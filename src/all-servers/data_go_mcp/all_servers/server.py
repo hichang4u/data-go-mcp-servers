@@ -6,11 +6,13 @@ Smithery 같은 "리스팅 하나 = 프로세스 하나" 인 레지스트리용.
 """
 
 import importlib
+import importlib.util
 import pkgutil
 from collections.abc import Iterable
 from types import ModuleType
 
 from mcp.server.mcpserver import MCPServer
+from mcp.server.mcpserver.tools.base import Tool
 
 import data_go_mcp
 from data_go_mcp.core import BaseDataGoClient, configure_logging, load_api_key
@@ -26,25 +28,33 @@ INSTRUCTIONS = (
 
 
 def discover() -> list[ModuleType]:
-    """``data_go_mcp.<server>.server`` 모듈을 이름순으로 찾아 돌려준다."""
+    """``data_go_mcp.<server>.server`` 모듈을 이름순으로 찾아 돌려준다.
+
+    같은 네임스페이스에 서버가 아닌 패키지(``server`` 모듈이 없거나 ``mcp`` 가 ``MCPServer``
+    가 아닌 것)가 있어도 건너뛴다 — 다른 배포판의 ``data_go_mcp.*`` 와 공존할 수 있게.
+    """
     modules: list[ModuleType] = []
     for info in sorted(pkgutil.iter_modules(data_go_mcp.__path__), key=lambda i: i.name):
         if info.name in NOT_SERVERS:
             continue
-        modules.append(importlib.import_module(f"data_go_mcp.{info.name}.server"))
+        if importlib.util.find_spec(f"data_go_mcp.{info.name}.server") is None:
+            continue
+        module = importlib.import_module(f"data_go_mcp.{info.name}.server")
+        if isinstance(getattr(module, "mcp", None), MCPServer):
+            modules.append(module)
     return modules
 
 
 def build(servers: Iterable[MCPServer], name: str = "Korea Public Data") -> MCPServer:
     """여러 ``MCPServer`` 의 툴을 새 서버 하나에 옮겨 담는다. 이름이 겹치면 ``ValueError``."""
-    merged = MCPServer(name, instructions=INSTRUCTIONS)
-    target = merged._tool_manager._tools
+    # 등록된 Tool 을 꺼내는 공개 API 는 없다 (_tool_manager). 넣는 쪽은 생성자 인자 tools= 로.
+    tools: dict[str, Tool] = {}
     for server in servers:
         for tool_name, tool in server._tool_manager._tools.items():
-            if tool_name in target:
+            if tool_name in tools:
                 raise ValueError(f"duplicate tool name across servers: {tool_name}")
-            target[tool_name] = tool
-    return merged
+            tools[tool_name] = tool
+    return MCPServer(name, instructions=INSTRUCTIONS, tools=list(tools.values()))
 
 
 def _client_classes(server_module: ModuleType) -> list[type[BaseDataGoClient]]:

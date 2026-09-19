@@ -252,7 +252,8 @@
 
 ### 드러난 것
 
-- `MCPServer` 에 툴을 옮겨 담는 공개 API 는 없다 → `_tool_manager._tools` 를 복사 (mcp 마이너 업그레이드 때 깨질 수 있어 테스트로 잡는다). 툴 이름은 7개 서버 합쳐 36개, 충돌 없음.
+- 등록된 `Tool` 을 꺼내는 공개 API 는 없다 → 읽기만 `_tool_manager._tools` (mcp 마이너 업그레이드 때 깨질 수 있어 테스트로 잡는다). 넣는 쪽은 `MCPServer(tools=[...])` 공개 인자. 툴 이름은 7개 서버 합쳐 36개, 충돌 없음.
+- 자동 탐색은 `server` 모듈이 없거나 `mcp` 가 `MCPServer` 가 아닌 네임스페이스 패키지를 건너뛴다 — 원저장소 PyPI 배포판(같은 `data_go_mcp` 네임스페이스)과 한 환경에 있어도 import 시점에 죽지 않게.
 - 서버 목록은 `pkgutil.iter_modules(data_go_mcp.__path__)` 로 자동 탐색 — 네임스페이스 패키지라 editable 워크스페이스와 site-packages 설치 양쪽에서 동작 확인. 단 uvx 는 선언된 의존성만 설치하므로 `all-servers/pyproject.toml` 의존성이 진짜 목록이고, 테스트가 `src/*` 와 대조한다.
 - MCPB 0.4 에 `server.type: "uv"` 가 있다: 번들에 `pyproject.toml` 만 넣으면 호스트가 uv 로 의존성을 설치한다. 네이티브 휠(pydantic-core) 때문에 OS 별 번들이 필요했을 `python` 타입을 피할 수 있다. 번들 `pyproject.toml` 의 `[tool.uv.sources]` 가 git 태그를 가리키고, all-servers → 개별 서버 → core 의 워크스페이스 의존성은 uv 가 git 체크아웃 안에서 해석한다 (로컬 path 소스로 `uv run --directory … src/server.py` → 툴 36개 확인).
 - 각 서버 `server.py` 의 `load_dotenv()` 는 호출 프레임의 파일 위치에서 위로 `.env` 를 찾는다 — editable 설치에서는 저장소 `.env` 를 읽어 테스트가 헷갈렸다. 배포 번들(site-packages)에서는 무관.

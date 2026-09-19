@@ -1,5 +1,6 @@
 """통합 서버 — 개별 서버의 툴이 빠짐없이, 겹침 없이 한 프로세스에 실린다."""
 
+import os
 import re
 from pathlib import Path
 
@@ -26,6 +27,23 @@ async def test_discovers_every_server_package():
     expected = {d.replace("-", "_") for d in _server_dirs()}
     found = {m.__name__.split(".")[1] for m in discover()}
     assert found == expected
+
+
+async def test_discovery_skips_namespace_packages_that_are_not_servers(monkeypatch, tmp_path):
+    """같은 data_go_mcp 네임스페이스에 서버가 아닌 패키지가 있어도 import 시점에 죽지 않는다."""
+    import data_go_mcp
+
+    extra = tmp_path / "data_go_mcp"
+    (extra / "no_server_here").mkdir(parents=True)
+    (extra / "no_server_here" / "__init__.py").write_text("")
+    (extra / "wrong_server").mkdir()
+    (extra / "wrong_server" / "__init__.py").write_text("")
+    (extra / "wrong_server" / "server.py").write_text("mcp = None")
+    monkeypatch.setattr(data_go_mcp, "__path__", [*data_go_mcp.__path__, str(extra)])
+
+    found = {m.__name__.split(".")[1] for m in discover()}
+    assert "no_server_here" not in found and "wrong_server" not in found
+    assert "nts_business_verification" in found
 
 
 async def test_every_server_package_is_a_dependency():
@@ -96,8 +114,10 @@ async def test_call_routes_to_origin_server(monkeypatch):
 
 
 def test_missing_key_messages_cover_both_key_families(monkeypatch):
-    monkeypatch.delenv("API_KEY")
-    monkeypatch.delenv("DART_DISCLOSURE_API_KEY")
+    # 루트 conftest 가 .env 를 읽는다 — 서버별 <PREFIX>_API_KEY 까지 전부 지운다
+    for name in list(os.environ):
+        if name.endswith("API_KEY"):
+            monkeypatch.delenv(name)
     messages = missing_key_messages()
     assert any("API_KEY" in m and "data.go.kr" in m for m in messages)
     assert any("DART_DISCLOSURE_API_KEY" in m for m in messages)
