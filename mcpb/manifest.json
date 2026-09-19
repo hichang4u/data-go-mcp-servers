@@ -17,11 +17,16 @@
   "documentation": "https://github.com/hichang4u/data-go-mcp-servers/blob/main/docs/guide/installation.md",
   "support": "https://github.com/hichang4u/data-go-mcp-servers/issues",
   "server": {
-    "type": "uv",
+    "type": "python",
     "entry_point": "src/server.py",
     "mcp_config": {
       "command": "uv",
-      "args": ["run", "--directory", "${__dirname}", "src/server.py"],
+      "args": [
+        "run",
+        "--directory",
+        "${__dirname}",
+        "src/server.py"
+      ],
       "env": {
         "API_KEY": "${user_config.api_key}",
         "DART_DISCLOSURE_API_KEY": "${user_config.dart_api_key}"
@@ -46,11 +51,171 @@
     }
   },
   "compatibility": {
-    "platforms": ["darwin", "linux", "win32"],
+    "platforms": [
+      "darwin",
+      "linux",
+      "win32"
+    ],
     "runtimes": {
       "python": ">=3.10"
     }
   },
-  "keywords": ["korea", "data.go.kr", "opendart", "dart", "business-registration", "nps", "narajangteo", "msds", "public-data"],
-  "license": "Apache-2.0"
+  "keywords": [
+    "korea",
+    "data.go.kr",
+    "opendart",
+    "dart",
+    "business-registration",
+    "nps",
+    "narajangteo",
+    "msds",
+    "public-data"
+  ],
+  "license": "Apache-2.0",
+  "tools": [
+    {
+      "name": "batch_validate_businesses",
+      "description": "여러 사업자등록정보를 한 번에 진위확인합니다. Batch validate business registrations."
+    },
+    {
+      "name": "check_business_status",
+      "description": "사업자등록 상태를 조회합니다. Check business registration status."
+    },
+    {
+      "name": "find_corp_code",
+      "description": "회사명 또는 종목코드로 DART 고유번호(corp_code)를 찾습니다. 다른 툴의 corp_code 입력에 씁니다. | Find the 8-digit DART corp_code by company name or stock code."
+    },
+    {
+      "name": "find_corp_number",
+      "description": "법인명 또는 사업자등록번호로 법인등록번호(crno)를 찾습니다. 다른 재무정보 툴의 crno 입력에 씁니다. | Find the 13-digit corporate registration number (crno) by name or business number."
+    },
+    {
+      "name": "find_region_code",
+      "description": "지역명으로 법정동코드를 찾습니다."
+    },
+    {
+      "name": "get_balance_sheet",
+      "description": "기업의 재무상태표(대차대조표)를 조회합니다. 자산, 부채, 자본의 세부 계정과목별 금액을 확인할 수 있습니다. | Get balance sheet with detailed account items for assets, liabilities, and equity."
+    },
+    {
+      "name": "get_bid_detail",
+      "description": "특정 입찰공고의 상세정보를 조회합니다. Get one bid announcement by its notice number."
+    },
+    {
+      "name": "get_business_detail",
+      "description": "사업장 상세정보를 조회합니다."
+    },
+    {
+      "name": "get_chemical_handling_info",
+      "description": "화학물질의 취급·보호 정보를 조회합니다 (섹션 5-8: 화재, 누출, 취급·저장, 보호구)."
+    },
+    {
+      "name": "get_chemical_properties",
+      "description": "화학물질의 물성·독성 정보를 조회합니다 (섹션 9-12: 물리화학적 특성, 안정성, 독성, 환경)."
+    },
+    {
+      "name": "get_chemical_regulatory_info",
+      "description": "화학물질의 규제·폐기 정보를 조회합니다 (섹션 13-16: 폐기, 운송, 법적 규제, 기타)."
+    },
+    {
+      "name": "get_chemical_safety_summary",
+      "description": "화학물질의 핵심 안전정보를 조회합니다 (섹션 1-4: 제품·회사, 유해성, 구성성분, 응급조치)."
+    },
+    {
+      "name": "get_chemical_section",
+      "description": "화학물질 MSDS 의 특정 섹션을 조회합니다. Get one MSDS section (1-16)."
+    },
+    {
+      "name": "get_company",
+      "description": "DART 고유번호로 기업 개황(정식명칭, 대표자, 법인등록번호, 사업자등록번호, 주소, 설립일, 결산월 등)을 조회합니다. | Get a company profile by corp_code."
+    },
+    {
+      "name": "get_complete_msds",
+      "description": "화학물질의 전체 MSDS (16개 섹션)를 조회합니다. Get the complete MSDS (all 16 sections)."
+    },
+    {
+      "name": "get_corp_outline",
+      "description": "법인등록번호로 기업 개요를 조회합니다: 대표자, 주소, 상장시장, 설립일, 종업원 수, 평균 급여, 감사인·감사의견 등. | Get the corporate profile (representative, address, market, employees, average salary, auditor) by crno."
+    },
+    {
+      "name": "get_disclosure_document",
+      "description": "공시 원문을 텍스트로 조회합니다. 사업보고서는 수십만 자라 offset/max_chars 로 나눠 읽습니다. | Get the full text of a disclosure document, paged by offset/max_chars."
+    },
+    {
+      "name": "get_financial_statements",
+      "description": "정기보고서의 전체 재무제표를 XBRL 계정 단위로 조회합니다 (재무상태표·손익계산서·포괄손익계산서·현금흐름표·자본변동표). | Get full financial statements (all XBRL account lines)."
+    },
+    {
+      "name": "get_income_statement",
+      "description": "기업의 손익계산서를 조회합니다. 매출, 비용, 이익 등의 세부 계정과목별 금액을 확인할 수 있습니다. | Get income statement with detailed account items for revenue, expenses, and profit."
+    },
+    {
+      "name": "get_insurance_status",
+      "description": "사업자등록번호로 고용·산재보험 가입 사업장 현황을 조회합니다: 사업장별 상시인원, 보험관계 성립일, 업종, 주소."
+    },
+    {
+      "name": "get_key_accounts",
+      "description": "정기보고서의 주요 재무계정(자산·부채·자본 총계, 매출액, 영업이익, 당기순이익 등)을 당기·전기·전전기로 조회합니다. | Get key financial accounts (assets, liabilities, equity, revenue, operating income, net income) for the current and two prior periods."
+    },
+    {
+      "name": "get_period_status",
+      "description": "사업장의 기간별 현황 정보를 조회합니다."
+    },
+    {
+      "name": "get_recent_speeches",
+      "description": "최근 대통령 연설문을 조회합니다. Get the most recent presidential speeches."
+    },
+    {
+      "name": "get_stock_price",
+      "description": "KRX 상장 주식의 일별 시세를 조회합니다: 종가, 등락, 시가·고가·저가, 거래량, 시가총액. 최신 거래일부터 내려옵니다. | Get daily KRX stock prices (close, change, OHLC, volume, market cap), newest first."
+    },
+    {
+      "name": "get_summary_financial_statement",
+      "description": "기업의 요약 재무제표를 조회합니다. 매출액, 영업이익, 당기순이익, 자산, 부채 등 주요 재무지표를 확인할 수 있습니다. | Get summary financial statements including revenue, operating profit, net income, assets, and liabilities."
+    },
+    {
+      "name": "list_disclosures",
+      "description": "공시 목록을 조회합니다 (접수일 내림차순). 사업보고서·주요사항보고서·지분공시 등의 접수번호를 얻는 데 씁니다. | List DART disclosures (newest first)."
+    },
+    {
+      "name": "list_speeches",
+      "description": "대통령 연설문 목록을 조회합니다. List presidential speeches from the archives."
+    },
+    {
+      "name": "search_bid_announcements",
+      "description": "나라장터 입찰공고정보를 검색합니다. Search bid announcements in the G2B marketplace."
+    },
+    {
+      "name": "search_business",
+      "description": "사업장 정보를 조회합니다."
+    },
+    {
+      "name": "search_chemicals",
+      "description": "화학물질을 검색합니다. Search chemicals by name or identifier (CAS/UN/KE/EN No.)."
+    },
+    {
+      "name": "search_company_financial_info",
+      "description": "법인등록번호로 기업의 전체 재무정보를 통합 조회합니다. 요약 재무제표, 재무상태표, 손익계산서를 한번에 가져옵니다. | Search comprehensive financial information by corporate registration number, including summary, balance sheet, and income statement."
+    },
+    {
+      "name": "search_contracts",
+      "description": "나라장터 계약정보를 검색합니다. Search contracts in the G2B marketplace."
+    },
+    {
+      "name": "search_speeches",
+      "description": "대통령 연설문을 검색합니다. Search presidential speeches (server-side filters)."
+    },
+    {
+      "name": "search_stock_items",
+      "description": "종목명 일부로 상장 종목을 찾습니다. 최신 거래일 기준 종목당 한 건(코드, 시장, 종가, 시가총액). | Search listed stocks by partial name; one row per item as of the latest trading day."
+    },
+    {
+      "name": "search_successful_bids",
+      "description": "나라장터 낙찰정보를 검색합니다. Search successful bids in the G2B marketplace."
+    },
+    {
+      "name": "validate_business",
+      "description": "사업자등록정보 진위확인을 수행합니다. Validate business registration information."
+    }
+  ]
 }

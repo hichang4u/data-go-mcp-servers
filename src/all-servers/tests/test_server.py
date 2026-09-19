@@ -127,3 +127,16 @@ def test_missing_key_messages_cover_both_key_families(monkeypatch):
 
 def test_no_messages_when_keys_present():
     assert missing_key_messages() == []
+
+
+async def test_mcpb_manifest_lists_every_tool():
+    """Smithery 페이지는 manifest 의 tools 만 보여준다 — 서버 툴과 이름·설명이 어긋나면 실패."""
+    import json
+
+    manifest = json.loads((SRC.parent / "mcpb" / "manifest.json").read_text(encoding="utf-8"))
+    listed = {t["name"]: t["description"] for t in manifest["tools"]}
+    expected = {
+        t.name: (t.description or "").strip().splitlines()[0] for t in await mcp.list_tools()
+    }
+    assert listed == expected
+    assert manifest["server"]["type"] == "python"  # smithery CLI 1.2.0 은 "uv" 를 모른다
