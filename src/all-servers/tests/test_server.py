@@ -134,9 +134,10 @@ async def test_mcpb_manifest_lists_every_tool():
     import json
 
     manifest = json.loads((SRC.parent / "mcpb" / "manifest.json").read_text(encoding="utf-8"))
-    listed = {t["name"]: t["description"] for t in manifest["tools"]}
+    listed = {t["name"]: (t["description"], t["inputSchema"]) for t in manifest["tools"]}
     expected = {
-        t.name: (t.description or "").strip().splitlines()[0] for t in await mcp.list_tools()
+        t.name: ((t.description or "").strip().splitlines()[0], t.input_schema)
+        for t in await mcp.list_tools()
     }
-    assert listed == expected
+    assert listed == expected  # Smithery 는 inputSchema 없는 툴을 거부한다
     assert manifest["server"]["type"] == "python"  # smithery CLI 1.2.0 은 "uv" 를 모른다

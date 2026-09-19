@@ -75,147 +75,1504 @@
   "tools": [
     {
       "name": "batch_validate_businesses",
-      "description": "여러 사업자등록정보를 한 번에 진위확인합니다. Batch validate business registrations."
+      "description": "여러 사업자등록정보를 한 번에 진위확인합니다. Batch validate business registrations.",
+      "inputSchema": {
+        "properties": {
+          "businesses_json": {
+            "description": "JSON 배열 문자열, 최대 100개. 각 항목 필수: b_no, start_dt, p_nm. 선택: p_nm2, b_nm, corp_no, b_sector, b_type, b_adr. 예: [{\"b_no\": \"1234567890\", \"start_dt\": \"20200101\", \"p_nm\": \"홍길동\"}]",
+            "title": "Businesses Json",
+            "type": "string"
+          }
+        },
+        "required": [
+          "businesses_json"
+        ],
+        "title": "batch_validate_businessesArguments",
+        "type": "object"
+      }
     },
     {
       "name": "check_business_status",
-      "description": "사업자등록 상태를 조회합니다. Check business registration status."
+      "description": "사업자등록 상태를 조회합니다. Check business registration status.",
+      "inputSchema": {
+        "properties": {
+          "business_numbers": {
+            "description": "사업자등록번호 목록, 쉼표 구분, 최대 100개 (하이픈 허용)",
+            "title": "Business Numbers",
+            "type": "string"
+          }
+        },
+        "required": [
+          "business_numbers"
+        ],
+        "title": "check_business_statusArguments",
+        "type": "object"
+      }
     },
     {
       "name": "find_corp_code",
-      "description": "회사명 또는 종목코드로 DART 고유번호(corp_code)를 찾습니다. 다른 툴의 corp_code 입력에 씁니다. | Find the 8-digit DART corp_code by company name or stock code."
+      "description": "회사명 또는 종목코드로 DART 고유번호(corp_code)를 찾습니다. 다른 툴의 corp_code 입력에 씁니다. | Find the 8-digit DART corp_code by company name or stock code.",
+      "inputSchema": {
+        "properties": {
+          "query": {
+            "description": "회사명(한글·영문, 부분 일치) 또는 6자리 종목코드 | Company name (partial) or 6-digit stock code",
+            "title": "Query",
+            "type": "string"
+          },
+          "listed_only": {
+            "default": false,
+            "description": "상장사(종목코드 있는 회사)만 | Only listed companies (default: false)",
+            "title": "Listed Only",
+            "type": "boolean"
+          },
+          "limit": {
+            "default": 20,
+            "description": "최대 결과 수 (기본값: 20)",
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "title": "find_corp_codeArguments",
+        "type": "object"
+      }
     },
     {
       "name": "find_corp_number",
-      "description": "법인명 또는 사업자등록번호로 법인등록번호(crno)를 찾습니다. 다른 재무정보 툴의 crno 입력에 씁니다. | Find the 13-digit corporate registration number (crno) by name or business number."
+      "description": "법인명 또는 사업자등록번호로 법인등록번호(crno)를 찾습니다. 다른 재무정보 툴의 crno 입력에 씁니다. | Find the 13-digit corporate registration number (crno) by name or business number.",
+      "inputSchema": {
+        "properties": {
+          "corp_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "법인명 (부분 일치, 예: '삼성전자(주)') | Corporate name (partial match)",
+            "title": "Corp Name"
+          },
+          "bzno": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "사업자등록번호 (10자리, 하이픈 허용) | Business registration number",
+            "title": "Bzno"
+          },
+          "page_no": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1) | Page number (default: 1)",
+            "title": "Page No",
+            "type": "integer"
+          },
+          "num_of_rows": {
+            "default": 100,
+            "description": "한 페이지 조회 레코드 수 (기본값: 100, 최대: 100) | Records per page",
+            "title": "Num Of Rows",
+            "type": "integer"
+          }
+        },
+        "title": "find_corp_numberArguments",
+        "type": "object"
+      }
     },
     {
       "name": "find_region_code",
-      "description": "지역명으로 법정동코드를 찾습니다."
+      "description": "지역명으로 법정동코드를 찾습니다.",
+      "inputSchema": {
+        "properties": {
+          "name": {
+            "description": "지역명 (부분 일치, 예: '강남구', '서울특별시 강남구 역삼동', '가평읍')",
+            "title": "Name",
+            "type": "string"
+          },
+          "page_no": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1)",
+            "title": "Page No",
+            "type": "integer"
+          },
+          "num_of_rows": {
+            "default": 100,
+            "description": "한 페이지 결과 수 (기본값: 100)",
+            "title": "Num Of Rows",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "find_region_codeArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_balance_sheet",
-      "description": "기업의 재무상태표(대차대조표)를 조회합니다. 자산, 부채, 자본의 세부 계정과목별 금액을 확인할 수 있습니다. | Get balance sheet with detailed account items for assets, liabilities, and equity."
+      "description": "기업의 재무상태표(대차대조표)를 조회합니다. 자산, 부채, 자본의 세부 계정과목별 금액을 확인할 수 있습니다. | Get balance sheet with detailed account items for assets, liabilities, and equity.",
+      "inputSchema": {
+        "properties": {
+          "crno": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "법인등록번호 (13자리 숫자, 하이픈 제외; 모르면 find_corp_number 로 조회) | Corporate registration number (13 digits)",
+            "title": "Crno"
+          },
+          "biz_year": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "사업연도 (예: 2023) | Business year (e.g., 2023)",
+            "title": "Biz Year"
+          },
+          "page_no": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1) | Page number (default: 1)",
+            "title": "Page No",
+            "type": "integer"
+          },
+          "num_of_rows": {
+            "default": 10,
+            "description": "한 페이지 결과 수 (기본값: 10, 최대: 100) | Number of rows per page (default: 10, max: 100)",
+            "title": "Num Of Rows",
+            "type": "integer"
+          }
+        },
+        "title": "get_balance_sheetArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_bid_detail",
-      "description": "특정 입찰공고의 상세정보를 조회합니다. Get one bid announcement by its notice number."
+      "description": "특정 입찰공고의 상세정보를 조회합니다. Get one bid announcement by its notice number.",
+      "inputSchema": {
+        "properties": {
+          "bid_notice_no": {
+            "description": "입찰공고번호 (예: R25BK00933743)",
+            "title": "Bid Notice No",
+            "type": "string"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "날짜 (YYYY-MM-DD 또는 YYYYMMDD)",
+            "title": "Start Date"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "날짜 (YYYY-MM-DD 또는 YYYYMMDD)",
+            "title": "End Date"
+          }
+        },
+        "required": [
+          "bid_notice_no"
+        ],
+        "title": "get_bid_detailArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_business_detail",
-      "description": "사업장 상세정보를 조회합니다."
+      "description": "사업장 상세정보를 조회합니다.",
+      "inputSchema": {
+        "properties": {
+          "seq": {
+            "description": "사업장 식별번호 (search_business 결과의 seq)",
+            "title": "Seq",
+            "type": "integer"
+          },
+          "page_no": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1)",
+            "title": "Page No",
+            "type": "integer"
+          },
+          "num_of_rows": {
+            "default": 10,
+            "description": "한 페이지 결과 수 (기본값: 10)",
+            "title": "Num Of Rows",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "seq"
+        ],
+        "title": "get_business_detailArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_chemical_handling_info",
-      "description": "화학물질의 취급·보호 정보를 조회합니다 (섹션 5-8: 화재, 누출, 취급·저장, 보호구)."
+      "description": "화학물질의 취급·보호 정보를 조회합니다 (섹션 5-8: 화재, 누출, 취급·저장, 보호구).",
+      "inputSchema": {
+        "properties": {
+          "chem_id": {
+            "description": "화학물질ID 6자리 (search_chemicals 결과의 chem_id; 짧으면 0으로 채움)",
+            "title": "Chem Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chem_id"
+        ],
+        "title": "get_chemical_handling_infoArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_chemical_properties",
-      "description": "화학물질의 물성·독성 정보를 조회합니다 (섹션 9-12: 물리화학적 특성, 안정성, 독성, 환경)."
+      "description": "화학물질의 물성·독성 정보를 조회합니다 (섹션 9-12: 물리화학적 특성, 안정성, 독성, 환경).",
+      "inputSchema": {
+        "properties": {
+          "chem_id": {
+            "description": "화학물질ID 6자리 (search_chemicals 결과의 chem_id; 짧으면 0으로 채움)",
+            "title": "Chem Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chem_id"
+        ],
+        "title": "get_chemical_propertiesArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_chemical_regulatory_info",
-      "description": "화학물질의 규제·폐기 정보를 조회합니다 (섹션 13-16: 폐기, 운송, 법적 규제, 기타)."
+      "description": "화학물질의 규제·폐기 정보를 조회합니다 (섹션 13-16: 폐기, 운송, 법적 규제, 기타).",
+      "inputSchema": {
+        "properties": {
+          "chem_id": {
+            "description": "화학물질ID 6자리 (search_chemicals 결과의 chem_id; 짧으면 0으로 채움)",
+            "title": "Chem Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chem_id"
+        ],
+        "title": "get_chemical_regulatory_infoArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_chemical_safety_summary",
-      "description": "화학물질의 핵심 안전정보를 조회합니다 (섹션 1-4: 제품·회사, 유해성, 구성성분, 응급조치)."
+      "description": "화학물질의 핵심 안전정보를 조회합니다 (섹션 1-4: 제품·회사, 유해성, 구성성분, 응급조치).",
+      "inputSchema": {
+        "properties": {
+          "chem_id": {
+            "description": "화학물질ID 6자리 (search_chemicals 결과의 chem_id; 짧으면 0으로 채움)",
+            "title": "Chem Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chem_id"
+        ],
+        "title": "get_chemical_safety_summaryArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_chemical_section",
-      "description": "화학물질 MSDS 의 특정 섹션을 조회합니다. Get one MSDS section (1-16)."
+      "description": "화학물질 MSDS 의 특정 섹션을 조회합니다. Get one MSDS section (1-16).",
+      "inputSchema": {
+        "properties": {
+          "chem_id": {
+            "description": "화학물질ID 6자리 (search_chemicals 결과의 chem_id; 짧으면 0으로 채움)",
+            "title": "Chem Id",
+            "type": "string"
+          },
+          "section_number": {
+            "description": "섹션 번호 1-16:\n1: 화학제품과 회사에 관한 정보\n2: 유해성·위험성\n3: 구성성분의 명칭 및 함유량\n4: 응급조치요령\n5: 폭발·화재시 대처방법\n6: 누출사고시 대처방법\n7: 취급 및 저장방법\n8: 노출방지 및 개인보호구\n9: 물리화학적 특성\n10: 안정성 및 반응성\n11: 독성에 관한 정보\n12: 환경에 미치는 영향\n13: 폐기시 주의사항\n14: 운송에 필요한 정보\n15: 법적 규제현황\n16: 그 밖의 참고사항",
+            "title": "Section Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "chem_id",
+          "section_number"
+        ],
+        "title": "get_chemical_sectionArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_company",
-      "description": "DART 고유번호로 기업 개황(정식명칭, 대표자, 법인등록번호, 사업자등록번호, 주소, 설립일, 결산월 등)을 조회합니다. | Get a company profile by corp_code."
+      "description": "DART 고유번호로 기업 개황(정식명칭, 대표자, 법인등록번호, 사업자등록번호, 주소, 설립일, 결산월 등)을 조회합니다. | Get a company profile by corp_code.",
+      "inputSchema": {
+        "properties": {
+          "corp_code": {
+            "description": "DART 고유번호 (8자리 숫자; 모르면 find_corp_code 로 조회) | DART corp_code (8 digits)",
+            "title": "Corp Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "corp_code"
+        ],
+        "title": "get_companyArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_complete_msds",
-      "description": "화학물질의 전체 MSDS (16개 섹션)를 조회합니다. Get the complete MSDS (all 16 sections)."
+      "description": "화학물질의 전체 MSDS (16개 섹션)를 조회합니다. Get the complete MSDS (all 16 sections).",
+      "inputSchema": {
+        "properties": {
+          "chem_id": {
+            "description": "화학물질ID 6자리 (search_chemicals 결과의 chem_id; 짧으면 0으로 채움)",
+            "title": "Chem Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chem_id"
+        ],
+        "title": "get_complete_msdsArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_corp_outline",
-      "description": "법인등록번호로 기업 개요를 조회합니다: 대표자, 주소, 상장시장, 설립일, 종업원 수, 평균 급여, 감사인·감사의견 등. | Get the corporate profile (representative, address, market, employees, average salary, auditor) by crno."
+      "description": "법인등록번호로 기업 개요를 조회합니다: 대표자, 주소, 상장시장, 설립일, 종업원 수, 평균 급여, 감사인·감사의견 등. | Get the corporate profile (representative, address, market, employees, average salary, auditor) by crno.",
+      "inputSchema": {
+        "properties": {
+          "crno": {
+            "description": "법인등록번호 (13자리 숫자, 하이픈 제외; 모르면 find_corp_number 로 조회) | Corporate registration number (13 digits)",
+            "title": "Crno",
+            "type": "string"
+          }
+        },
+        "required": [
+          "crno"
+        ],
+        "title": "get_corp_outlineArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_disclosure_document",
-      "description": "공시 원문을 텍스트로 조회합니다. 사업보고서는 수십만 자라 offset/max_chars 로 나눠 읽습니다. | Get the full text of a disclosure document, paged by offset/max_chars."
+      "description": "공시 원문을 텍스트로 조회합니다. 사업보고서는 수십만 자라 offset/max_chars 로 나눠 읽습니다. | Get the full text of a disclosure document, paged by offset/max_chars.",
+      "inputSchema": {
+        "properties": {
+          "rcept_no": {
+            "description": "접수번호 (14자리; list_disclosures 의 rcept_no) | Receipt number",
+            "title": "Rcept No",
+            "type": "string"
+          },
+          "offset": {
+            "default": 0,
+            "description": "본문 시작 문자 위치 (기본값: 0)",
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "max_chars": {
+            "default": 20000,
+            "description": "돌려줄 최대 문자 수 (기본값: 20000)",
+            "maximum": 200000,
+            "minimum": 1,
+            "title": "Max Chars",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rcept_no"
+        ],
+        "title": "get_disclosure_documentArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_financial_statements",
-      "description": "정기보고서의 전체 재무제표를 XBRL 계정 단위로 조회합니다 (재무상태표·손익계산서·포괄손익계산서·현금흐름표·자본변동표). | Get full financial statements (all XBRL account lines)."
+      "description": "정기보고서의 전체 재무제표를 XBRL 계정 단위로 조회합니다 (재무상태표·손익계산서·포괄손익계산서·현금흐름표·자본변동표). | Get full financial statements (all XBRL account lines).",
+      "inputSchema": {
+        "properties": {
+          "corp_code": {
+            "description": "DART 고유번호 (8자리 숫자; 모르면 find_corp_code 로 조회) | DART corp_code (8 digits)",
+            "title": "Corp Code",
+            "type": "string"
+          },
+          "bsns_year": {
+            "description": "사업연도 YYYY (예: 2024). 2015년 이후만 제공 | Business year",
+            "title": "Bsns Year",
+            "type": "string"
+          },
+          "reprt_code": {
+            "default": "11011",
+            "description": "보고서 코드: 11011 사업보고서(기본), 11012 반기보고서, 11013 1분기보고서, 11014 3분기보고서 | Report type",
+            "title": "Reprt Code",
+            "type": "string"
+          },
+          "fs_div": {
+            "default": "CFS",
+            "description": "CFS 연결재무제표(기본) / OFS 별도재무제표 | Consolidated or separate",
+            "title": "Fs Div",
+            "type": "string"
+          },
+          "sj_div": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "재무제표 종류로 필터: BS 재무상태표, IS 손익계산서, CIS 포괄손익계산서, CF 현금흐름표, SCE 자본변동표 (생략 시 전부) | Statement type filter",
+            "title": "Sj Div"
+          }
+        },
+        "required": [
+          "corp_code",
+          "bsns_year"
+        ],
+        "title": "get_financial_statementsArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_income_statement",
-      "description": "기업의 손익계산서를 조회합니다. 매출, 비용, 이익 등의 세부 계정과목별 금액을 확인할 수 있습니다. | Get income statement with detailed account items for revenue, expenses, and profit."
+      "description": "기업의 손익계산서를 조회합니다. 매출, 비용, 이익 등의 세부 계정과목별 금액을 확인할 수 있습니다. | Get income statement with detailed account items for revenue, expenses, and profit.",
+      "inputSchema": {
+        "properties": {
+          "crno": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "법인등록번호 (13자리 숫자, 하이픈 제외; 모르면 find_corp_number 로 조회) | Corporate registration number (13 digits)",
+            "title": "Crno"
+          },
+          "biz_year": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "사업연도 (예: 2023) | Business year (e.g., 2023)",
+            "title": "Biz Year"
+          },
+          "page_no": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1) | Page number (default: 1)",
+            "title": "Page No",
+            "type": "integer"
+          },
+          "num_of_rows": {
+            "default": 10,
+            "description": "한 페이지 결과 수 (기본값: 10, 최대: 100) | Number of rows per page (default: 10, max: 100)",
+            "title": "Num Of Rows",
+            "type": "integer"
+          }
+        },
+        "title": "get_income_statementArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_insurance_status",
-      "description": "사업자등록번호로 고용·산재보험 가입 사업장 현황을 조회합니다: 사업장별 상시인원, 보험관계 성립일, 업종, 주소."
+      "description": "사업자등록번호로 고용·산재보험 가입 사업장 현황을 조회합니다: 사업장별 상시인원, 보험관계 성립일, 업종, 주소.",
+      "inputSchema": {
+        "properties": {
+          "bzno": {
+            "description": "사업자등록번호 (10자리, 하이픈 허용) | Business registration number",
+            "title": "Bzno",
+            "type": "string"
+          },
+          "insurance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "보험 구분: '산재' 또는 '고용'. 생략하면 둘 다 | Insurance kind filter",
+            "title": "Insurance"
+          },
+          "page_no": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1)",
+            "title": "Page No",
+            "type": "integer"
+          },
+          "num_of_rows": {
+            "default": 100,
+            "description": "한 페이지 결과 수 (기본값: 100)",
+            "title": "Num Of Rows",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bzno"
+        ],
+        "title": "get_insurance_statusArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_key_accounts",
-      "description": "정기보고서의 주요 재무계정(자산·부채·자본 총계, 매출액, 영업이익, 당기순이익 등)을 당기·전기·전전기로 조회합니다. | Get key financial accounts (assets, liabilities, equity, revenue, operating income, net income) for the current and two prior periods."
+      "description": "정기보고서의 주요 재무계정(자산·부채·자본 총계, 매출액, 영업이익, 당기순이익 등)을 당기·전기·전전기로 조회합니다. | Get key financial accounts (assets, liabilities, equity, revenue, operating income, net income) for the current and two prior periods.",
+      "inputSchema": {
+        "properties": {
+          "corp_code": {
+            "description": "DART 고유번호 (8자리 숫자; 모르면 find_corp_code 로 조회) | DART corp_code (8 digits)",
+            "title": "Corp Code",
+            "type": "string"
+          },
+          "bsns_year": {
+            "description": "사업연도 YYYY (예: 2024). 2015년 이후만 제공 | Business year",
+            "title": "Bsns Year",
+            "type": "string"
+          },
+          "reprt_code": {
+            "default": "11011",
+            "description": "보고서 코드: 11011 사업보고서(기본), 11012 반기보고서, 11013 1분기보고서, 11014 3분기보고서 | Report type",
+            "title": "Reprt Code",
+            "type": "string"
+          },
+          "fs_div": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "CFS 연결재무제표 / OFS 별도재무제표 (생략 시 둘 다) | Consolidated or separate",
+            "title": "Fs Div"
+          }
+        },
+        "required": [
+          "corp_code",
+          "bsns_year"
+        ],
+        "title": "get_key_accountsArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_period_status",
-      "description": "사업장의 기간별 현황 정보를 조회합니다."
+      "description": "사업장의 기간별 현황 정보를 조회합니다.",
+      "inputSchema": {
+        "properties": {
+          "seq": {
+            "description": "사업장 식별번호 (search_business 결과의 seq)",
+            "title": "Seq",
+            "type": "integer"
+          },
+          "data_crt_ym": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "조회할 년월 (YYYYMM)",
+            "title": "Data Crt Ym"
+          },
+          "page_no": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1)",
+            "title": "Page No",
+            "type": "integer"
+          },
+          "num_of_rows": {
+            "default": 10,
+            "description": "한 페이지 결과 수 (기본값: 10)",
+            "title": "Num Of Rows",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "seq"
+        ],
+        "title": "get_period_statusArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_recent_speeches",
-      "description": "최근 대통령 연설문을 조회합니다. Get the most recent presidential speeches."
+      "description": "최근 대통령 연설문을 조회합니다. Get the most recent presidential speeches.",
+      "inputSchema": {
+        "properties": {
+          "president": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "대통령 이름 (정확히 일치, 예: 노무현)",
+            "title": "President"
+          },
+          "limit": {
+            "default": 5,
+            "description": "가져올 연설문 수 (기본값: 5)",
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "get_recent_speechesArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_stock_price",
-      "description": "KRX 상장 주식의 일별 시세를 조회합니다: 종가, 등락, 시가·고가·저가, 거래량, 시가총액. 최신 거래일부터 내려옵니다. | Get daily KRX stock prices (close, change, OHLC, volume, market cap), newest first."
+      "description": "KRX 상장 주식의 일별 시세를 조회합니다: 종가, 등락, 시가·고가·저가, 거래량, 시가총액. 최신 거래일부터 내려옵니다. | Get daily KRX stock prices (close, change, OHLC, volume, market cap), newest first.",
+      "inputSchema": {
+        "properties": {
+          "itms_nm": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "종목명 (정확히 일치, 예: '삼성전자'; get_corp_outline 의 enp_pban_cmpy_nm) | Exact stock name",
+            "title": "Itms Nm"
+          },
+          "srtn_cd": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "단축코드 (6자리, 예: 005930) | 6-digit ticker",
+            "title": "Srtn Cd"
+          },
+          "isin_cd": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "ISIN 코드 (예: KR7005930003) | ISIN code",
+            "title": "Isin Cd"
+          },
+          "bas_dt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "기준일자 (YYYYMMDD) | Trading date — 하루만",
+            "title": "Bas Dt"
+          },
+          "begin_bas_dt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "기준일자 (YYYYMMDD) | Trading date 시작 (이상)",
+            "title": "Begin Bas Dt"
+          },
+          "end_bas_dt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "기준일자 (YYYYMMDD) | Trading date 끝 (이하)",
+            "title": "End Bas Dt"
+          },
+          "page_no": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1) | Page number (default: 1)",
+            "title": "Page No",
+            "type": "integer"
+          },
+          "num_of_rows": {
+            "default": 10,
+            "description": "거래일 수 (기본값: 10, 최대: 100) | Trading days per page",
+            "title": "Num Of Rows",
+            "type": "integer"
+          }
+        },
+        "title": "get_stock_priceArguments",
+        "type": "object"
+      }
     },
     {
       "name": "get_summary_financial_statement",
-      "description": "기업의 요약 재무제표를 조회합니다. 매출액, 영업이익, 당기순이익, 자산, 부채 등 주요 재무지표를 확인할 수 있습니다. | Get summary financial statements including revenue, operating profit, net income, assets, and liabilities."
+      "description": "기업의 요약 재무제표를 조회합니다. 매출액, 영업이익, 당기순이익, 자산, 부채 등 주요 재무지표를 확인할 수 있습니다. | Get summary financial statements including revenue, operating profit, net income, assets, and liabilities.",
+      "inputSchema": {
+        "properties": {
+          "crno": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "법인등록번호 (13자리 숫자, 하이픈 제외; 모르면 find_corp_number 로 조회) | Corporate registration number (13 digits)",
+            "title": "Crno"
+          },
+          "biz_year": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "사업연도 (예: 2023) | Business year (e.g., 2023)",
+            "title": "Biz Year"
+          },
+          "page_no": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1) | Page number (default: 1)",
+            "title": "Page No",
+            "type": "integer"
+          },
+          "num_of_rows": {
+            "default": 10,
+            "description": "한 페이지 결과 수 (기본값: 10, 최대: 100) | Number of rows per page (default: 10, max: 100)",
+            "title": "Num Of Rows",
+            "type": "integer"
+          }
+        },
+        "title": "get_summary_financial_statementArguments",
+        "type": "object"
+      }
     },
     {
       "name": "list_disclosures",
-      "description": "공시 목록을 조회합니다 (접수일 내림차순). 사업보고서·주요사항보고서·지분공시 등의 접수번호를 얻는 데 씁니다. | List DART disclosures (newest first)."
+      "description": "공시 목록을 조회합니다 (접수일 내림차순). 사업보고서·주요사항보고서·지분공시 등의 접수번호를 얻는 데 씁니다. | List DART disclosures (newest first).",
+      "inputSchema": {
+        "properties": {
+          "corp_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "DART 고유번호 (8자리 숫자; 모르면 find_corp_code 로 조회) | DART corp_code (8 digits)",
+            "title": "Corp Code"
+          },
+          "bgn_de": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "검색 시작 접수일 YYYYMMDD (생략 시 corp_code 있으면 1년 전, 없으면 30일 전) | Start date",
+            "title": "Bgn De"
+          },
+          "end_de": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "검색 종료 접수일 YYYYMMDD (생략 시 오늘) | End date",
+            "title": "End De"
+          },
+          "pblntf_ty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "공시유형: A 정기공시, B 주요사항보고, C 발행공시, D 지분공시, E 기타공시, F 외부감사관련, G 펀드공시, H 자산유동화, I 거래소공시, J 공정위공시 | Disclosure type",
+            "title": "Pblntf Ty"
+          },
+          "page_no": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1)",
+            "minimum": 1,
+            "title": "Page No",
+            "type": "integer"
+          },
+          "page_count": {
+            "default": 10,
+            "description": "한 페이지 결과 수 (기본값: 10, 최대 100)",
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Page Count",
+            "type": "integer"
+          }
+        },
+        "title": "list_disclosuresArguments",
+        "type": "object"
+      }
     },
     {
       "name": "list_speeches",
-      "description": "대통령 연설문 목록을 조회합니다. List presidential speeches from the archives."
+      "description": "대통령 연설문 목록을 조회합니다. List presidential speeches from the archives.",
+      "inputSchema": {
+        "properties": {
+          "page": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1)",
+            "title": "Page",
+            "type": "integer"
+          },
+          "per_page": {
+            "default": 10,
+            "description": "페이지당 결과 수 (기본값: 10)",
+            "title": "Per Page",
+            "type": "integer"
+          },
+          "use_2023_version": {
+            "default": true,
+            "description": "2023 갱신본 사용 (연설연도 제공). False 면 2022 본 (연설일자 YYYY-MM-DD 제공)",
+            "title": "Use 2023 Version",
+            "type": "boolean"
+          }
+        },
+        "title": "list_speechesArguments",
+        "type": "object"
+      }
     },
     {
       "name": "search_bid_announcements",
-      "description": "나라장터 입찰공고정보를 검색합니다. Search bid announcements in the G2B marketplace."
+      "description": "나라장터 입찰공고정보를 검색합니다. Search bid announcements in the G2B marketplace.",
+      "inputSchema": {
+        "properties": {
+          "start_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "날짜 (YYYY-MM-DD 또는 YYYYMMDD)",
+            "title": "Start Date"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "날짜 (YYYY-MM-DD 또는 YYYYMMDD)",
+            "title": "End Date"
+          },
+          "num_of_rows": {
+            "default": 10,
+            "description": "한 페이지 결과 수 (기본값: 10, 최대: 999)",
+            "title": "Num Of Rows",
+            "type": "integer"
+          },
+          "page_no": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1)",
+            "title": "Page No",
+            "type": "integer"
+          }
+        },
+        "title": "search_bid_announcementsArguments",
+        "type": "object"
+      }
     },
     {
       "name": "search_business",
-      "description": "사업장 정보를 조회합니다."
+      "description": "사업장 정보를 조회합니다.",
+      "inputSchema": {
+        "properties": {
+          "ldong_addr_mgpl_dg_cd": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "법정동주소 광역시도 코드 (2자리, find_region_code 의 sido_cd)",
+            "title": "Ldong Addr Mgpl Dg Cd"
+          },
+          "ldong_addr_mgpl_sggu_cd": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "법정동주소 시군구 코드 (3자리, find_region_code 의 sgg_cd). 광역시도 코드와 함께 줘야 적용된다",
+            "title": "Ldong Addr Mgpl Sggu Cd"
+          },
+          "ldong_addr_mgpl_sggu_emd_cd": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "법정동주소 읍면동 코드 (3자리, find_region_code 의 umd_cd). 광역시도·시군구 코드와 함께 줘야 적용된다",
+            "title": "Ldong Addr Mgpl Sggu Emd Cd"
+          },
+          "wkpl_nm": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "사업장명 (부분 일치)",
+            "title": "Wkpl Nm"
+          },
+          "bzowr_rgst_no": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "사업자등록번호 (앞 6자리)",
+            "title": "Bzowr Rgst No"
+          },
+          "page_no": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1)",
+            "title": "Page No",
+            "type": "integer"
+          },
+          "num_of_rows": {
+            "default": 100,
+            "description": "한 페이지 결과 수 (기본값: 100, 최대: 100)",
+            "title": "Num Of Rows",
+            "type": "integer"
+          }
+        },
+        "title": "search_businessArguments",
+        "type": "object"
+      }
     },
     {
       "name": "search_chemicals",
-      "description": "화학물질을 검색합니다. Search chemicals by name or identifier (CAS/UN/KE/EN No.)."
+      "description": "화학물질을 검색합니다. Search chemicals by name or identifier (CAS/UN/KE/EN No.).",
+      "inputSchema": {
+        "properties": {
+          "search_term": {
+            "description": "검색어: 국문명, CAS No.(71-43-2), UN No.(UN1114), KE No.(KE-02150), EN No.",
+            "title": "Search Term",
+            "type": "string"
+          },
+          "search_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "검색 구분 (생략 시 자동 감지): KOREAN_NAME, CAS_NO, UN_NO, KE_NO, EN_NO",
+            "title": "Search Type"
+          },
+          "page_no": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1)",
+            "title": "Page No",
+            "type": "integer"
+          },
+          "num_of_rows": {
+            "default": 10,
+            "description": "한 페이지 결과 수 (기본값: 10, 최대: 100)",
+            "title": "Num Of Rows",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "search_term"
+        ],
+        "title": "search_chemicalsArguments",
+        "type": "object"
+      }
     },
     {
       "name": "search_company_financial_info",
-      "description": "법인등록번호로 기업의 전체 재무정보를 통합 조회합니다. 요약 재무제표, 재무상태표, 손익계산서를 한번에 가져옵니다. | Search comprehensive financial information by corporate registration number, including summary, balance sheet, and income statement."
+      "description": "법인등록번호로 기업의 전체 재무정보를 통합 조회합니다. 요약 재무제표, 재무상태표, 손익계산서를 한번에 가져옵니다. | Search comprehensive financial information by corporate registration number, including summary, balance sheet, and income statement.",
+      "inputSchema": {
+        "properties": {
+          "crno": {
+            "description": "법인등록번호 (13자리 숫자, 하이픈 제외; 모르면 find_corp_number 로 조회) | Corporate registration number (13 digits)",
+            "title": "Crno",
+            "type": "string"
+          },
+          "biz_year": {
+            "description": "사업연도 (예: 2023) | Business year (e.g., 2023)",
+            "title": "Biz Year",
+            "type": "string"
+          }
+        },
+        "required": [
+          "crno",
+          "biz_year"
+        ],
+        "title": "search_company_financial_infoArguments",
+        "type": "object"
+      }
     },
     {
       "name": "search_contracts",
-      "description": "나라장터 계약정보를 검색합니다. Search contracts in the G2B marketplace."
+      "description": "나라장터 계약정보를 검색합니다. Search contracts in the G2B marketplace.",
+      "inputSchema": {
+        "properties": {
+          "start_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "날짜 (YYYY-MM-DD 또는 YYYYMMDD)",
+            "title": "Start Date"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "날짜 (YYYY-MM-DD 또는 YYYYMMDD)",
+            "title": "End Date"
+          },
+          "institution_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "기관구분코드 (1: 계약기관, 2: 수요기관)",
+            "title": "Institution Type"
+          },
+          "institution_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "기관코드 (7자리)",
+            "title": "Institution Code"
+          },
+          "num_of_rows": {
+            "default": 10,
+            "description": "한 페이지 결과 수 (기본값: 10, 최대: 999)",
+            "title": "Num Of Rows",
+            "type": "integer"
+          },
+          "page_no": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1)",
+            "title": "Page No",
+            "type": "integer"
+          }
+        },
+        "title": "search_contractsArguments",
+        "type": "object"
+      }
     },
     {
       "name": "search_speeches",
-      "description": "대통령 연설문을 검색합니다. Search presidential speeches (server-side filters)."
+      "description": "대통령 연설문을 검색합니다. Search presidential speeches (server-side filters).",
+      "inputSchema": {
+        "properties": {
+          "president": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "대통령 이름 (정확히 일치, 예: 노무현)",
+            "title": "President"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "제목에 포함될 키워드 (부분 일치)",
+            "title": "Title"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "연설 연도 (예: 2020)",
+            "title": "Year"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "연설 장소 (부분 일치, 예: 국내/국외)",
+            "title": "Location"
+          },
+          "page": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1)",
+            "title": "Page",
+            "type": "integer"
+          },
+          "per_page": {
+            "default": 10,
+            "description": "페이지당 결과 수 (기본값: 10)",
+            "title": "Per Page",
+            "type": "integer"
+          }
+        },
+        "title": "search_speechesArguments",
+        "type": "object"
+      }
     },
     {
       "name": "search_stock_items",
-      "description": "종목명 일부로 상장 종목을 찾습니다. 최신 거래일 기준 종목당 한 건(코드, 시장, 종가, 시가총액). | Search listed stocks by partial name; one row per item as of the latest trading day."
+      "description": "종목명 일부로 상장 종목을 찾습니다. 최신 거래일 기준 종목당 한 건(코드, 시장, 종가, 시가총액). | Search listed stocks by partial name; one row per item as of the latest trading day.",
+      "inputSchema": {
+        "properties": {
+          "name": {
+            "description": "종목명 일부 (예: '삼성', '카카오') | Partial stock name",
+            "title": "Name",
+            "type": "string"
+          },
+          "num_of_rows": {
+            "default": 50,
+            "description": "최대 종목 수 (기본값: 50, 최대: 100) | Max items",
+            "title": "Num Of Rows",
+            "type": "integer"
+          },
+          "page_no": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1) | Page number (default: 1)",
+            "title": "Page No",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "search_stock_itemsArguments",
+        "type": "object"
+      }
     },
     {
       "name": "search_successful_bids",
-      "description": "나라장터 낙찰정보를 검색합니다. Search successful bids in the G2B marketplace."
+      "description": "나라장터 낙찰정보를 검색합니다. Search successful bids in the G2B marketplace.",
+      "inputSchema": {
+        "properties": {
+          "business_type": {
+            "default": "1",
+            "description": "업무구분: 물품/외자/공사/용역 또는 코드 1/2/3/5",
+            "title": "Business Type",
+            "type": "string"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "날짜 (YYYY-MM-DD 또는 YYYYMMDD)",
+            "title": "Start Date"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "날짜 (YYYY-MM-DD 또는 YYYYMMDD)",
+            "title": "End Date"
+          },
+          "num_of_rows": {
+            "default": 10,
+            "description": "한 페이지 결과 수 (기본값: 10, 최대: 999)",
+            "title": "Num Of Rows",
+            "type": "integer"
+          },
+          "page_no": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1)",
+            "title": "Page No",
+            "type": "integer"
+          }
+        },
+        "title": "search_successful_bidsArguments",
+        "type": "object"
+      }
     },
     {
       "name": "validate_business",
-      "description": "사업자등록정보 진위확인을 수행합니다. Validate business registration information."
+      "description": "사업자등록정보 진위확인을 수행합니다. Validate business registration information.",
+      "inputSchema": {
+        "properties": {
+          "business_number": {
+            "description": "사업자등록번호 10자리 (하이픈 허용)",
+            "title": "Business Number",
+            "type": "string"
+          },
+          "start_date": {
+            "description": "개업일자 YYYYMMDD (하이픈 허용)",
+            "title": "Start Date",
+            "type": "string"
+          },
+          "representative_name": {
+            "description": "대표자성명",
+            "title": "Representative Name",
+            "type": "string"
+          },
+          "representative_name2": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "대표자성명2 (외국인 한글명)",
+            "title": "Representative Name2"
+          },
+          "business_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "상호",
+            "title": "Business Name"
+          },
+          "corp_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "법인등록번호 13자리",
+            "title": "Corp Number"
+          },
+          "business_sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "주업태명",
+            "title": "Business Sector"
+          },
+          "business_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "주종목명",
+            "title": "Business Type"
+          },
+          "business_address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "사업장주소",
+            "title": "Business Address"
+          }
+        },
+        "required": [
+          "business_number",
+          "start_date",
+          "representative_name"
+        ],
+        "title": "validate_businessArguments",
+        "type": "object"
+      }
     }
   ]
 }
