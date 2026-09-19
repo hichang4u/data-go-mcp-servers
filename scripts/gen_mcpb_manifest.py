@@ -40,7 +40,9 @@ def main() -> int:
         return 1
     manifest["tools"] = fresh
     MANIFEST.write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
     )
     print(f"updated: {len(fresh)} tools")
     return 0
