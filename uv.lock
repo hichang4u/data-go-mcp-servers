@@ -13,6 +13,7 @@ resolution-markers = [
 
 [manifest]
 members = [
+    "data-go-mcp-all-servers",
     "data-go-mcp-core",
     "data-go-mcp-dart-disclosure",
     "data-go-mcp-fsc-financial-info",
@@ -621,6 +622,35 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/1d/e0/e786934472e3ac4ecdecc7b129a0ca1a2a40dffdafcf2c3ea9d4397f8def/cryptography-50.0.1-pp311-pypy311_pp73-manylinux_2_34_aarch64.whl", hash = "sha256:d63ae8f6481fec907ac0f588eee8a90aefde112c633131fe540e5711ddbb5a4e", size = 4698378, upload-time = "2026-08-25T19:45:33.043Z" },
     { url = "https://files.pythonhosted.org/packages/51/cf/5b3f53a0b74d122f023476ede40ba5d3e70d5cf475f73b899740d26a4fb2/cryptography-50.0.1-pp311-pypy311_pp73-manylinux_2_34_x86_64.whl", hash = "sha256:804728ce710890870f3aaa344b2e161172d258d768ac139d02cfd9092d0d94e6", size = 4706889, upload-time = "2026-08-25T19:45:35.086Z" },
     { url = "https://files.pythonhosted.org/packages/71/44/711e61f7d014be825ef79b285b047292d1bf893732ac1bc030a351fb517f/cryptography-50.0.1-pp311-pypy311_pp73-win_amd64.whl", hash = "sha256:693c99b49bd37d0d096e4334c10232c77248c415b98d35236094cdf96d57258b", size = 3824006, upload-time = "2026-08-25T19:45:37.281Z" },
+]
+
+[[package]]
+name = "data-go-mcp-all-servers"
+version = "0.1.0"
+source = { editable = "src/all-servers" }
+dependencies = [
+    { name = "data-go-mcp-core" },
+    { name = "data-go-mcp-dart-disclosure" },
+    { name = "data-go-mcp-fsc-financial-info" },
+    { name = "data-go-mcp-msds-chemical-info" },
+    { name = "data-go-mcp-nps-business-enrollment" },
+    { name = "data-go-mcp-nts-business-verification" },
+    { name = "data-go-mcp-pps-narajangteo" },
+    { name = "data-go-mcp-presidential-speeches" },
+    { name = "mcp", extra = ["cli"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "data-go-mcp-core", editable = "src/data-go-mcp-core" },
+    { name = "data-go-mcp-dart-disclosure", editable = "src/dart-disclosure" },
+    { name = "data-go-mcp-fsc-financial-info", editable = "src/fsc-financial-info" },
+    { name = "data-go-mcp-msds-chemical-info", editable = "src/msds-chemical-info" },
+    { name = "data-go-mcp-nps-business-enrollment", editable = "src/nps-business-enrollment" },
+    { name = "data-go-mcp-nts-business-verification", editable = "src/nts-business-verification" },
+    { name = "data-go-mcp-pps-narajangteo", editable = "src/pps-narajangteo" },
+    { name = "data-go-mcp-presidential-speeches", editable = "src/presidential-speeches" },
+    { name = "mcp", extras = ["cli"], specifier = ">=2.2,<3" },
 ]
 
 [[package]]

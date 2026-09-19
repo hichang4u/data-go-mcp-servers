@@ -16,7 +16,7 @@
 | [msds-chemical-info](docs/guide/servers/msds-chemical-info.md) | 안전보건공단 — MSDS | `search_chemicals` `get_chemical_section` `get_complete_msds` 외 4 |
 | [dart-disclosure](docs/guide/servers/dart-disclosure.md) | 금융감독원 — DART 전자공시 (기업 개황, 공시 목록·원문, 재무제표) | `find_corp_code` `get_company` `list_disclosures` `get_key_accounts` `get_financial_statements` `get_disclosure_document` |
 
-서버 7개, 툴 37개, 공공 API 11종. 모든 툴은 조회 전용이며, 실패는 MCP 오류 결과(`isError`)로 전달된다. 한 서버가 API 여러 개를 쓰는 경우(nps 3, fsc 3)는 각각 활용신청이 필요하다 — 표는 [api-keys.md](docs/guide/api-keys.md). dart-disclosure 만 data.go.kr 이 아닌 OpenDART 키를 쓴다.
+서버 7개, 툴 36개, 공공 API 11종. 모든 툴은 조회 전용이며, 실패는 MCP 오류 결과(`isError`)로 전달된다. 한 서버가 API 여러 개를 쓰는 경우(nps 3, fsc 3)는 각각 활용신청이 필요하다 — 표는 [api-keys.md](docs/guide/api-keys.md). dart-disclosure 만 data.go.kr 이 아닌 OpenDART 키를 쓴다.
 
 ## 빠른 시작
 
@@ -40,7 +40,7 @@
 }
 ```
 
-다른 서버는 `nts-business-verification` 을 서버명으로 바꾸면 된다. `dart-disclosure` 만 `"env": { "DART_DISCLOSURE_API_KEY": "<OpenDART 인증키>" }` (data.go.kr 키와 별개, [api-keys.md](docs/guide/api-keys.md) 4절). Claude Code, Cline, clone 해서 쓰는 방법은 [docs/guide/installation.md](docs/guide/installation.md).
+다른 서버는 `nts-business-verification` 을 서버명으로 바꾸면 된다. `dart-disclosure` 만 `"env": { "DART_DISCLOSURE_API_KEY": "<OpenDART 인증키>" }` (data.go.kr 키와 별개, [api-keys.md](docs/guide/api-keys.md) 4절). 전부를 한 프로세스로 띄우는 `all-servers`, Claude Code, Cline, Smithery(`smithery mcp add hichang4u/data-go-mcp`), clone 해서 쓰는 방법은 [docs/guide/installation.md](docs/guide/installation.md).
 
 ```
 > 사업자등록번호 120-88-00767 상태 조회해줘

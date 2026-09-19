@@ -19,3 +19,7 @@ htmlcov/
 .vscode/
 .idea/
 .DS_Store
+
+# MCPB 번들 (dist/ 에 pack)
+mcpb/uv.lock
+*.mcpb

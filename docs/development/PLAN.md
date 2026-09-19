@@ -244,6 +244,20 @@
 - ZIP 엔드포인트의 오류(잘못된 접수번호, 키)는 HTTP 200 + XML `<result><status>` → `_get_zip` 이 `PK` 매직으로 분기.
 - 주요계정(`fnlttSinglAcnt`) 금액은 쉼표 포함 문자열, 전체 재무제표(`fnlttSinglAcntAll`)는 쉼표 없음 → 모델 validator 가 둘 다 int 로. 사업보고서 전체 계정은 213행 → `sj_div` 클라이언트 필터.
 
+## S7 — Smithery 등록 `[ ]` 2026-09-19 착수 — 통합 서버 `all-servers` + MCPB 번들
+
+시작은 서버별 `smithery.yaml` 9개(구형 `startCommand: stdio` + `commandFunction`)였는데, 2026-09-19 Smithery 문서(`build/publish`, `concepts/cli`, `build/session-config`)에는 `smithery.yaml` 이 전혀 없다 — 등록 경로는 **URL(Streamable HTTP)** 과 **MCPB 번들(stdio)** 둘뿐이고 CLI 도 `npx @smithery/cli install` 이 아니라 `smithery mcp add`. yaml 은 전부 버렸다.
+
+리스팅 하나 = 프로세스 하나라 서버 7개를 한 프로세스로 합친 `src/all-servers` 를 만들었다 (리스팅 1개, 키 입력 2칸). 서버별 7개 리스팅은 필요해지면 manifest 만 더 만들면 된다.
+
+### 드러난 것
+
+- `MCPServer` 에 툴을 옮겨 담는 공개 API 는 없다 → `_tool_manager._tools` 를 복사 (mcp 마이너 업그레이드 때 깨질 수 있어 테스트로 잡는다). 툴 이름은 7개 서버 합쳐 36개, 충돌 없음.
+- 서버 목록은 `pkgutil.iter_modules(data_go_mcp.__path__)` 로 자동 탐색 — 네임스페이스 패키지라 editable 워크스페이스와 site-packages 설치 양쪽에서 동작 확인. 단 uvx 는 선언된 의존성만 설치하므로 `all-servers/pyproject.toml` 의존성이 진짜 목록이고, 테스트가 `src/*` 와 대조한다.
+- MCPB 0.4 에 `server.type: "uv"` 가 있다: 번들에 `pyproject.toml` 만 넣으면 호스트가 uv 로 의존성을 설치한다. 네이티브 휠(pydantic-core) 때문에 OS 별 번들이 필요했을 `python` 타입을 피할 수 있다. 번들 `pyproject.toml` 의 `[tool.uv.sources]` 가 git 태그를 가리키고, all-servers → 개별 서버 → core 의 워크스페이스 의존성은 uv 가 git 체크아웃 안에서 해석한다 (로컬 path 소스로 `uv run --directory … src/server.py` → 툴 36개 확인).
+- 각 서버 `server.py` 의 `load_dotenv()` 는 호출 프레임의 파일 위치에서 위로 `.env` 를 찾는다 — editable 설치에서는 저장소 `.env` 를 읽어 테스트가 헷갈렸다. 배포 번들(site-packages)에서는 무관.
+- Smithery 가 `type: uv` 번들을 받아 주는지, 등록 후 `smithery mcp add … --client claude` 가 `user_config` 두 칸을 제대로 묻는지는 **실제 publish 로 확인해야 한다** (미검증). 태그 `v0.6.0` 을 push 한 뒤 pack → Claude Desktop 설치 확인 → publish.
+
 ## 일정 요약
 
 | 스프린트 | 예상 | 선행 조건 |
