@@ -83,3 +83,23 @@ async def test_error_result_code_raises(base_url):
         with pytest.raises(DataGoAPIError) as exc:
             await client.get_bid_announcements("202601010000", "202612312359")
     assert exc.value.result_code == "07"
+
+
+@respx.mock
+async def test_nkoneps_error_wrapper_raises(base_url):
+    """실제 오류 응답(2026-09-20 확인)은 response 가 아니라 nkoneps.com.response.ResponseError 로 온다."""
+    respx.get(f"{base_url}/getDataSetOpnStdScsbidInfo").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "nkoneps.com.response.ResponseError": {
+                    "header": {"resultCode": "07", "resultMsg": "입력범위값 초과 에러"}
+                }
+            },
+        )
+    )
+    async with PpsNarajangteoAPIClient() as client:
+        with pytest.raises(DataGoAPIError) as exc:
+            await client.get_successful_bids("1", "202609120000", "202609182359")
+    assert exc.value.result_code == "07"
+    assert "입력범위값 초과 에러" in str(exc.value)

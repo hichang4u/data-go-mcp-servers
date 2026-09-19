@@ -48,6 +48,13 @@ CALLS = [
         '"itms_nm": "삼성전자"',
     ),
     ("pps_narajangteo", "search_contracts", {"num_of_rows": 1}, '"success": true'),
+    # 낙찰은 하루 범위만 — 기본(오늘/직전 금요일)이 07 없이 통과하는지
+    (
+        "pps_narajangteo",
+        "search_successful_bids",
+        {"business_type": "용역", "num_of_rows": 1},
+        '"search_period"',
+    ),
     (
         "fsc_financial_info",
         "get_summary_financial_statement",

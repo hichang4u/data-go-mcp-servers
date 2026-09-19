@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-09-20
+
+### Fixed
+- API 오류가 `response` 가 아니라 `nkoneps.com.response.ResponseError` 로 오는 것을 놓쳐 "성공, 0건" 으로 보이던 문제 — 이제 `DataGoAPIError` 로 전달 (`[07] 입력범위값 초과 에러` 등)
+- `search_successful_bids`: 낙찰 API 의 조회 범위는 실제로 하루라(이틀부터 07) 기본 7일 조회가 항상 실패하던 문제. 기본은 오늘(주말이면 직전 금요일), 여러 날을 넘기면 `입력값 오류`
+
 ## [0.3.0] - 2026-09-12
 
 ### Changed

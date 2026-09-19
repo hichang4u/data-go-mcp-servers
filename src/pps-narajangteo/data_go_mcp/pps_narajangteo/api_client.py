@@ -1,8 +1,11 @@
 """API client for 나라장터 공공데이터개방표준서비스 (Public Procurement Service Open Data)."""
 
-from typing import Any, Optional
+from typing import Any, Mapping, Optional
 
-from data_go_mcp.core import BaseDataGoClient
+from data_go_mcp.core import BaseDataGoClient, DataGoAPIError
+
+
+ERROR_WRAPPER = "nkoneps.com.response.ResponseError"
 
 
 class PpsNarajangteoAPIClient(BaseDataGoClient):
@@ -15,6 +18,16 @@ class PpsNarajangteoAPIClient(BaseDataGoClient):
     base_url = "https://apis.data.go.kr/1230000/ao/PubDataOpnStdService"
     key_env_prefix = "PPS_NARAJANGTEO"
     default_params = {"type": "json"}
+
+    def _check_response(self, data: dict[str, Any]) -> dict[str, Any]:
+        """오류는 ``response`` 대신 ``nkoneps.com.response.ResponseError`` 로 온다 (2026-09-20 확인)."""
+        error = data.get(ERROR_WRAPPER)
+        if isinstance(error, Mapping):
+            header = error.get("header") or {}
+            raise DataGoAPIError(
+                str(header.get("resultCode", "")), str(header.get("resultMsg", ""))
+            )
+        return super()._check_response(data)
 
     async def get_bid_announcements(
         self,
@@ -42,7 +55,7 @@ class PpsNarajangteoAPIClient(BaseDataGoClient):
         num_of_rows: int = 10,
         page_no: int = 1,
     ) -> dict[str, Any]:
-        """낙찰정보 조회. 업무구분(1:물품, 2:외자, 3:공사, 5:용역), 개찰일시 범위 최대 1주."""
+        """낙찰정보 조회. 업무구분(1:물품, 2:외자, 3:공사, 5:용역), 개찰일시 범위는 하루(2일부터 코드 07)."""
         return await self.get(
             "getDataSetOpnStdScsbidInfo",
             {

@@ -2,6 +2,7 @@
 
 import json
 import re
+from datetime import datetime
 
 import httpx
 import pytest
@@ -107,13 +108,15 @@ async def test_search_successful_bids_maps_business_type(base_url, ok_response):
     async with Client(mcp) as client:
         result = await client.call_tool(
             "search_successful_bids",
-            {"business_type": "공사", "start_date": "2026-09-05", "end_date": "2026-09-12"},
+            {"business_type": "공사", "start_date": "2026-09-11"},
         )
 
-    assert route.calls.last.request.url.params["bsnsDivCd"] == "3"
+    q = route.calls.last.request.url.params
+    assert q["bsnsDivCd"] == "3"
+    assert (q["opengBgnDt"], q["opengEndDt"]) == ("202609110000", "202609112359")
     data = json.loads(_text(result))
     assert data["business_type"] == "공사"
-    assert data["search_period"] == "20260905 ~ 20260912"
+    assert data["search_period"] == "20260911 ~ 20260911"
 
 
 @respx.mock
@@ -192,3 +195,34 @@ async def test_api_error_is_tool_error(base_url):
 
     assert result.is_error is True
     assert "[22] LIMITED" in _text(result)
+
+
+@respx.mock
+async def test_search_successful_bids_defaults_to_last_weekday(base_url, ok_response, monkeypatch):
+    """낙찰 API 는 하루 범위만 받는다 (2026-09-20 실호출: 2일부터 코드 07). 주말이면 직전 금요일."""
+    import data_go_mcp.pps_narajangteo.server as srv
+
+    class Sunday(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return cls(2026, 9, 20, 10, 0)  # 일요일
+
+    monkeypatch.setattr(srv, "datetime", Sunday)
+    route = respx.get(f"{base_url}/getDataSetOpnStdScsbidInfo").mock(
+        return_value=httpx.Response(200, json=ok_response([]))
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool("search_successful_bids", {})
+
+    q = route.calls.last.request.url.params
+    assert (q["opengBgnDt"], q["opengEndDt"]) == ("202609180000", "202609182359")
+    assert json.loads(_text(result))["search_period"] == "20260918 ~ 20260918"
+
+
+async def test_search_successful_bids_rejects_multi_day_range():
+    async with Client(mcp) as client:
+        result = await client.call_tool(
+            "search_successful_bids", {"start_date": "2026-09-17", "end_date": "2026-09-18"}
+        )
+    assert result.is_error is True
+    assert "하루" in _text(result)

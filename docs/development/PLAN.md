@@ -259,6 +259,10 @@
 - 각 서버 `server.py` 의 `load_dotenv()` 는 호출 프레임의 파일 위치에서 위로 `.env` 를 찾는다 — editable 설치에서는 저장소 `.env` 를 읽어 테스트가 헷갈렸다. 배포 번들(site-packages)에서는 무관.
 - Smithery 가 `type: uv` 번들을 받아 주는지, 등록 후 `smithery mcp add … --client claude` 가 `user_config` 두 칸을 제대로 묻는지는 **실제 publish 로 확인해야 한다** (미검증). 태그 `v0.6.0` 을 push 한 뒤 pack → Claude Desktop 설치 확인 → publish.
 
+### Smithery 등록 뒤 Claude Desktop 실사용에서 드러난 것 (2026-09-20)
+
+- pps 낙찰(`search_successful_bids`)이 "성공, 0건": 나라장터 오류 응답은 `{"response": …}` 가 아니라 `{"nkoneps.com.response.ResponseError": {"header": {…}}}` 라 core `_check_response` 가 통과시켰다 → pps 클라이언트가 오버라이드. 그리고 낙찰 API 의 개찰일시 범위는 문서의 1주가 아니라 **하루**(24h+1분까지 OK, 이틀은 07)라 기본 7일 조회가 늘 07 이었다. 기본을 오늘(주말이면 직전 금요일)로, 여러 날은 `ValueError`. 날짜 필터 자체는 동작 (물품 하루 약 2만 건, 용역 6천 건).
+
 ## 일정 요약
 
 | 스프린트 | 예상 | 선행 조건 |

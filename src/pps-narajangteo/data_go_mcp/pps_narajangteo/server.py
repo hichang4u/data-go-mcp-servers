@@ -62,6 +62,14 @@ def _range(
     )
 
 
+def _last_weekday_range() -> tuple[str, str]:
+    """오늘, 단 주말이면 직전 금요일 (낙찰 개찰은 평일에만)."""
+    day = datetime.now()
+    while day.weekday() >= 5:
+        day -= timedelta(days=1)
+    return day.strftime("%Y%m%d0000"), day.strftime("%Y%m%d2359")
+
+
 def _page(body: dict[str, Any], page_no: int, num_of_rows: int, **extra: Any) -> dict[str, Any]:
     return {
         "success": True,
@@ -105,11 +113,17 @@ async def search_successful_bids(
 ) -> dict[str, Any]:
     """나라장터 낙찰정보를 검색합니다. Search successful bids in the G2B marketplace.
 
-    개찰일시 기준. 검색 기간은 최대 1주일. 날짜를 지정하지 않으면 최근 7일을 검색합니다.
+    개찰일시 기준으로 **하루**만 조회할 수 있습니다 (API 제한). 날짜를 지정하지 않으면 오늘,
+    주말이면 직전 금요일을 검색합니다. 개찰은 평일 낮에 이뤄지므로 이른 시간엔 0건일 수 있습니다.
     """
     async with tool_errors():
         code = parse_business_type(business_type)
-        start_dt, end_dt = _range(start_date, end_date, default_days=7)
+        start_dt, end_dt = _range(start_date, end_date) if start_date else _last_weekday_range()
+        if start_dt[:8] != end_dt[:8]:
+            raise ValueError(
+                f"낙찰정보는 하루 단위로만 조회할 수 있습니다: {start_dt[:8]} ~ {end_dt[:8]}. "
+                "start_date 하나만 지정하세요."
+            )
         async with PpsNarajangteoAPIClient() as client:
             body = await client.get_successful_bids(code, start_dt, end_dt, num_of_rows, page_no)
     return _page(
