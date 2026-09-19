@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-09-20
+
+### Changed
+- `search_contracts`: 실제 API 한도는 7일 (8일부터 07) — 초과 시 `입력값 오류` 로 먼저 막는다. 설명의 "1개월" 정정
+- `search_successful_bids`: 기본 조회일을 오늘에서 **직전 평일**로 (당일 개찰은 불완전)
+- `get_bid_detail`: 기본 범위 30일 → 7일, 스캔 3페이지 → 12페이지 (하루 1,100건 이상이라 30일은 못 훑었다)
+
 ## [0.4.0] - 2026-09-20
 
 ### Fixed

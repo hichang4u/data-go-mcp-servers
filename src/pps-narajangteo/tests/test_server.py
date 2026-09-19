@@ -197,17 +197,28 @@ async def test_api_error_is_tool_error(base_url):
     assert "[22] LIMITED" in _text(result)
 
 
+@pytest.mark.parametrize(
+    "today, expected",
+    [
+        (datetime(2026, 9, 20, 10), "20260918"),  # 일요일 → 금요일
+        (datetime(2026, 9, 21, 9), "20260918"),  # 월요일 → 금요일
+        (datetime(2026, 9, 22, 18), "20260921"),  # 화요일 → 월요일
+    ],
+)
 @respx.mock
-async def test_search_successful_bids_defaults_to_last_weekday(base_url, ok_response, monkeypatch):
-    """낙찰 API 는 하루 범위만 받는다 (2026-09-20 실호출: 2일부터 코드 07). 주말이면 직전 금요일."""
+async def test_search_successful_bids_defaults_to_previous_weekday(
+    base_url, ok_response, monkeypatch, today, expected
+):
+    """낙찰 API 는 하루 범위만 받는다 (2026-09-20 실호출: 2일부터 코드 07). 기본은 직전 평일 —
+    당일 개찰은 진행 중이라 불완전하다."""
     import data_go_mcp.pps_narajangteo.server as srv
 
-    class Sunday(datetime):
+    class Fixed(datetime):
         @classmethod
         def now(cls, tz=None):
-            return cls(2026, 9, 20, 10, 0)  # 일요일
+            return cls(today.year, today.month, today.day, today.hour)
 
-    monkeypatch.setattr(srv, "datetime", Sunday)
+    monkeypatch.setattr(srv, "datetime", Fixed)
     route = respx.get(f"{base_url}/getDataSetOpnStdScsbidInfo").mock(
         return_value=httpx.Response(200, json=ok_response([]))
     )
@@ -215,8 +226,52 @@ async def test_search_successful_bids_defaults_to_last_weekday(base_url, ok_resp
         result = await client.call_tool("search_successful_bids", {})
 
     q = route.calls.last.request.url.params
-    assert (q["opengBgnDt"], q["opengEndDt"]) == ("202609180000", "202609182359")
-    assert json.loads(_text(result))["search_period"] == "20260918 ~ 20260918"
+    assert (q["opengBgnDt"], q["opengEndDt"]) == (f"{expected}0000", f"{expected}2359")
+    assert json.loads(_text(result))["search_period"] == f"{expected} ~ {expected}"
+
+
+@respx.mock
+async def test_search_contracts_limit_is_seven_days(base_url, ok_response):
+    """계약 API 의 실제 한도는 7일 (2026-09-20 실호출: 8일부터 코드 07). 문서의 1개월이 아니다."""
+    route = respx.get(f"{base_url}/getDataSetOpnStdCntrctInfo").mock(
+        return_value=httpx.Response(200, json=ok_response([]))
+    )
+    async with Client(mcp) as client:
+        ok = await client.call_tool(
+            "search_contracts", {"start_date": "2026-09-12", "end_date": "2026-09-18"}
+        )
+        bad = await client.call_tool(
+            "search_contracts", {"start_date": "2026-09-11", "end_date": "2026-09-18"}
+        )
+    assert ok.is_error is False
+    assert bad.is_error is True and "7일" in _text(bad)
+    assert route.call_count == 1
+
+
+@respx.mock
+async def test_get_bid_detail_scans_default_week_up_to_page_limit(
+    base_url, ok_response, monkeypatch, bid_item
+):
+    """단건 API 가 없어 훑는다. 하루 1,100건 이상이라 기본 범위는 7일, 999건 × 최대 12페이지."""
+    import data_go_mcp.pps_narajangteo.server as srv
+
+    class Fixed(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return cls(2026, 9, 18, 12)
+
+    monkeypatch.setattr(srv, "datetime", Fixed)
+    filler = [{**bid_item, "bidNtceNo": f"R26BK{i:08d}"} for i in range(999)]
+    route = respx.get(f"{base_url}/getDataSetOpnStdBidPblancInfo").mock(
+        return_value=httpx.Response(200, json=ok_response(filler, total=99999))
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool("get_bid_detail", {"bid_notice_no": "R26BK99999999"})
+
+    assert result.is_error is True
+    assert route.call_count == 12
+    q = route.calls[0].request.url.params
+    assert (q["bidNtceBgnDt"], q["bidNtceEndDt"]) == ("202609110000", "202609182359")
 
 
 async def test_search_successful_bids_rejects_multi_day_range():

@@ -261,7 +261,8 @@
 
 ### Smithery 등록 뒤 Claude Desktop 실사용에서 드러난 것 (2026-09-20)
 
-- pps 낙찰(`search_successful_bids`)이 "성공, 0건": 나라장터 오류 응답은 `{"response": …}` 가 아니라 `{"nkoneps.com.response.ResponseError": {"header": {…}}}` 라 core `_check_response` 가 통과시켰다 → pps 클라이언트가 오버라이드. 그리고 낙찰 API 의 개찰일시 범위는 문서의 1주가 아니라 **하루**(24h+1분까지 OK, 이틀은 07)라 기본 7일 조회가 늘 07 이었다. 기본을 오늘(주말이면 직전 금요일)로, 여러 날은 `ValueError`. 날짜 필터 자체는 동작 (물품 하루 약 2만 건, 용역 6천 건).
+- pps 낙찰(`search_successful_bids`)이 "성공, 0건": 나라장터 오류 응답은 `{"response": …}` 가 아니라 `{"nkoneps.com.response.ResponseError": {"header": {…}}}` 라 core `_check_response` 가 통과시켰다 → pps 클라이언트가 오버라이드. 그리고 낙찰 API 의 개찰일시 범위는 문서의 1주가 아니라 **하루**(24h+1분까지 OK, 이틀은 07)라 기본 7일 조회가 늘 07 이었다. 기본을 오늘(주말이면 직전 금요일)로, 여러 날은 `ValueError`. 날짜 필터 자체는 동작 (물품 하루 약 2만 건, 용역 6천 건, 공사 9만 건).
+- 같은 날 Claude Desktop 4개 툴 집중 테스트에서 추가로: 계약(`search_contracts`)의 한도도 문서(1개월)와 달리 **7일**(8일부터 07). `get_bid_detail` 은 999건×3페이지 훑기라 하루 1,100건 이상인 요즘엔 2~3일 범위를 넘으면 못 찾았다 → 기본 7일·12페이지로. 999건 한 페이지가 2.3초, 응답이 날짜순이 아니라 범위를 좁히는 것만이 해법. 공고번호(`R26BK01699006`)는 날짜와 대략 단조 증가하지만 역산은 안 했다. 근본 해법은 별도 API(나라장터 입찰공고정보서비스 `getBidPblancListInfoServcPPSSrch`, `bidNtceNo` 검색 지원)를 활용신청해 붙이는 것 — 보류.
 
 ## 일정 요약
 
