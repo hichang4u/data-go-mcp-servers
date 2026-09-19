@@ -99,7 +99,7 @@ uvx --from "git+https://github.com/hichang4u/data-go-mcp-servers#subdirectory=sr
 
 ## Smithery (smithery.ai)
 
-통합 서버가 MCPB 번들로 올라간다 (`hichang4u/data-go-mcp`). [Smithery CLI](https://smithery.ai/docs/concepts/cli) 로 클라이언트에 추가한다:
+통합 서버가 MCPB 번들로 올라가 있다 — [smithery.ai/servers/hichang4u/data-go-mcp](https://smithery.ai/servers/hichang4u/data-go-mcp). [Smithery CLI](https://smithery.ai/docs/concepts/cli) 로 클라이언트에 추가한다:
 
 ```bash
 npm install -g smithery@latest

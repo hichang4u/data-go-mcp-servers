@@ -40,7 +40,7 @@
 }
 ```
 
-다른 서버는 `nts-business-verification` 을 서버명으로 바꾸면 된다. `dart-disclosure` 만 `"env": { "DART_DISCLOSURE_API_KEY": "<OpenDART 인증키>" }` (data.go.kr 키와 별개, [api-keys.md](docs/guide/api-keys.md) 4절). 전부를 한 프로세스로 띄우는 `all-servers`, Claude Code, Cline, Smithery(`smithery mcp add hichang4u/data-go-mcp`), clone 해서 쓰는 방법은 [docs/guide/installation.md](docs/guide/installation.md).
+다른 서버는 `nts-business-verification` 을 서버명으로 바꾸면 된다. `dart-disclosure` 만 `"env": { "DART_DISCLOSURE_API_KEY": "<OpenDART 인증키>" }` (data.go.kr 키와 별개, [api-keys.md](docs/guide/api-keys.md) 4절). 전부를 한 프로세스로 띄우는 `all-servers`, Claude Code, Cline, [Smithery](https://smithery.ai/servers/hichang4u/data-go-mcp)(`smithery mcp add hichang4u/data-go-mcp`), clone 해서 쓰는 방법은 [docs/guide/installation.md](docs/guide/installation.md).
 
 ```
 > 사업자등록번호 120-88-00767 상태 조회해줘
