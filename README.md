@@ -20,6 +20,12 @@
 
 ## 빠른 시작
 
+**처음이라면 → [시작하기](docs/guide/quickstart.md)** (코드·터미널 없이 10분).
+
+요약: data.go.kr 인증키 발급·활용신청 → [data-go-mcp-desktop.mcpb](https://github.com/hichang4u/data-go-mcp-servers/releases/latest/download/data-go-mcp-desktop.mcpb) 를 Claude Desktop 설정 → 확장 프로그램에 끌어다 놓고 키 입력 → 질문.
+
+서버를 골라 쓰거나 설정 파일로 등록하려면:
+
 1. [uv](https://docs.astral.sh/uv/getting-started/installation/) 설치
 2. [data.go.kr](https://www.data.go.kr) 인증키(Decoding) 발급 후 쓰려는 API 에 **활용신청** → [docs/guide/api-keys.md](docs/guide/api-keys.md)
 3. Claude Desktop 설정(`claude_desktop_config.json`)에 추가:
@@ -51,7 +57,7 @@
 
 | | |
 |---|---|
-| 사용 | [설치·클라이언트 설정](docs/guide/installation.md) · [API 키·활용신청](docs/guide/api-keys.md) · [문제 해결](docs/guide/troubleshooting.md) · [서버별 툴 레퍼런스](docs/guide/servers/) |
+| 사용 | [시작하기](docs/guide/quickstart.md) · [설치·클라이언트 설정](docs/guide/installation.md) · [API 키·활용신청](docs/guide/api-keys.md) · [문제 해결](docs/guide/troubleshooting.md) · [서버별 툴 레퍼런스](docs/guide/servers/) |
 | 개발 | [CONTRIBUTING](CONTRIBUTING.md) · [아키텍처](docs/development/architecture.md) · [새 서버 추가](docs/development/adding-a-server.md) · [테스트](docs/development/testing.md) · [릴리스](docs/development/release.md) |
 | 이력 | [PRD](docs/development/PRD.md) · [작업 계획](docs/development/PLAN.md) · [원저장소 기록](docs/history/) |
 
