@@ -1,4 +1,4 @@
-"""각 서버가 사용하는 공공 API(12개)가 살아 있는지 최소 요청으로 확인한다.
+"""각 서버가 사용하는 공공 API(22개)가 살아 있는지 최소 요청으로 확인한다.
 
 사용법:
     API_KEY=... uv run python scripts/check_apis.py
@@ -54,6 +54,18 @@ TARGETS = [
             "bidNtceBgnDt": "202501010000",
             "bidNtceEndDt": "202501020000",
         },
+    ),
+    (
+        "molit-realestate (아파트매매)",
+        "GET",
+        "https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev",
+        {"LAWD_CD": "11680", "DEAL_YMD": "202608", "numOfRows": 1, "pageNo": 1},
+    ),
+    (
+        "molit-realestate (아파트전월세)",
+        "GET",
+        "https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent",
+        {"LAWD_CD": "11680", "DEAL_YMD": "202608", "numOfRows": 1, "pageNo": 1},
     ),
     (
         "fsc-financial-info",

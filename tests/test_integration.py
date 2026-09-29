@@ -48,6 +48,18 @@ CALLS = [
         '"itms_nm": "삼성전자"',
     ),
     ("pps_narajangteo", "search_contracts", {"num_of_rows": 1}, '"success": true'),
+    (
+        "molit_realestate",
+        "search_property_trades",
+        {"region_code": "11680", "deal_ym": "202608", "num_of_rows": 3},
+        '"deal_amount"',
+    ),
+    (
+        "molit_realestate",
+        "search_property_rents",
+        {"region_code": "11680", "deal_ym": "202608", "num_of_rows": 3},
+        '"rent_type"',
+    ),
     ("bok_ecos", "get_key_statistics", {"class_name": "환율", "num_of_rows": 10}, '"class_name"'),
     (
         "bok_ecos",

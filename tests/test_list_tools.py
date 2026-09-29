@@ -1,4 +1,4 @@
-"""8개 서버와 통합 서버를 실제 stdio 서브프로세스로 띄워 list_tools 가 동작하는지 확인하는 스모크 테스트.
+"""9개 서버와 통합 서버를 실제 stdio 서브프로세스로 띄워 list_tools 가 동작하는지 확인하는 스모크 테스트.
 
 서버 구현 방식(MCPServer / 저수준 Server)과 무관하게 클라이언트 관점에서 검증한다.
 """
@@ -49,6 +49,10 @@ SERVERS = {
         "get_chemical_regulatory_info",
         "get_chemical_section",
         "get_complete_msds",
+    },
+    "molit_realestate": {
+        "search_property_trades",
+        "search_property_rents",
     },
     "bok_ecos": {
         "find_statistic_table",

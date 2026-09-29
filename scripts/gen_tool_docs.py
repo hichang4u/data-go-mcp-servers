@@ -32,6 +32,7 @@ SERVERS = {
     "msds-chemical-info": "msds_chemical_info",
     "dart-disclosure": "dart_disclosure",
     "bok-ecos": "bok_ecos",
+    "molit-realestate": "molit_realestate",
 }
 
 

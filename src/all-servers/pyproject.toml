@@ -26,6 +26,7 @@ dependencies = [
     "data-go-mcp.bok-ecos",
     "data-go-mcp.dart-disclosure",
     "data-go-mcp.fsc-financial-info",
+    "data-go-mcp.molit-realestate",
     "data-go-mcp.msds-chemical-info",
     "data-go-mcp.nps-business-enrollment",
     "data-go-mcp.nts-business-verification",
@@ -48,6 +49,7 @@ data-go-mcp-core = { workspace = true }
 "data-go-mcp.bok-ecos" = { workspace = true }
 "data-go-mcp.dart-disclosure" = { workspace = true }
 "data-go-mcp.fsc-financial-info" = { workspace = true }
+"data-go-mcp.molit-realestate" = { workspace = true }
 "data-go-mcp.msds-chemical-info" = { workspace = true }
 "data-go-mcp.nps-business-enrollment" = { workspace = true }
 "data-go-mcp.nts-business-verification" = { workspace = true }
