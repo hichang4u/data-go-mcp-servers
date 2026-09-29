@@ -22,6 +22,8 @@ mcp = MCPServer("BOK ECOS")
 
 CYCLE_HELP = ", ".join(f"{code}={desc}" for code, desc in CYCLES.items())
 
+KEY_STATISTIC_ROWS = 200  # "100대 지표" 는 실제로 101건
+
 NumOfRows = Annotated[
     int, Field(description="한 페이지 결과 수 (기본값: 100. sample 키는 10을 넘기면 오류)")
 ]
@@ -112,11 +114,13 @@ async def get_key_statistics(
         Optional[str],
         Field(description="지표 분류로 좁히기 (예: 환율, 금리, 국민계정, 물가). 부분 일치"),
     ] = None,
-    num_of_rows: NumOfRows = 100,
+    num_of_rows: Annotated[
+        int, Field(description="한 페이지 결과 수 (기본값: 200 — 지표가 101건이라 한 번에 받는다)")
+    ] = KEY_STATISTIC_ROWS,
 ) -> dict[str, Any]:
     """100대 통계지표의 최신값을 봅니다. Get the latest values of 100 key indicators.
 
-    환율·기준금리·물가 같은 대표 지표를 코드 없이 바로 봅니다. 각 항목의 time 은 지표마다 기준
+    환율·기준금리·물가 같은 대표 지표(101건)를 코드 없이 바로 봅니다. 각 항목의 time 은 지표마다 기준
     시점이 달라(일/월) 그대로 돌려줍니다. 시계열이 필요하면 get_statistic_data 를 쓰세요.
     """
     async with tool_errors():

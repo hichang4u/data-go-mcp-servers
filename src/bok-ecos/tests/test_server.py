@@ -186,3 +186,16 @@ async def test_api_error_is_tool_error(base_url):
 
     assert result.is_error is True
     assert "한국은행 ECOS 오류 [INFO-100]" in _text(result)
+
+
+@respx.mock
+async def test_get_key_statistics_asks_for_more_than_the_list_size(base_url, key_statistics):
+    """100대 지표는 실제로 101건이다 — 기본값이 100이면 한 건이 잘린다 (2026-09-29 실호출)."""
+    route = respx.get(url__startswith=f"{base_url}/KeyStatisticList").mock(
+        return_value=httpx.Response(200, json=key_statistics)
+    )
+    async with Client(mcp) as client:
+        await client.call_tool("get_key_statistics", {})
+
+    end = int(str(route.calls.last.request.url).rstrip("/").split("/")[-1])
+    assert end >= 101

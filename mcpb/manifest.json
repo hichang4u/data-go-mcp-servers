@@ -774,8 +774,8 @@
             "title": "Class Name"
           },
           "num_of_rows": {
-            "default": 100,
-            "description": "한 페이지 결과 수 (기본값: 100. sample 키는 10을 넘기면 오류)",
+            "default": 200,
+            "description": "한 페이지 결과 수 (기본값: 200 — 지표가 101건이라 한 번에 받는다)",
             "title": "Num Of Rows",
             "type": "integer"
           }
