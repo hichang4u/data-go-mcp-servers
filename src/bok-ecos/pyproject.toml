@@ -1,6 +1,6 @@
 [project]
 name = "data-go-mcp.bok-ecos"
-version = "0.1.0"
+version = "0.1.1"
 description = "MCP server for Korea macroeconomic statistics from the Bank of Korea ECOS"
 readme = "README.md"
 authors = [

@@ -658,7 +658,7 @@ requires-dist = [
 
 [[package]]
 name = "data-go-mcp-bok-ecos"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "src/bok-ecos" }
 dependencies = [
     { name = "data-go-mcp-core" },
