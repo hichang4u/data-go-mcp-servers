@@ -264,6 +264,46 @@
 - pps 낙찰(`search_successful_bids`)이 "성공, 0건": 나라장터 오류 응답은 `{"response": …}` 가 아니라 `{"nkoneps.com.response.ResponseError": {"header": {…}}}` 라 core `_check_response` 가 통과시켰다 → pps 클라이언트가 오버라이드. 그리고 낙찰 API 의 개찰일시 범위는 문서의 1주가 아니라 **하루**(24h+1분까지 OK, 이틀은 07)라 기본 7일 조회가 늘 07 이었다. 기본을 오늘(주말이면 직전 금요일)로, 여러 날은 `ValueError`. 날짜 필터 자체는 동작 (물품 하루 약 2만 건, 용역 6천 건, 공사 9만 건).
 - 같은 날 Claude Desktop 4개 툴 집중 테스트에서 추가로: 계약(`search_contracts`)의 한도도 문서(1개월)와 달리 **7일**(8일부터 07). `get_bid_detail` 은 999건×3페이지 훑기라 하루 1,100건 이상인 요즘엔 2~3일 범위를 넘으면 못 찾았다 → 기본 7일·12페이지로. 999건 한 페이지가 2.3초, 응답이 날짜순이 아니라 범위를 좁히는 것만이 해법. 공고번호(`R26BK01699006`)는 날짜와 대략 단조 증가하지만 역산은 안 했다. 근본 해법은 별도 API(나라장터 입찰공고정보서비스 `getBidPblancListInfoServcPPSSrch`, `bidNtceNo` 검색 지원)를 활용신청해 붙이는 것 — 보류.
 
+## S8 — 다음 후보 조사 `[ ]` 2026-09-29 — 실호출로 생존·키 확인만 한 단계
+
+착수 전 조사. 2026-09-29 에 전부 실제로 호출해 본 결과이며, 응답 구조·파라미터 동작은 아직 안 봤다.
+
+### A. 우리 키로 이미 열려 있는 것 (활용신청 불필요 — `00 정상` 확인)
+
+| API | 엔드포인트 | 메모 |
+|---|---|---|
+| 조달청 나라장터 **입찰공고정보서비스** | `/1230000/ad/BidPublicInfoService/getBidPblancListInfoServcPPSSrch` (물품 `…ThngPPSSrch`, 공사 `…CnstwkPPSSrch`) | 지금 pps 가 쓰는 개방표준서비스보다 필드가 훨씬 많다. 경로 접두어가 `ao` 가 아니라 **`ad`** |
+| 조달청 나라장터 **낙찰정보서비스** | `/1230000/as/ScsbidInfoService/getOpengResultListInfoServcPPSSrch` | 접두어 **`as`** |
+
+- 접두어를 못 찾으면 `NO_OPENAPI_SERVICE_ERROR` 가 난다. `BidPublicInfoService01`~`07` 같은 버전 접미어는 전부 없음 — 접두어(`ad`/`as`/`ao`)가 갈림.
+- **미해결**: `bidNtceNo` 가 `inqryDiv=2` 에서도 무시된다(753건 전체 반환, `bidNtceOrd` 를 같이 줘도 같음). `get_bid_detail` 의 단건 조회를 이걸로 대체하려면 다른 오퍼레이션을 더 봐야 한다. `inqryDiv=2` + 기간은 `07`.
+
+### B. 엔드포인트 살아 있음, 활용신청만 하면 되는 것 (`SERVICE_KEY_IS_NOT_REGISTERED`)
+
+기상청 단기예보(`1360000/VilageFcstInfoService_2.0`), 에어코리아(`B552584/ArpltnInforInqireSvc`),
+국토부 아파트 매매 실거래(`1613000/RTMSDataSvcAptTradeDev`), 식약처 e약은요(`1471000/DrbEasyDrugInfoService`),
+관광공사(`B551011/KorService2`), 소상공인 상권정보(`B553077/api/open/sdsc2`),
+심평원 병원정보(`B551182/hospInfoServicev2`), 중기부 창업기업DB(`B552735/kisedKstartupService01`).
+
+### C. data.go.kr 밖 포털 (dart 처럼 새 서버 + `shared_key = False`)
+
+| 포털 | 키 | 확인 결과 |
+|---|---|---|
+| 한국은행 ECOS | 무료 신청, **`sample` 키로 개발 가능** | `StatisticSearch/sample/json/kr/1/5/722Y001/M/…` → 기준금리 3.5 수신 |
+| 법제처 국가법령정보 | `OC=<아이디>` | `OC=test` 로 도로교통법 검색 성공 |
+| 서울 열린데이터광장 | 무료 즉시, `sample` 키 있음 | `openapi.seoul.go.kr:8088/sample/…` → 799건 수신 |
+| 열린국회정보 | 무료 즉시 발급 필요 | 키 없이는 `Bad Request` |
+| KOSIS | 무료 신청 필요 | `유효하지 않은 인증KEY입니다` (엔드포인트는 살아 있음) |
+| 금감원 FINLIFE | 무료 신청 필요 | https 307 리다이렉트 — 호출 방식 더 확인 필요 |
+| KRX 데이터 | — | 403, 공식 OpenAPI 아님 |
+
+### 우선순위 제안
+
+1. **한국은행 ECOS** — 새 서버. 기준금리·환율·물가를 fsc 재무/dart 공시 옆에 둔다. `sample` 키로 TDD 가 가능해 마찰이 가장 적다
+2. **국토부 아파트 실거래** — nps 의 `find_region_code`(법정동코드)를 그대로 재사용할 수 있다
+3. **기상청 단기예보** — 범용성 1위지만 위경도 → 격자(nx, ny) 변환을 서버가 해줘야 쓸 만하다
+4. **조달청 입찰공고정보서비스** — 새 서버가 아니라 pps 보강. 키가 이미 열려 있어 즉시 착수 가능
+
 ## 일정 요약
 
 | 스프린트 | 예상 | 선행 조건 |
