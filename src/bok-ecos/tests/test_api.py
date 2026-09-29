@@ -163,3 +163,91 @@ async def test_key_statistics_values_are_numbers(base_url, key_statistics):
         result = await client.get_key_statistics()
     assert result["items"][0]["value"] == 1356.7
     assert result["items"][0]["class_name"] == "환율"
+
+
+@respx.mock
+async def test_sample_key_requests_are_clamped_to_ten_rows(base_url, key_statistics, monkeypatch):
+    """sample 키는 10건을 넘기면 ERROR-301 — 툴 기본값(100/200)이 그대로 나가면 안 된다."""
+    monkeypatch.setenv("BOK_ECOS_API_KEY", "sample")
+    respx.get(url__startswith=base_url).mock(return_value=httpx.Response(200, json=key_statistics))
+    async with BokEcosAPIClient() as client:
+        await client.get_key_statistics(num_of_rows=200)
+        assert str(respx.calls.last.request.url).endswith("/sample/json/kr/1/10")
+
+        await client.get_word("기준금리", num_of_rows=100)
+        assert "/1/10/" in str(respx.calls.last.request.url)
+
+        await client.search("722Y001", "M", "202401", "202403", num_of_rows=100)
+        assert "/1/10/" in str(respx.calls.last.request.url)
+
+
+@respx.mock
+async def test_real_key_keeps_the_requested_row_count(base_url, key_statistics):
+    respx.get(url__startswith=base_url).mock(return_value=httpx.Response(200, json=key_statistics))
+    async with BokEcosAPIClient() as client:
+        await client.get_key_statistics(num_of_rows=200)
+    assert str(respx.calls.last.request.url).endswith("/1/200")
+
+
+@respx.mock
+async def test_concurrent_table_searches_do_not_duplicate_the_cache(base_url, table_list):
+    """동시에 두 번 불러도 캐시가 두 배가 되면 안 된다 (클라이언트는 툴을 병렬 호출한다)."""
+    import asyncio
+
+    from data_go_mcp.bok_ecos import api_client as mod
+
+    async def slow(request):  # 두 호출이 겹치도록 응답을 늦춘다
+        await asyncio.sleep(0.02)
+        return httpx.Response(200, json=table_list)
+
+    respx.get(url__startswith=f"{base_url}/StatisticTableList").mock(side_effect=slow)
+    async with BokEcosAPIClient() as client:
+        first, second = await asyncio.gather(
+            client.find_tables("기준금리"), client.find_tables("기준금리")
+        )
+
+    assert len(mod._table_cache) == len(table_list["StatisticTableList"]["row"])
+    assert first == second == [first[0]]
+
+
+@respx.mock
+async def test_missing_total_count_does_not_truncate_the_table_list(base_url, table_list):
+    """list_total_count 가 없다고 첫 페이지만 캐시하면 표 대부분을 조용히 잃는다."""
+    page = {"StatisticTableList": {"row": table_list["StatisticTableList"]["row"]}}
+    route = respx.get(url__startswith=f"{base_url}/StatisticTableList").mock(
+        return_value=httpx.Response(200, json=page)
+    )
+    async with BokEcosAPIClient() as client:
+        client_page_size = client.page_size
+        await client.find_tables("기준금리")
+
+    # 한 페이지가 page_size 보다 적게 왔으면 거기서 끝 — 4건 < 100건이므로 한 번만 호출
+    assert len(table_list["StatisticTableList"]["row"]) < client_page_size
+    assert route.call_count == 1
+
+
+@respx.mock
+async def test_partial_table_page_without_total_keeps_paging(base_url):
+    """가득 찬 페이지가 total 없이 오면 다음 페이지도 받아야 한다."""
+    full = {
+        "StatisticTableList": {
+            "row": [
+                {"STAT_CODE": f"{i:06d}", "STAT_NAME": f"표 {i}", "CYCLE": "M", "SRCH_YN": "Y"}
+                for i in range(100)
+            ]
+        }
+    }
+    empty = {"RESULT": {"CODE": "INFO-200", "MESSAGE": "해당하는 데이터가 없습니다."}}
+    route = respx.get(url__startswith=f"{base_url}/StatisticTableList").mock(
+        side_effect=[httpx.Response(200, json=full), httpx.Response(200, json=empty)]
+    )
+    async with BokEcosAPIClient() as client:
+        await client.find_tables("표 1")
+    assert route.call_count == 2
+
+
+async def test_item_code_gap_is_rejected():
+    """항목 코드는 위치 인자다 — 1을 비우고 2만 주면 2가 1 자리로 밀려 다른 값이 온다."""
+    async with BokEcosAPIClient() as client:
+        with pytest.raises(ValueError, match="순서대로"):
+            await client.search("901Y009", "M", "202401", "202403", [None, "Group2Code"])

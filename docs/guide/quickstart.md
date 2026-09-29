@@ -27,6 +27,8 @@ Claude Desktop 에 확장 프로그램 하나를 설치하면 Claude 에게 "이
 
 **전자공시(DART)** 까지 쓰려면 키가 하나 더 필요하다: [opendart.fss.or.kr](https://opendart.fss.or.kr) 회원가입 → **인증키 신청/관리** → 인증키 신청. 바로 발급된다. 안 쓸 거면 건너뛴다.
 
+**한국은행 경제통계(기준금리·환율·물가)** 도 키가 따로다: [ecos.bok.or.kr](https://ecos.bok.or.kr) → **오픈API** → 인증키 신청. 역시 바로 발급된다.
+
 ## 3단계. Claude Desktop 에 설치하기
 
 1. **[data-go-mcp-desktop.mcpb 내려받기](https://github.com/hichang4u/data-go-mcp-servers/releases/latest/download/data-go-mcp-desktop.mcpb)**
@@ -35,6 +37,7 @@ Claude Desktop 에 확장 프로그램 하나를 설치하면 Claude 에게 "이
 4. 입력란이 나오면:
    - **data.go.kr 인증키** — 1단계에서 복사한 Decoding 값
    - **OpenDART 인증키** — 받았으면 넣고, 아니면 비워 둔다
+   - **한국은행 ECOS 인증키** — 받았으면 넣고, 아니면 비워 둔다
 5. 확장 프로그램이 **켜짐** 상태인지 확인한다.
 
 처음 켤 때 필요한 구성요소를 내려받느라 1~2분 걸릴 수 있다.

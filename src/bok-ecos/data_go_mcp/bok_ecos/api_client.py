@@ -10,6 +10,7 @@ data.go.kr 계열이 아니다 (2026-09-29 실호출로 확인):
 - ``sample`` 키는 한 번에 10건까지만 준다 (``ERROR-301``). 실제 키는 100건씩 받는다
 """
 
+import asyncio
 import re
 from typing import Any, Optional, Sequence
 from urllib.parse import quote
@@ -39,6 +40,7 @@ TIME_FORMATS = {
 
 # 통계표 목록(844건)은 툴 호출마다 다시 받지 않는다. 서버는 호출마다 클라이언트를 새로 만든다
 _table_cache: list[dict[str, Any]] = []
+_table_lock = asyncio.Lock()
 
 
 def clear_table_cache() -> None:
@@ -66,6 +68,8 @@ class BokEcosAPIClient(BaseDataGoClient):
     ) -> dict[str, Any]:
         """``/{서비스}/{키}/json/kr/{시작}/{끝}/{조건…}`` 을 호출한다."""
         end = self.page_size if end is None else end
+        if self.api_key == SAMPLE_KEY:
+            end = min(end, SAMPLE_PAGE_SIZE)  # 넘기면 ERROR-301
         segments = [service, self.api_key, "json", "kr", str(start), str(end), *conditions]
         url = f"{self.base_url}/" + "/".join(quote(str(s), safe="") for s in segments)
         response = await self.http.get(url)
@@ -89,13 +93,6 @@ class BokEcosAPIClient(BaseDataGoClient):
 
     # -- 오퍼레이션 ----------------------------------------------------------
 
-    async def get_tables(self, stat_code: Optional[str] = None) -> dict[str, Any]:
-        """통계표 목록. ``stat_code`` 를 주면 그 표(또는 하위 분류)만."""
-        conditions = [stat_code] if stat_code else []
-        body = await self.request("StatisticTableList", *conditions)
-        rows = body.get("row") or []
-        return self._page(body, [StatTable.model_validate(r).model_dump() for r in rows])
-
     async def find_tables(
         self, keyword: str, cycle: Optional[str] = None, limit: int = 20
     ) -> list[dict[str, Any]]:
@@ -114,21 +111,25 @@ class BokEcosAPIClient(BaseDataGoClient):
         return hits[:limit]
 
     async def _all_tables(self) -> list[dict[str, Any]]:
-        """통계표 전체 목록 (캐시)."""
+        """통계표 전체 목록 (프로세스 캐시). 동시 호출은 락으로 한 번만 받는다."""
         if _table_cache:
             return _table_cache
-        collected: list[dict[str, Any]] = []
-        start = 1
-        while start <= MAX_TABLE_ROWS:
-            end = start + self.page_size - 1
-            body = await self.request("StatisticTableList", start=start, end=end)
-            rows = body.get("row") or []
-            collected += [StatTable.model_validate(r).model_dump() for r in rows]
-            total = body.get("list_total_count") or 0
-            if len(rows) < self.page_size or len(collected) >= total:
-                break
-            start = end + 1
-        _table_cache.extend(collected)
+        async with _table_lock:
+            if _table_cache:  # 락을 기다리는 동안 다른 호출이 채웠다
+                return _table_cache
+            collected: list[dict[str, Any]] = []
+            start = 1
+            page_size = self.page_size
+            while start <= MAX_TABLE_ROWS:
+                end = start + page_size - 1
+                body = await self.request("StatisticTableList", start=start, end=end)
+                rows = body.get("row") or []
+                collected += [StatTable.model_validate(r).model_dump() for r in rows]
+                total = body.get("list_total_count")  # 없으면 페이지가 덜 찼는지로만 판단한다
+                if len(rows) < page_size or (total is not None and len(collected) >= total):
+                    break
+                start = end + 1
+            _table_cache[:] = collected  # extend 는 재진입 시 목록을 두 배로 만든다
         return _table_cache
 
     async def get_items(self, stat_code: str, num_of_rows: Optional[int] = None) -> dict[str, Any]:
@@ -155,7 +156,15 @@ class BokEcosAPIClient(BaseDataGoClient):
         self._check_cycle(cycle)
         self._check_time(cycle, start_time, "start_time")
         self._check_time(cycle, end_time, "end_time")
-        codes = [c for c in (item_codes or []) if c]
+        given = list(item_codes or [])
+        codes = [c for c in given if c]
+        if codes != [c for c in given[: len(codes)] if c] or any(
+            not given[i] and any(given[i + 1 :]) for i in range(len(given))
+        ):
+            raise ValueError(
+                "항목 코드는 순서대로 채워야 합니다 (item_code1 부터). "
+                "ECOS 는 위치로 항목을 구분하므로 앞을 비우면 뒤 코드가 앞 자리로 밀립니다."
+            )
         if len(codes) > MAX_ITEM_CODES:
             raise ValueError(
                 f"항목 코드는 {MAX_ITEM_CODES}개까지 지정할 수 있습니다: {len(codes)}개"

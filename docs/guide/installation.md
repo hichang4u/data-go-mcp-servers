@@ -35,7 +35,7 @@ uvx --from "git+https://github.com/hichang4u/data-go-mcp-servers#subdirectory=sr
 
 ## Claude Desktop
 
-방법이 둘이다. 서버 7개를 다 쓸 거면 **A**, 필요한 서버만 골라 쓸 거면 **B**.
+방법이 둘이다. 서버 8개를 다 쓸 거면 **A**, 필요한 서버만 골라 쓸 거면 **B**.
 
 ### A. 확장 프로그램(.mcpb)으로 설치 — uv 불필요
 
@@ -44,9 +44,10 @@ uvx --from "git+https://github.com/hichang4u/data-go-mcp-servers#subdirectory=sr
 3. 설치 창에서 키를 넣는다.
    - **data.go.kr 인증키** (필수) — 마이페이지의 일반 인증키 **Decoding** 값
    - **OpenDART 인증키** (선택) — 비워 두면 DART 툴만 실패한다
+   - **한국은행 ECOS 인증키** (선택) — 비워 두면 ECOS 통계 툴만 실패한다
 4. 확장 프로그램이 켜져 있는지 확인한다.
 
-설치되는 것은 [통합 서버](#통합-서버-all-servers)(툴 36개)다. Claude Desktop 이 자체 uv 로 의존성을 설치하므로 uv 를 따로 깔 필요가 없다. 키를 바꾸려면 확장 프로그램 목록에서 이 확장의 설정을 연다.
+설치되는 것은 [통합 서버](#통합-서버-all-servers)(툴 41개)다. Claude Desktop 이 자체 uv 로 의존성을 설치하므로 uv 를 따로 깔 필요가 없다. 키를 바꾸려면 확장 프로그램 목록에서 이 확장의 설정을 연다.
 
 `data-go-mcp.mcpb`(이름에 `desktop` 이 없는 것)는 Smithery 용이라 Claude Desktop 에 끌어 놓으면 설치가 거부된다.
 
