@@ -4,8 +4,8 @@
 
 - 종류별로 오퍼레이션이 따로다 (매매 7종, 전월세 4종). 토지·상업업무용·공장창고에는 전월세 API 가 없다
 - 조회 조건은 법정동코드 **앞 5자리**(``LAWD_CD``)와 계약년월 ``YYYYMM``(``DEAL_YMD``) 뿐
-- **잘못된 입력도 오류가 아니라 0건으로 온다** (10자리 코드, 4자리 년월, 파라미터 누락 모두
-  ``resultCode 000``). 그래서 보내기 전에 검증한다
+- **잘못된 입력도 오류가 아니라 0건으로 온다** (10자리 코드, 4자리 년월, 시도 코드, 파라미터
+  누락 모두 ``resultCode 000``). 그래서 보내기 전에 검증한다
 - 응답은 XML. 빈 결과는 ``<items/>``
 - 정상 코드가 ``00`` 이 아니라 **``000``** 이다 (core 기본 검사는 ``00`` 만 통과시킨다)
 - 금액은 ``"790,000"`` 처럼 쉼표가 붙은 **만원** 단위 문자열
@@ -121,8 +121,10 @@ class MolitRealEstateAPIClient(BaseDataGoClient):
     def _endpoint(property_type: str, *, rent: bool) -> str:
         pair = ENDPOINTS.get((property_type or "").strip())
         if pair is None:
+            # 없는 종류를 안내하면 사용자가 그대로 다시 부른다
+            choices = RENT_TYPES if rent else TRADE_TYPES
             raise ValueError(
-                f"부동산 종류는 {', '.join(TRADE_TYPES)} 중 하나여야 합니다: {property_type!r}"
+                f"부동산 종류는 {', '.join(choices)} 중 하나여야 합니다: {property_type!r}"
             )
         endpoint = pair[1] if rent else pair[0]
         if endpoint is None:
@@ -140,6 +142,11 @@ def normalize_region_code(region_code: str) -> str:
         raise ValueError(
             f"지역코드는 법정동코드 5자리(시군구) 또는 10자리여야 합니다: {region_code!r}. "
             "nps 서버의 find_region_code 로 찾을 수 있습니다"
+        )
+    if text[2:5] == "000":  # 시도 코드(1100000000)는 앞 5자리를 잘라도 LAWD_CD 가 아니다
+        raise ValueError(
+            f"시도 단위 코드로는 조회할 수 없습니다: {region_code!r}. "
+            "시군구 코드가 필요합니다 (예: 서울특별시가 아니라 강남구 11680)"
         )
     return text[:5]
 

@@ -195,3 +195,33 @@ async def test_factory_warehouse_uses_building_fields(base_url, indu_trade_xml):
     assert item["land_use"] == "준주거"
     assert item["deal_amount"] == 63500
     assert item["exclusive_area"] is None
+
+
+@pytest.mark.parametrize("region", ["1100000000", "4100000000", "11000"])
+async def test_sido_level_code_is_rejected(region):
+    """시도 코드(시군구 자리가 000)는 LAWD_CD 가 아니다 — API 는 0건으로만 답한다."""
+    async with MolitRealEstateAPIClient() as client:
+        with pytest.raises(ValueError, match="시군구"):
+            await client.search_trades(region, "202608", "아파트")
+
+
+async def test_rent_error_lists_only_types_that_have_a_rent_api():
+    """전월세에 없는 종류를 안내하면 사용자가 그대로 다시 호출한다."""
+    async with MolitRealEstateAPIClient() as client:
+        with pytest.raises(ValueError) as exc:
+            await client.search_rents("11680", "202608", "빌라")
+    message = str(exc.value)
+    assert "아파트" in message
+    assert "토지" not in message and "상업업무용" not in message and "공장창고" not in message
+
+
+def test_blank_first_name_field_does_not_hide_the_next():
+    """빈 요소는 공백 한 칸으로 온다 — 그대로 or 로 이으면 뒤 값을 가린다."""
+    from data_go_mcp.molit_realestate.models import Deal
+
+    deal = Deal.from_api(
+        {"aptNm": " ", "offiNm": "역삼디오슈페리움", "roadNm": " ", "roadnm": "언주로10길 15"},
+        "오피스텔",
+    )
+    assert deal.name == "역삼디오슈페리움"
+    assert deal.road_name == "언주로10길 15"

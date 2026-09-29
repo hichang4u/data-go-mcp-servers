@@ -101,12 +101,12 @@ class Deal(BaseModel):
     def from_api(cls, row: dict[str, Any], property_type: str) -> "Deal":
         """실거래 XML 한 행을 정규화한다."""
         return cls(
-            name=clean(row.get("aptNm") or row.get("offiNm") or row.get("mhouseNm")),
+            name=clean(row.get("aptNm")) or clean(row.get("offiNm")) or clean(row.get("mhouseNm")),
             property_type=property_type,
-            house_type=clean(row.get("houseType") or row.get("buildingType")),
+            house_type=clean(row.get("houseType")) or clean(row.get("buildingType")),
             dong=clean(row.get("umdNm")),
             jibun=clean(row.get("jibun")),
-            road_name=clean(row.get("roadNm") or row.get("roadnm")),
+            road_name=clean(row.get("roadNm")) or clean(row.get("roadnm")),
             deal_date=to_date(row.get("dealYear"), row.get("dealMonth"), row.get("dealDay")),
             deal_amount=to_int(row.get("dealAmount")),
             exclusive_area=to_float(row.get("excluUseAr")),
@@ -163,12 +163,12 @@ class Rent(BaseModel):
         """전월세 XML 한 행을 정규화한다."""
         monthly = to_int(row.get("monthlyRent"))
         return cls(
-            name=clean(row.get("aptNm") or row.get("offiNm") or row.get("mhouseNm")),
+            name=clean(row.get("aptNm")) or clean(row.get("offiNm")) or clean(row.get("mhouseNm")),
             property_type=property_type,
             house_type=clean(row.get("houseType")),
             dong=clean(row.get("umdNm")),
             jibun=clean(row.get("jibun")),
-            road_name=clean(row.get("roadNm") or row.get("roadnm")),
+            road_name=clean(row.get("roadNm")) or clean(row.get("roadnm")),
             deal_date=to_date(row.get("dealYear"), row.get("dealMonth"), row.get("dealDay")),
             rent_type=None if monthly is None else ("전세" if monthly == 0 else "월세"),
             deposit=to_int(row.get("deposit")),
