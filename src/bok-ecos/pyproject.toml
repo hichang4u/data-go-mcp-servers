@@ -1,0 +1,56 @@
+[project]
+name = "data-go-mcp.bok-ecos"
+version = "0.1.0"
+description = "MCP server for Korea macroeconomic statistics from the Bank of Korea ECOS"
+readme = "README.md"
+authors = [
+    { name = "Data.go.kr MCP Servers Contributors" }
+]
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+keywords = ["mcp", "korea", "api", "data.go.kr", "bok-ecos"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "data-go-mcp-core",
+    "httpx>=0.28",
+    "mcp[cli]>=2.2,<3",
+    "pydantic>=2.11",
+    "python-dotenv>=1.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/hichang4u/data-go-mcp-servers"
+Repository = "https://github.com/hichang4u/data-go-mcp-servers"
+Documentation = "https://github.com/hichang4u/data-go-mcp-servers/tree/main/src/bok-ecos"
+"Bug Tracker" = "https://github.com/hichang4u/data-go-mcp-servers/issues"
+Changelog = "https://github.com/hichang4u/data-go-mcp-servers/blob/main/src/bok-ecos/CHANGELOG.md"
+
+[project.scripts]
+"data-go-mcp.bok-ecos" = "data_go_mcp.bok_ecos.server:main"
+
+[tool.uv.sources]
+data-go-mcp-core = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["data_go_mcp"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.1.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+]

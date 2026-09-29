@@ -9,7 +9,7 @@
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) — `uvx` 명령이 여기서 나온다
   - macOS/Linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`
   - Windows: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
-- data.go.kr 인증키 → [api-keys.md](api-keys.md). `dart-disclosure` 는 OpenDART 인증키가 따로 필요하다
+- data.go.kr 인증키 → [api-keys.md](api-keys.md). `dart-disclosure`(OpenDART)와 `bok-ecos`(한국은행 ECOS)는 인증키가 따로 필요하다
 
 ## 실행 명령
 
@@ -28,7 +28,8 @@ uvx --from "git+https://github.com/hichang4u/data-go-mcp-servers#subdirectory=sr
 | `presidential-speeches` | 대통령기록관 연설문 |
 | `msds-chemical-info` | 안전보건공단 MSDS |
 | `dart-disclosure` | 금융감독원 DART 전자공시 — 기업 개황, 공시 목록·원문, 재무제표 (키: `DART_DISCLOSURE_API_KEY`) |
-| `all-servers` | 위 7개 전부를 한 프로세스로 ([아래](#통합-서버-all-servers)) |
+| `bok-ecos` | 한국은행 경제통계 — 기준금리·환율·물가, 100대 지표 (키: `BOK_ECOS_API_KEY`) |
+| `all-servers` | 위 8개 전부를 한 프로세스로 ([아래](#통합-서버-all-servers)) |
 
 특정 커밋/태그에 고정하려면 `data-go-mcp-servers@v0.6.2#subdirectory=…` 처럼 `@` 뒤에 붙인다.
 
@@ -171,13 +172,13 @@ stdio 서버를 등록하는 곳에 같은 `command`/`args`/`env` 를 넣으면 
 
 ## 통합 서버 (all-servers)
 
-서버 7개의 툴 36개를 **한 프로세스**로 띄우는 패키지. 설정 항목 하나로 전부 쓰고 싶을 때, 또는 Smithery 처럼 리스팅 하나에 서버 하나만 올릴 수 있는 곳에 쓴다.
+서버 8개의 툴 41개를 **한 프로세스**로 띄우는 패키지. 설정 항목 하나로 전부 쓰고 싶을 때, 또는 Smithery 처럼 리스팅 하나에 서버 하나만 올릴 수 있는 곳에 쓴다.
 
 ```
 uvx --from "git+https://github.com/hichang4u/data-go-mcp-servers#subdirectory=src/all-servers" data-go-mcp.all-servers
 ```
 
-환경변수는 `API_KEY` (data.go.kr 6종 공통) 와 `DART_DISCLOSURE_API_KEY` (OpenDART, 선택). 없는 키 쪽의 툴만 실패한다. 툴 36개가 한꺼번에 클라이언트에 실리므로 몇 개만 쓴다면 서버별 설치가 낫다.
+환경변수는 `API_KEY` (data.go.kr 6종 공통), `DART_DISCLOSURE_API_KEY` (OpenDART, 선택), `BOK_ECOS_API_KEY` (한국은행 ECOS, 선택). 없는 키 쪽의 툴만 실패한다. 툴 41개가 한꺼번에 클라이언트에 실리므로 몇 개만 쓴다면 서버별 설치가 낫다.
 
 ## Smithery (smithery.ai)
 

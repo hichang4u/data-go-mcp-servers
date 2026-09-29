@@ -1,4 +1,4 @@
-"""각 서버가 사용하는 공공 API(11개)가 살아 있는지 최소 요청으로 확인한다.
+"""각 서버가 사용하는 공공 API(12개)가 살아 있는지 최소 요청으로 확인한다.
 
 사용법:
     API_KEY=... uv run python scripts/check_apis.py
@@ -141,13 +141,34 @@ async def check(
     return f"{name:36s} HTTP {r.status_code}  resultCode={code or '-':4s}  {body}"
 
 
+async def check_ecos(client: httpx.AsyncClient) -> str:
+    """ECOS 는 인증키가 경로 세그먼트라 따로 확인한다. 키가 없으면 sample 로 생존만 본다."""
+    name = "bok-ecos (한국은행 ECOS)"
+    key = os.getenv("BOK_ECOS_API_KEY") or "sample"
+    suffix = "" if os.getenv("BOK_ECOS_API_KEY") else "  (sample key)"
+    try:
+        r = await client.get(f"https://ecos.bok.or.kr/api/KeyStatisticList/{key}/json/kr/1/1")
+    except httpx.HTTPError as e:
+        return f"{name:36s} NETWORK ERROR {e}"
+    body = r.text[:200].replace("\n", " ")
+    code = "-"
+    try:
+        data = r.json()
+        result = data.get("RESULT")
+        code = str(result.get("CODE")) if isinstance(result, dict) else "OK"
+    except ValueError:
+        pass
+    return f"{name:36s} HTTP {r.status_code}  resultCode={code:4s}  {body}{suffix}"
+
+
 async def main() -> int:
     """모든 대상을 병렬로 확인하고 결과를 출력한다."""
     if not os.getenv("API_KEY"):
         print("API_KEY 환경변수가 필요합니다 (.env 또는 export)", file=sys.stderr)
         return 1
     async with httpx.AsyncClient(timeout=20.0) as client:
-        for line in await asyncio.gather(*(check(client, *t) for t in TARGETS)):
+        lines = await asyncio.gather(*(check(client, *t) for t in TARGETS))
+        for line in [*lines, await check_ecos(client)]:
             print(line)
     return 0
 

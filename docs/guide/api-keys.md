@@ -28,6 +28,7 @@ Encoding 값(`%2B`, `%3D` 가 섞인 것)이 아니라 **Decoding 값**(`+`, `=`
 | presidential-speeches | [대통령기록관_대통령연설기록(연설문)](https://www.data.go.kr/data/15084167/fileData.do) → "오픈API" 탭 | 전체 |
 | msds-chemical-info | 별도 신청 없이 동작 확인됨 (2026-09) | 전체 |
 | dart-disclosure | data.go.kr 아님 — 4절 | 전체 |
+| bok-ecos | data.go.kr 아님 — 5절 | 전체 |
 
 활용목적은 "참고자료" 또는 "앱개발" 정도면 되고, 사유는 "OO 조회 서비스에 OO 정보를 함께 제공하는 용도" 한 줄이면 충분하다. 개발계정 일일 트래픽은 대개 10,000건이다.
 
@@ -50,9 +51,15 @@ MCP 클라이언트 설정의 `"env"` 로 넘기는 것이 기본이고, 저장�
 
 서버에는 `DART_DISCLOSURE_API_KEY` 로만 넘긴다. 공통 `API_KEY` 는 이 서버에 쓰이지 않으며, 없으면 `입력값 오류: API key is required. Set DART_DISCLOSURE_API_KEY …` 가 난다. 잘못된 키는 `OpenDART 오류 [010] 등록되지 않은 인증키입니다.`
 
-## 5. 확인
+## 5. 한국은행 ECOS 키 (bok-ecos)
 
-저장소를 clone 했다면 11개 API 를 한 번에 점검할 수 있다 (키가 없는 항목은 SKIP):
+경제통계시스템도 data.go.kr 을 거치지 않는다. [ecos.bok.or.kr](https://ecos.bok.or.kr) → **오픈API** → 인증키 신청. 즉시 발급되고 활용신청 절차는 없다.
+
+서버에는 `BOK_ECOS_API_KEY` 로만 넘긴다. 공통 `API_KEY` 는 이 서버에 쓰이지 않는다. 키 없이 시험만 해 보려면 `BOK_ECOS_API_KEY=sample` 도 되지만 **한 번에 10건**까지만 오고 넘기면 `한국은행 ECOS 오류 [ERROR-301]` 이 난다. 잘못된 키는 `[INFO-100] 인증키가 유효하지 않습니다`.
+
+## 6. 확인
+
+저장소를 clone 했다면 12개 API 를 한 번에 점검할 수 있다 (키가 없는 항목은 SKIP):
 
 ```bash
 uv run python scripts/check_apis.py

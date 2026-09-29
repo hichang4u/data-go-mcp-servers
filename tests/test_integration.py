@@ -48,6 +48,20 @@ CALLS = [
         '"itms_nm": "삼성전자"',
     ),
     ("pps_narajangteo", "search_contracts", {"num_of_rows": 1}, '"success": true'),
+    ("bok_ecos", "get_key_statistics", {"class_name": "환율", "num_of_rows": 10}, '"class_name"'),
+    (
+        "bok_ecos",
+        "get_statistic_data",
+        {
+            "stat_code": "722Y001",
+            "cycle": "M",
+            "start_time": "202401",
+            "end_time": "202403",
+            "item_code1": "0101000",
+            "num_of_rows": 10,
+        },
+        '"202401"',
+    ),
     # 낙찰은 하루 범위만 — 기본(오늘/직전 금요일)이 07 없이 통과하는지
     (
         "pps_narajangteo",
@@ -67,7 +81,7 @@ CALLS = [
 ]
 
 # data.go.kr 키로는 안 되는 서버: 서버별 키가 없으면 그 항목만 skip
-KEY_ENV = {"dart_disclosure": "DART_DISCLOSURE_API_KEY"}
+KEY_ENV = {"dart_disclosure": "DART_DISCLOSURE_API_KEY", "bok_ecos": "BOK_ECOS_API_KEY"}
 
 
 @pytest.mark.parametrize(

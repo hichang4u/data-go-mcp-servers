@@ -1,6 +1,6 @@
 # data-go-mcp-servers
 
-한국 공공데이터 API 를 MCP(Model Context Protocol) 서버로 제공한다. Claude Desktop, Claude Code 등 MCP 클라이언트에서 국민연금 사업장과 고용·산재보험 현황, 사업자등록 상태, 나라장터 입찰, 기업 재무제표·법인번호·주식시세, DART 전자공시·재무제표, 대통령 연설문, MSDS 화학물질 정보를 바로 조회할 수 있다.
+한국 공공데이터 API 를 MCP(Model Context Protocol) 서버로 제공한다. Claude Desktop, Claude Code 등 MCP 클라이언트에서 국민연금 사업장과 고용·산재보험 현황, 사업자등록 상태, 나라장터 입찰, 기업 재무제표·법인번호·주식시세, DART 전자공시·재무제표, 한국은행 경제통계, 대통령 연설문, MSDS 화학물질 정보를 바로 조회할 수 있다.
 
 [Koomook/data-go-mcp-servers](https://github.com/Koomook/data-go-mcp-servers)(Apache-2.0, 2025-09 이후 정지)를 기반으로 mcp SDK 2.x 에 맞춰 재정비한 것이다. 툴 이름과 파라미터는 원저장소와 호환된다.
 
@@ -15,8 +15,9 @@
 | [presidential-speeches](docs/guide/servers/presidential-speeches.md) | 대통령기록관 — 연설문 | `list_speeches` `search_speeches` `get_recent_speeches` |
 | [msds-chemical-info](docs/guide/servers/msds-chemical-info.md) | 안전보건공단 — MSDS | `search_chemicals` `get_chemical_section` `get_complete_msds` 외 4 |
 | [dart-disclosure](docs/guide/servers/dart-disclosure.md) | 금융감독원 — DART 전자공시 (기업 개황, 공시 목록·원문, 재무제표) | `find_corp_code` `get_company` `list_disclosures` `get_key_accounts` `get_financial_statements` `get_disclosure_document` |
+| [bok-ecos](docs/guide/servers/bok-ecos.md) | 한국은행 — 경제통계시스템 ECOS (기준금리·환율·물가, 100대 지표) | `find_statistic_table` `get_statistic_items` `get_statistic_data` `get_key_statistics` `search_term` |
 
-서버 7개, 툴 36개, 공공 API 11종. 모든 툴은 조회 전용이며, 실패는 MCP 오류 결과(`isError`)로 전달된다. 한 서버가 API 여러 개를 쓰는 경우(nps 3, fsc 3)는 각각 활용신청이 필요하다 — 표는 [api-keys.md](docs/guide/api-keys.md). dart-disclosure 만 data.go.kr 이 아닌 OpenDART 키를 쓴다.
+서버 8개, 툴 41개, 공공 API 12종. 모든 툴은 조회 전용이며, 실패는 MCP 오류 결과(`isError`)로 전달된다. 한 서버가 API 여러 개를 쓰는 경우(nps 3, fsc 3)는 각각 활용신청이 필요하다 — 표는 [api-keys.md](docs/guide/api-keys.md). dart-disclosure(OpenDART)와 bok-ecos(한국은행 ECOS)는 data.go.kr 이 아닌 각자의 키를 쓴다.
 
 ## 빠른 시작
 

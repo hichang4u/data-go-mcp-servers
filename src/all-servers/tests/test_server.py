@@ -11,7 +11,13 @@ from mcp import Client
 from mcp.server.mcpserver import MCPServer
 from mcp.types import TextContent
 
-from data_go_mcp.all_servers.server import build, discover, mcp, missing_key_messages
+from data_go_mcp.all_servers.server import (
+    _client_classes,
+    build,
+    discover,
+    mcp,
+    missing_key_messages,
+)
 
 
 SRC = Path(__file__).resolve().parents[2]
@@ -113,16 +119,28 @@ async def test_call_routes_to_origin_server(monkeypatch):
     assert route.called
 
 
-def test_missing_key_messages_cover_both_key_families(monkeypatch):
+def test_missing_key_messages_cover_every_key_family(monkeypatch):
     # 루트 conftest 가 .env 를 읽는다 — 서버별 <PREFIX>_API_KEY 까지 전부 지운다
     for name in list(os.environ):
         if name.endswith("API_KEY"):
             monkeypatch.delenv(name)
     messages = missing_key_messages()
-    assert any("API_KEY" in m and "data.go.kr" in m for m in messages)
-    assert any("DART_DISCLOSURE_API_KEY" in m for m in messages)
-    # data.go.kr 서버 6개가 공통 키 하나로 뭉쳐 경고가 두 종류만 나온다
-    assert len(messages) == 2
+
+    # 공통 API_KEY 를 쓰는 data.go.kr 서버들은 경고 하나로 뭉친다
+    shared = [m for m in messages if m.startswith("API_KEY is not set")]
+    assert len(shared) == 1 and "data.go.kr" in shared[0]
+
+    # 자기 키를 쓰는 서버(dart, bok-ecos …)는 각각 한 줄씩
+    own_key_prefixes = {
+        cls.key_env_prefix
+        for module in discover()
+        for cls in _client_classes(module)
+        if not cls.shared_key
+    }
+    assert own_key_prefixes  # 최소 하나는 있어야 이 테스트가 의미 있다
+    for prefix in own_key_prefixes:
+        assert any(f"{prefix}_API_KEY" in m for m in messages), prefix
+    assert len(messages) == 1 + len(own_key_prefixes)
 
 
 def test_no_messages_when_keys_present():

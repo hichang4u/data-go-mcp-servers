@@ -31,6 +31,7 @@ SERVERS = {
     "presidential-speeches": "presidential_speeches",
     "msds-chemical-info": "msds_chemical_info",
     "dart-disclosure": "dart_disclosure",
+    "bok-ecos": "bok_ecos",
 }
 
 

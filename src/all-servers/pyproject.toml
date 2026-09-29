@@ -23,6 +23,7 @@ classifiers = [
 # 서버를 추가하면 여기에도 넣는다 — uvx 는 선언된 의존성만 설치한다 (tests/test_server.py 가 검사)
 dependencies = [
     "data-go-mcp-core",
+    "data-go-mcp.bok-ecos",
     "data-go-mcp.dart-disclosure",
     "data-go-mcp.fsc-financial-info",
     "data-go-mcp.msds-chemical-info",
@@ -44,6 +45,7 @@ Documentation = "https://github.com/hichang4u/data-go-mcp-servers/tree/main/src/
 
 [tool.uv.sources]
 data-go-mcp-core = { workspace = true }
+"data-go-mcp.bok-ecos" = { workspace = true }
 "data-go-mcp.dart-disclosure" = { workspace = true }
 "data-go-mcp.fsc-financial-info" = { workspace = true }
 "data-go-mcp.msds-chemical-info" = { workspace = true }

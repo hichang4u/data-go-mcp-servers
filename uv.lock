@@ -14,6 +14,7 @@ resolution-markers = [
 [manifest]
 members = [
     "data-go-mcp-all-servers",
+    "data-go-mcp-bok-ecos",
     "data-go-mcp-core",
     "data-go-mcp-dart-disclosure",
     "data-go-mcp-fsc-financial-info",
@@ -629,6 +630,7 @@ name = "data-go-mcp-all-servers"
 version = "0.1.0"
 source = { editable = "src/all-servers" }
 dependencies = [
+    { name = "data-go-mcp-bok-ecos" },
     { name = "data-go-mcp-core" },
     { name = "data-go-mcp-dart-disclosure" },
     { name = "data-go-mcp-fsc-financial-info" },
@@ -642,6 +644,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "data-go-mcp-bok-ecos", editable = "src/bok-ecos" },
     { name = "data-go-mcp-core", editable = "src/data-go-mcp-core" },
     { name = "data-go-mcp-dart-disclosure", editable = "src/dart-disclosure" },
     { name = "data-go-mcp-fsc-financial-info", editable = "src/fsc-financial-info" },
@@ -651,6 +654,43 @@ requires-dist = [
     { name = "data-go-mcp-pps-narajangteo", editable = "src/pps-narajangteo" },
     { name = "data-go-mcp-presidential-speeches", editable = "src/presidential-speeches" },
     { name = "mcp", extras = ["cli"], specifier = ">=2.2,<3" },
+]
+
+[[package]]
+name = "data-go-mcp-bok-ecos"
+version = "0.1.0"
+source = { editable = "src/bok-ecos" }
+dependencies = [
+    { name = "data-go-mcp-core" },
+    { name = "httpx" },
+    { name = "mcp", extra = ["cli"] },
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+    { name = "pytest-mock" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "data-go-mcp-core", editable = "src/data-go-mcp-core" },
+    { name = "httpx", specifier = ">=0.28" },
+    { name = "mcp", extras = ["cli"], specifier = ">=2.2,<3" },
+    { name = "pydantic", specifier = ">=2.11" },
+    { name = "python-dotenv", specifier = ">=1.1" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=8.4.1" },
+    { name = "pytest-asyncio", specifier = ">=1.1.0" },
+    { name = "pytest-cov", specifier = ">=4.1.0" },
+    { name = "pytest-mock", specifier = ">=3.12.0" },
 ]
 
 [[package]]

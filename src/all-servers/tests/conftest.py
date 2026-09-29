@@ -7,3 +7,4 @@ import pytest
 def _keys(monkeypatch):
     monkeypatch.setenv("API_KEY", "test-key")
     monkeypatch.setenv("DART_DISCLOSURE_API_KEY", "test-dart-key")
+    monkeypatch.setenv("BOK_ECOS_API_KEY", "test-ecos-key")
