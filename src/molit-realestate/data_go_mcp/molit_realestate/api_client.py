@@ -2,7 +2,7 @@
 
 2026-09-30 실호출로 확인한 것:
 
-- 종류별로 오퍼레이션이 따로다 (매매 6종, 전월세 4종). 토지·상업업무용에는 전월세 API 가 없다
+- 종류별로 오퍼레이션이 따로다 (매매 7종, 전월세 4종). 토지·상업업무용·공장창고에는 전월세 API 가 없다
 - 조회 조건은 법정동코드 **앞 5자리**(``LAWD_CD``)와 계약년월 ``YYYYMM``(``DEAL_YMD``) 뿐
 - **잘못된 입력도 오류가 아니라 0건으로 온다** (10자리 코드, 4자리 년월, 파라미터 누락 모두
   ``resultCode 000``). 그래서 보내기 전에 검증한다
@@ -38,6 +38,7 @@ ENDPOINTS: dict[str, tuple[str, Optional[str]]] = {
         "RTMSDataSvcSHRent/getRTMSDataSvcSHRent",
     ),
     "상업업무용": ("RTMSDataSvcNrgTrade/getRTMSDataSvcNrgTrade", None),
+    "공장창고": ("RTMSDataSvcInduTrade/getRTMSDataSvcInduTrade", None),
     "토지": ("RTMSDataSvcLandTrade/getRTMSDataSvcLandTrade", None),
 }
 

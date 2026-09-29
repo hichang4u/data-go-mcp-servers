@@ -13,6 +13,8 @@ LAND_TRADE_XML = """<?xml version="1.0" encoding="utf-8" standalone="yes"?><resp
 
 SH_TRADE_XML = """<?xml version="1.0" encoding="utf-8" standalone="yes"?><response><header><resultCode>000</resultCode><resultMsg>OK</resultMsg></header><body><items><item><buildYear>1998</buildYear><buyerGbn>법인</buyerGbn><cdealDay> </cdealDay><cdealType> </cdealType><dealAmount>359,000</dealAmount><dealDay>14</dealDay><dealMonth>8</dealMonth><dealYear>2026</dealYear><dealingGbn>중개거래</dealingGbn><estateAgentSggNm>서울 강남구</estateAgentSggNm><houseType>다가구</houseType><jibun>1***</jibun><plottageAr>179.3</plottageAr><sggCd>11680</sggCd><slerGbn>개인</slerGbn><totalFloorAr>331.2</totalFloorAr><umdNm>논현동</umdNm></item></items><numOfRows>1</numOfRows><pageNo>1</pageNo><totalCount>4</totalCount></body></response>"""
 
+INDU_TRADE_XML = """<?xml version="1.0" encoding="utf-8" standalone="yes"?><response><header><resultCode>000</resultCode><resultMsg>OK</resultMsg></header><body><items><item><buildYear>2017</buildYear><buildingAr>62.78</buildingAr><buildingType>집합</buildingType><buildingUse>공장</buildingUse><buyerGbn>법인</buyerGbn><cdealDay> </cdealDay><cdealType> </cdealType><dealAmount>63,500</dealAmount><dealDay>14</dealDay><dealMonth>8</dealMonth><dealYear>2026</dealYear><dealingGbn>중개거래</dealingGbn><estateAgentSggNm>서울 강남구</estateAgentSggNm><floor>2</floor><jibun>649</jibun><landUse>준주거</landUse><plottageAr> </plottageAr><sggCd>11680</sggCd><sggNm>강남구</sggNm><shareDealingType> </shareDealingType><slerGbn>법인</slerGbn><umdNm>자곡동</umdNm></item></items><numOfRows>1</numOfRows><pageNo>1</pageNo><totalCount>2</totalCount></body></response>"""
+
 EMPTY_XML = """<?xml version="1.0" encoding="utf-8" standalone="yes"?><response><header><resultCode>000</resultCode><resultMsg>OK</resultMsg></header><body><items/><numOfRows>1</numOfRows><pageNo>1</pageNo><totalCount>0</totalCount></body></response>"""
 
 ERROR_XML = """<?xml version="1.0" encoding="utf-8" standalone="yes"?><response><header><resultCode>30</resultCode><resultMsg>SERVICE_KEY_IS_NOT_REGISTERED_ERROR</resultMsg></header><body></body></response>"""
@@ -41,6 +43,11 @@ def land_trade_xml() -> str:
 @pytest.fixture
 def sh_trade_xml() -> str:
     return SH_TRADE_XML
+
+
+@pytest.fixture
+def indu_trade_xml() -> str:
+    return INDU_TRADE_XML
 
 
 @pytest.fixture

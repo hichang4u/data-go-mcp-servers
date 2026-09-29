@@ -100,6 +100,7 @@ async def test_land_and_house_keep_their_own_area_fields(base_url, land_trade_xm
         ("단독다가구", "RTMSDataSvcSHTrade/getRTMSDataSvcSHTrade"),
         ("상업업무용", "RTMSDataSvcNrgTrade/getRTMSDataSvcNrgTrade"),
         ("토지", "RTMSDataSvcLandTrade/getRTMSDataSvcLandTrade"),
+        ("공장창고", "RTMSDataSvcInduTrade/getRTMSDataSvcInduTrade"),
     ],
 )
 @respx.mock
@@ -178,3 +179,19 @@ async def test_service_error_raises(base_url):
         with pytest.raises(DataGoAPIError) as exc:
             await client.search_trades("11680", "202608", "아파트")
     assert exc.value.result_code == "30"
+
+
+@respx.mock
+async def test_factory_warehouse_uses_building_fields(base_url, indu_trade_xml):
+    """공장·창고는 상업업무용과 같은 필드 구성이다 (건물면적·주용도·용도지역)."""
+    respx.get(url__startswith=f"{base_url}/RTMSDataSvcInduTrade").mock(
+        return_value=_xml(indu_trade_xml)
+    )
+    async with MolitRealEstateAPIClient() as client:
+        item = (await client.search_trades("11680", "202608", "공장창고"))["items"][0]
+
+    assert item["building_use"] == "공장"
+    assert item["building_area"] == 62.78
+    assert item["land_use"] == "준주거"
+    assert item["deal_amount"] == 63500
+    assert item["exclusive_area"] is None
