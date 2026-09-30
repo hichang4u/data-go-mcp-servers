@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] - 2026-10-01
+
+### Fixed
+- `find_bid_winners` 가 기본 30초 타임아웃으로 돌아, 999건짜리 페이지 하나가 느리면 스캔 전체가
+  `네트워크 오류` 로 끊기던 문제 — 90초로
+
 ## [0.6.0] - 2026-09-30
 
 ### Added
