@@ -26,14 +26,9 @@ Based on [Koomook/data-go-mcp-servers](https://github.com/Koomook/data-go-mcp-se
 
 Most Korean public-data MCP servers wrap a single API. Here the agencies are joined up, so one business registration number walks across four of them:
 
-```
-> Run due diligence on business number 214-87-12538
+![One business number queried across five Korean agencies in a single run](docs/images/demo-due-diligence.jpg)
 
-  National Tax Service   → active taxpayer · standard VAT
-  FSC                    → Woorisoft Inc. · corporate number 110111-2529050
-  COMWEL                 → 44 insured employees · system software development
-  Public Procurement     → 2026-08-26 award, 500M KRW (information-security programme)
-```
+A real run of `scripts/demo_due_diligence.py` — live API calls, nothing staged.
 
 Run it yourself — these are live API calls, so the numbers move:
 
