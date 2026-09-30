@@ -127,4 +127,46 @@ async def test_empty_result_is_not_an_error(index_base_url, stock_empty_response
     )
     async with MarketIndexAPIClient() as client:
         result = await client.get_indices(index_name="없는지수")
-    assert result == {"items": [], "total_count": 0}
+    assert result["items"] == [] and result["total_count"] == 0
+
+
+@pytest.mark.parametrize("rows", [0, 101, 99999])
+async def test_index_row_count_is_capped_like_other_clients(rows):
+    """다른 클라이언트와 같은 한도(1~100)를 지켜야 한 번에 수십만 건을 끌어오지 않는다."""
+    async with MarketIndexAPIClient() as client:
+        with pytest.raises(ValueError):
+            await client.get_indices(index_name="코스피", num_of_rows=rows)
+
+
+async def test_product_row_count_is_capped():
+    async with SecuritiesProductAPIClient() as client:
+        with pytest.raises(ValueError):
+            await client.get_product_prices(like_item_name="KODEX", num_of_rows=99999)
+
+
+async def test_page_no_must_be_positive():
+    async with MarketIndexAPIClient() as client:
+        with pytest.raises(ValueError):
+            await client.get_indices(index_name="코스피", page_no=0)
+
+
+async def test_date_errors_name_the_offending_parameter():
+    """세 날짜가 같은 이름으로 보고되면 어느 것이 틀렸는지 알 수 없다."""
+    async with MarketIndexAPIClient() as client:
+        with pytest.raises(ValueError, match="begin_bas_dt|시작"):
+            await client.get_indices(
+                index_name="코스피", bas_dt="20260929", begin_bas_dt="2026-09"
+            )
+        with pytest.raises(ValueError, match="end_bas_dt|끝"):
+            await client.get_indices(index_name="코스피", end_bas_dt="2026")
+
+
+@respx.mock
+async def test_index_result_reports_page_size(index_base_url, stock_index_response):
+    """total_count 만으로는 페이지 수를 계산할 수 없다 — 다른 툴처럼 num_of_rows 를 돌려준다."""
+    respx.get(url__startswith=index_base_url).mock(
+        return_value=httpx.Response(200, json=stock_index_response)
+    )
+    async with MarketIndexAPIClient() as client:
+        result = await client.get_indices(index_name="코스피", num_of_rows=5)
+    assert result["num_of_rows"] == 5

@@ -401,6 +401,52 @@ INDEX_TYPES = {"주가": "getStockMarketIndex_V2", "채권": "getBondMarketIndex
 PRODUCT_TYPES = {"ETF": "getETFPriceInfo_V2", "ETN": "getETNPriceInfo_V2"}
 
 
+class MarketIndexRequest(BaseRequest):
+    """지수시세 요청 모델. 건수·페이지 한도는 BaseRequest 와 같다 (1~100)."""
+
+    index_name: str | None = Field(default=None, description="지수명 (정확히 일치)")
+    like_index_name: str | None = Field(default=None, description="지수명 (부분 일치)")
+    bas_dt: str | None = Field(default=None, description="기준일자 (YYYYMMDD)")
+    begin_bas_dt: str | None = Field(default=None, description="기준일자 시작 (이상)")
+    end_bas_dt: str | None = Field(default=None, description="기준일자 끝 (이하)")
+
+    @field_validator("index_name", "like_index_name")
+    @classmethod
+    def _strip_index(cls, v: str | None) -> str | None:
+        v = (v or "").strip()
+        return v or None
+
+    @field_validator("bas_dt")
+    @classmethod
+    def _validate_bas_dt(cls, v: str | None) -> str | None:
+        return _yyyymmdd(v, "기준일자(bas_dt)")
+
+    @field_validator("begin_bas_dt")
+    @classmethod
+    def _validate_begin(cls, v: str | None) -> str | None:
+        return _yyyymmdd(v, "기준일자 시작(begin_bas_dt)")
+
+    @field_validator("end_bas_dt")
+    @classmethod
+    def _validate_end(cls, v: str | None) -> str | None:
+        return _yyyymmdd(v, "기준일자 끝(end_bas_dt)")
+
+
+class ProductPriceRequest(MarketIndexRequest):
+    """증권상품시세(ETF·ETN) 요청 모델. 단축코드가 영숫자라 자리수 검증을 하지 않는다."""
+
+    item_name: str | None = Field(default=None, description="종목명 (정확히 일치)")
+    like_item_name: str | None = Field(default=None, description="종목명 (부분 일치)")
+    short_code: str | None = Field(default=None, description="단축코드 (영숫자 6자리)")
+    isin_cd: str | None = Field(default=None, description="ISIN 코드 (12자리)")
+
+    @field_validator("item_name", "like_item_name", "short_code", "isin_cd")
+    @classmethod
+    def _strip_product(cls, v: str | None) -> str | None:
+        v = (v or "").strip()
+        return v or None
+
+
 class MarketIndex(BaseModel):
     """주가지수 일별 시세 한 건."""
 

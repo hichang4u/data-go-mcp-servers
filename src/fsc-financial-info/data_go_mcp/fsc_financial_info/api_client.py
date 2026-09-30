@@ -17,12 +17,13 @@ from .models import (
     IncomeStatementItem,
     IncomeStatementResponse,
     MarketIndex,
+    MarketIndexRequest,
     ProductPrice,
+    ProductPriceRequest,
     StockPrice,
     StockPriceRequest,
     SummaryFinancialResponse,
     SummaryFinancialStatement,
-    _yyyymmdd,
 )
 
 
@@ -362,28 +363,39 @@ class MarketIndexAPIClient(BaseDataGoClient):
         num_of_rows: int = 10,
     ) -> dict[str, Any]:
         """지수 일별 시세 (최신 일자부터)."""
-        endpoint = INDEX_TYPES.get((index_type or "").strip())
+        kind = (index_type or "").strip()
+        endpoint = INDEX_TYPES.get(kind)
         if endpoint is None:
             raise ValueError(
                 f"지수 종류는 {', '.join(INDEX_TYPES)} 중 하나여야 합니다: {index_type!r}"
             )
+        request = MarketIndexRequest(
+            index_name=index_name,
+            like_index_name=like_index_name,
+            bas_dt=bas_dt,
+            begin_bas_dt=begin_bas_dt,
+            end_bas_dt=end_bas_dt,
+            page_no=page_no,
+            num_of_rows=num_of_rows,
+        )
         body = await self.get(
             endpoint,
             {
-                "pageNo": page_no,
-                "numOfRows": num_of_rows,
-                "idxNm": (index_name or "").strip() or None,
-                "likeIdxNm": (like_index_name or "").strip() or None,
-                "basDt": _yyyymmdd(bas_dt, "기준일자"),
-                "beginBasDt": _yyyymmdd(begin_bas_dt, "기준일자"),
-                "endBasDt": _yyyymmdd(end_bas_dt, "기준일자"),
+                "pageNo": request.page_no,
+                "numOfRows": request.num_of_rows,
+                "idxNm": request.index_name,
+                "likeIdxNm": request.like_index_name,
+                "basDt": request.bas_dt,
+                "beginBasDt": request.begin_bas_dt,
+                "endBasDt": request.end_bas_dt,
             },
         )
         items = normalize_items(body)
-        model = BondIndex if index_type.strip() == "채권" else MarketIndex
+        model = BondIndex if kind == "채권" else MarketIndex
         return {
             "items": [model.from_api(i).model_dump() for i in items],
             "total_count": int(body.get("totalCount") or 0),
+            "num_of_rows": request.num_of_rows,
         }
 
 
@@ -417,22 +429,34 @@ class SecuritiesProductAPIClient(BaseDataGoClient):
             raise ValueError(
                 f"상품 종류는 {', '.join(PRODUCT_TYPES)} 중 하나여야 합니다: {product_type!r}"
             )
+        request = ProductPriceRequest(
+            item_name=item_name,
+            like_item_name=like_item_name,
+            short_code=short_code,
+            isin_cd=isin_cd,
+            bas_dt=bas_dt,
+            begin_bas_dt=begin_bas_dt,
+            end_bas_dt=end_bas_dt,
+            page_no=page_no,
+            num_of_rows=num_of_rows,
+        )
         body = await self.get(
             endpoint,
             {
-                "pageNo": page_no,
-                "numOfRows": num_of_rows,
-                "itmsNm": (item_name or "").strip() or None,
-                "likeItmsNm": (like_item_name or "").strip() or None,
-                "likeSrtnCd": (short_code or "").strip() or None,
-                "isinCd": (isin_cd or "").strip() or None,
-                "basDt": _yyyymmdd(bas_dt, "기준일자"),
-                "beginBasDt": _yyyymmdd(begin_bas_dt, "기준일자"),
-                "endBasDt": _yyyymmdd(end_bas_dt, "기준일자"),
+                "pageNo": request.page_no,
+                "numOfRows": request.num_of_rows,
+                "itmsNm": request.item_name,
+                "likeItmsNm": request.like_item_name,
+                "likeSrtnCd": request.short_code,
+                "isinCd": request.isin_cd,
+                "basDt": request.bas_dt,
+                "beginBasDt": request.begin_bas_dt,
+                "endBasDt": request.end_bas_dt,
             },
         )
         items = normalize_items(body)
         return {
             "items": [ProductPrice.from_api(i).model_dump() for i in items],
             "total_count": int(body.get("totalCount") or 0),
+            "num_of_rows": request.num_of_rows,
         }

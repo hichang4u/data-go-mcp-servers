@@ -478,3 +478,22 @@ async def test_bad_index_type_is_input_error():
         result = await client.call_tool("get_market_index", {"index_type": "파생"})
     assert result.is_error is True
     assert "입력값 오류" in _text(result)
+
+
+@respx.mock
+async def test_echoed_type_is_normalized(
+    index_base_url, product_base_url, bond_index_response, etf_response
+):
+    """툴이 받아들인 값은 정규화해서 돌려줘야 소비자가 그대로 비교할 수 있다."""
+    respx.get(url__startswith=index_base_url).mock(
+        return_value=httpx.Response(200, json=bond_index_response)
+    )
+    respx.get(url__startswith=product_base_url).mock(
+        return_value=httpx.Response(200, json=etf_response)
+    )
+    async with Client(mcp) as client:
+        index = await client.call_tool("get_market_index", {"index_type": "채권 "})
+        product = await client.call_tool("get_etf_price", {"product_type": " etf "})
+
+    assert json.loads(_text(index))["index_type"] == "채권"
+    assert json.loads(_text(product))["product_type"] == "ETF"

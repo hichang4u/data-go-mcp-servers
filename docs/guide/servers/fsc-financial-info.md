@@ -40,7 +40,7 @@
 
 ## 지수·ETF
 
-`get_market_index` 는 코스피·코스닥 같은 **주가지수**와 KRX **채권지수**를, `get_etf_price` 는 **ETF·ETN** 일별 시세를 돌려준다. 둘 다 [지수시세정보](https://www.data.go.kr/)·[증권상품시세정보] 활용신청이 따로 필요하다 (포털에서 "금융위원회_지수시세정보", "금융위원회_증권상품시세정보" 검색).
+`get_market_index` 는 코스피·코스닥 같은 **주가지수**와 KRX **채권지수**를, `get_etf_price` 는 **ETF·ETN** 일별 시세를 돌려준다. 둘 다 [지수시세정보](https://www.data.go.kr/data/15094807/openapi.do)·[증권상품시세정보](https://www.data.go.kr/data/15094806/openapi.do) 활용신청이 따로 필요하다.
 
 - 지수명은 `index_name`(정확)과 `like_index_name`(부분)이 다르다 — "코스피"는 지수 하나지만 "코스피 2"로 부분 검색하면 코스피 200·코스피 200 TR 등이 함께 온다.
 - **지수 계열(`idxCsf`) 필터는 API 가 무시한다** (2026-09-29 확인) — 그래서 툴 파라미터에 넣지 않았다.

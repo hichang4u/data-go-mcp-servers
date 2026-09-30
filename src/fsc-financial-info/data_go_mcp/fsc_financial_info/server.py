@@ -510,7 +510,7 @@ async def get_market_index(
                 page_no=page_no,
                 num_of_rows=num_of_rows,
             )
-    return {**result, "index_type": index_type, "page_no": page_no}
+    return {**result, "index_type": index_type.strip(), "page_no": page_no}
 
 
 @mcp.tool(annotations=READ_ONLY)
@@ -563,7 +563,7 @@ async def get_etf_price(
                 page_no=page_no,
                 num_of_rows=num_of_rows,
             )
-    return {**result, "product_type": product_type.upper(), "page_no": page_no}
+    return {**result, "product_type": product_type.strip().upper(), "page_no": page_no}
 
 
 def main() -> None:
