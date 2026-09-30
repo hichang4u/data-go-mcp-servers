@@ -233,9 +233,12 @@ async def find_bid_winners(
     """특정 업체의 나라장터 낙찰 이력을 찾습니다. Find a company's winning bids.
 
     나라장터 API 는 낙찰업체로 **검색할 수 없어서**, 기간 안의 낙찰 건을 전부 받아 걸러냅니다.
-    그래서 기간이 길수록 느립니다 — 용역 1개월이 약 15~35초, 3개월이 약 70초입니다. 기본은 최근
-    1개월이고 **최대 3개월**까지만 됩니다. 업무구분을 하나만 지정하므로 다른 구분의 낙찰은
-    잡히지 않습니다 (용역/물품/공사/외자를 각각 호출하세요). 개찰일시 기준입니다.
+    그래서 기간이 길수록 느립니다 — 용역 1개월이 약 15~35초, 3개월이 약 60초입니다. 기본은 최근
+    1개월이고 **최대 3개월**까지입니다 (API 한도가 한 요청에 1개월이라 내부에서 달 단위로 나눠
+    호출합니다). 업무구분을 하나만 지정하므로 다른 구분의 낙찰은 잡히지 않습니다
+    (용역/물품/공사/외자를 각각 호출하세요). 개찰일시 기준입니다.
+
+    complete=false 면 기간을 다 훑지 못한 것이니 "0건"을 없다는 뜻으로 읽으면 안 됩니다.
     """
     async with tool_errors():
         async with PpsNarajangteoAPIClient() as client:
@@ -252,6 +255,7 @@ async def find_bid_winners(
         "message": (
             f"{result['search_period']} 개찰 {result['scanned_count']}건 중 "
             f"{result['total_count']}건이 일치합니다"
+            + ("" if result["complete"] else " (기간을 다 훑지 못했습니다 — 기간을 줄이세요)")
         ),
     }
 

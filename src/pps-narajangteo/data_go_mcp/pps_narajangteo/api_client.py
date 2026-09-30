@@ -9,7 +9,8 @@
   → 기간을 999건씩 훑어 클라이언트에서 거른다
 - ``PPSSrch`` 가 붙은 오퍼레이션은 부분집합이다 (같은 날 53건 vs 357건) → 전수 쪽을 쓴다
 - ``inqryDiv=1`` 은 등록일시, ``inqryDiv=2`` 가 **개찰일시** 기준이다
-- 기간 한도는 1개월. 용역 1개월 전수가 4~8페이지, 15~35초 (오래된 달일수록 건수가 많다)
+- **한 요청의 기간 한도는 1개월**이다 (넘기면 코드 07). 그래서 더 긴 기간은 달 단위로 쪼개
+  호출한다. 용역 1개월 전수가 4~8페이지 15~35초, 3개월이 19요청 약 70초
 """
 
 import datetime as dt
@@ -35,10 +36,15 @@ WINNER_MAX_DAYS = 93  # 3개월. 그 이상은 분 단위로 늘어난다
 OPENING_DATE_DIV = 2  # 1=등록일시, 2=개찰일시
 
 
+def _now() -> "dt.datetime":
+    """현재 시각. 테스트가 이 함수만 갈아끼운다."""
+    return dt.datetime.now()
+
+
 def format_datetime_for_api(value: Optional[str] = None, is_end: bool = False) -> str:
     """날짜/시간을 API 형식(YYYYMMDDHHMM)으로 변환. ``None`` 이면 오늘."""
     if not value:
-        return dt.datetime.now().strftime("%Y%m%d2359" if is_end else "%Y%m%d0000")
+        return _now().strftime("%Y%m%d2359" if is_end else "%Y%m%d0000")
     clean = value.replace("-", "").replace(":", "").replace(" ", "")
     if len(clean) == 8 and clean.isdigit():
         return clean + ("2359" if is_end else "0000")
@@ -132,19 +138,27 @@ class PpsNarajangteoAPIClient(BaseDataGoClient):
 
         bgn, end = self._winner_range(start_date, end_date)
         scanned = 0
+        complete = True
         hits: list[dict[str, Any]] = []
-        for page_no in range(1, WINNER_MAX_PAGES + 1):
-            body = await self._winner_page(operation, bgn, end, page_no)
-            rows = normalize_items(body)
-            scanned += len(rows)
-            hits += [r for r in rows if _winner_matches(r, bizno, name)]
-            total = int(body.get("totalCount") or 0)
-            if len(rows) < WINNER_PAGE_SIZE or scanned >= total:
-                break
+        for window_bgn, window_end in _monthly_windows(bgn, end):
+            window_scanned = 0
+            window_total = 0
+            for page_no in range(1, WINNER_MAX_PAGES + 1):
+                body = await self._winner_page(operation, window_bgn, window_end, page_no)
+                rows = normalize_items(body)
+                window_total = int(body.get("totalCount") or 0)
+                window_scanned += len(rows)
+                hits += [r for r in rows if _winner_matches(r, bizno, name)]
+                if not rows or window_scanned >= window_total:
+                    break
+            if window_scanned < window_total:  # 페이지 상한에 걸렸거나 응답이 덜 왔다
+                complete = False
+            scanned += window_scanned
         return {
             "items": [_winner_item(r) for r in hits],
             "total_count": len(hits),
             "scanned_count": scanned,
+            "complete": complete,
             "search_period": f"{bgn[:8]} ~ {end[:8]}",
         }
 
@@ -176,7 +190,9 @@ class PpsNarajangteoAPIClient(BaseDataGoClient):
         end = format_datetime_for_api(end_date or start_date or "", is_end=True)
         span = (
             dt.datetime.strptime(end[:8], "%Y%m%d") - dt.datetime.strptime(bgn[:8], "%Y%m%d")
-        ).days
+        ).days + 1  # 다른 pps 툴과 같은 포함 기준
+        if span < 1:
+            raise ValueError(f"시작일이 종료일보다 늦습니다: {bgn[:8]} ~ {end[:8]}")
         if span > WINNER_MAX_DAYS:
             raise ValueError(
                 f"낙찰업체 조회는 최대 3개월까지입니다: {bgn[:8]} ~ {end[:8]} ({span}일). "
@@ -207,6 +223,22 @@ class PpsNarajangteoAPIClient(BaseDataGoClient):
         )
 
 
+def _monthly_windows(bgn: str, end: str) -> list[tuple[str, str]]:
+    """``YYYYMMDDHHMM`` 범위를 달 단위 창으로 쪼갠다. API 가 한 요청에 1개월까지만 받는다."""
+    start = dt.datetime.strptime(bgn[:8], "%Y%m%d").date()
+    last = dt.datetime.strptime(end[:8], "%Y%m%d").date()
+    windows: list[tuple[str, str]] = []
+    while start <= last:
+        if start.month == 12:
+            month_end = start.replace(day=31)
+        else:
+            month_end = start.replace(month=start.month + 1, day=1) - dt.timedelta(days=1)
+        stop = min(month_end, last)
+        windows.append((start.strftime("%Y%m%d0000"), stop.strftime("%Y%m%d2359")))
+        start = stop + dt.timedelta(days=1)
+    return windows
+
+
 def _winner_matches(row: Mapping[str, Any], bizno: str, name: str) -> bool:
     """사업자번호는 정확히, 업체명은 부분 일치."""
     if bizno:
@@ -226,17 +258,21 @@ def _winner_item(row: Mapping[str, Any]) -> dict[str, Any]:
         except ValueError:
             return None
 
+    def text(value: Any) -> Optional[str]:
+        """숫자로 오는 필드가 있어 문자열로 맞춘다 (한 행이 스캔 전체를 날리지 않게)."""
+        return str(value if value is not None else "").strip() or None
+
     return {
-        "company_name": (row.get("bidwinnrNm") or "").strip() or None,
-        "business_number": (row.get("bidwinnrBizno") or "").strip() or None,
-        "ceo_name": (row.get("bidwinnrCeoNm") or "").strip() or None,
-        "address": (row.get("bidwinnrAdrs") or "").strip() or None,
-        "bid_notice_no": (row.get("bidNtceNo") or "").strip() or None,
-        "bid_notice_name": (row.get("bidNtceNm") or "").strip() or None,
+        "company_name": text(row.get("bidwinnrNm")),
+        "business_number": text(row.get("bidwinnrBizno")),
+        "ceo_name": text(row.get("bidwinnrCeoNm")),
+        "address": text(row.get("bidwinnrAdrs")),
+        "bid_notice_no": text(row.get("bidNtceNo")),
+        "bid_notice_name": text(row.get("bidNtceNm")),
         "winning_amount": number(row.get("sucsfbidAmt")),
         "winning_rate": number(row.get("sucsfbidRate")),
-        "opening_date": (row.get("rlOpengDt") or "")[:10] or None,
-        "final_award_date": (row.get("fnlSucsfDate") or "").strip() or None,
-        "demand_institution": (row.get("dminsttNm") or "").strip() or None,
+        "opening_date": (text(row.get("rlOpengDt")) or "")[:10] or None,
+        "final_award_date": text(row.get("fnlSucsfDate")),
+        "demand_institution": text(row.get("dminsttNm")),
         "participant_count": number(row.get("prtcptCnum")),
     }

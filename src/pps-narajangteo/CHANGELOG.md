@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `find_bid_winners` — 사업자번호·업체명으로 낙찰 이력 조회. 나라장터 API 가 업체 필터를 무시하므로
-  기간(기본 1개월, 최대 3개월)을 999건씩 훑어 거른다. 낙찰정보서비스(`as/ScsbidInfoService`) 사용
+  기간(기본 1개월, 최대 3개월)을 999건씩 훑어 거른다. 낙찰정보서비스(`as/ScsbidInfoService`) 사용.
+  API 한도가 한 요청에 1개월이라 달 단위로 나눠 호출하고, 다 훑지 못하면 `complete: false` 로 알린다
 
 ## [0.5.0] - 2026-09-20
 
