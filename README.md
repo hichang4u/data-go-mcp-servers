@@ -36,6 +36,8 @@
 uv run python scripts/demo_due_diligence.py 214-87-12538
 ```
 
+같은 방식의 데모가 둘 더 있다 — [업체별 낙찰 이력](docs/guide/servers/pps-narajangteo.md#낙찰업체로-찾기)(`demo_bid_winners.py`), [지역 아파트 실거래](docs/guide/servers/molit-realestate.md#지역코드-찾기)(`demo_realestate.py`).
+
 ## 빠른 시작
 
 **처음이라면 → [시작하기](docs/guide/quickstart.md)** (코드·터미널 없이 10분).

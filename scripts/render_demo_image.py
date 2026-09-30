@@ -35,7 +35,17 @@ COLORS = {
     "prompt": (107, 114, 128),
     "command": (125, 211, 252),
 }
-AGENCIES = {"국세청", "금융위원회", "근로복지공단", "조달청", "금융감독원 DART", "조달청 나라장터"}
+AGENCIES = {
+    "국세청",
+    "금융위원회",
+    "근로복지공단",
+    "조달청",
+    "금융감독원 DART",
+    "조달청 나라장터",
+    "국민연금공단 (법정동코드)",
+    "국토교통부 (매매)",
+    "국토교통부 (전월세)",
+}
 
 FONT_CANDIDATES = [
     (r"C:\Windows\Fonts\gulim.ttc", 1),  # 굴림체 — 한글 고정폭
@@ -55,9 +65,9 @@ def classify(line: str) -> str:
         return "tool"
     if re.fullmatch(r"\(\d+\.\d+초\)", stripped):
         return "time"
-    if stripped.startswith("사업자등록번호") or stripped.startswith("사업자번호"):
+    if stripped.startswith(("사업자등록번호", "사업자번호")) or "아파트 실거래" in stripped:
         return "title"
-    if "개 기관을 한 번에" in stripped or "건을 찾았습니다" in stripped:
+    if any(k in stripped for k in ("개 기관을 한 번에", "건을 찾았습니다", "실거래를 훑었습니다")):
         return "closing"
     return "data"
 

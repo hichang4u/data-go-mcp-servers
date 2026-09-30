@@ -18,6 +18,10 @@
 
 ## 지역코드 찾기
 
+![지역명으로 코드를 찾아 그달 실거래를 조회하는 화면](../../images/demo-realestate.png)
+
+위는 `scripts/demo_realestate.py` 를 실제로 돌린 화면이다.
+
 조회에 필요한 것은 법정동코드 **앞 5자리**(시군구)다. nps 서버의 `find_region_code` 가 찾아 준다:
 
 ```

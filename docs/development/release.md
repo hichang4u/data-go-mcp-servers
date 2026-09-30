@@ -50,6 +50,9 @@ PyPI 는 쓰지 않는다. 원저장소의 `data-go-mcp.*` 네임스페이스는
 uv run python scripts/demo_due_diligence.py > demo.txt
 uv run --with pillow python scripts/render_demo_image.py demo.txt docs/images/demo-due-diligence.png
 
+uv run python scripts/demo_realestate.py > realestate.txt
+uv run --with pillow python scripts/render_demo_image.py realestate.txt docs/images/demo-realestate.png   --command "uv run python scripts/demo_realestate.py 강남구 202608"
+
 uv run python scripts/demo_bid_winners.py --business-type 용역 > bids.txt
 uv run --with pillow python scripts/render_demo_image.py bids.txt docs/images/demo-bid-winners.png   --command "uv run python scripts/demo_bid_winners.py 111-81-26895 --business-type 용역"
 ```
