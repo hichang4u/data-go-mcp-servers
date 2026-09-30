@@ -1,5 +1,7 @@
 # data-go-mcp-servers
 
+**한국어** · [English](README.en.md)
+
 한국 공공데이터 API 를 MCP(Model Context Protocol) 서버로 제공한다. Claude Desktop, Claude Code 등 MCP 클라이언트에서 국민연금 사업장과 고용·산재보험 현황, 사업자등록 상태, 나라장터 입찰, 기업 재무제표·법인번호·주식시세, DART 전자공시·재무제표, 한국은행 경제통계, 부동산 실거래가, 대통령 연설문, MSDS 화학물질 정보를 바로 조회할 수 있다.
 
 [Koomook/data-go-mcp-servers](https://github.com/Koomook/data-go-mcp-servers)(Apache-2.0, 2025-09 이후 정지)를 기반으로 mcp SDK 2.x 에 맞춰 재정비한 것이다. 툴 이름과 파라미터는 원저장소와 호환된다.
@@ -19,6 +21,19 @@
 | [bok-ecos](docs/guide/servers/bok-ecos.md) | 한국은행 — 경제통계시스템 ECOS (기준금리·환율·물가, 100대 지표) | `find_statistic_table` `get_statistic_items` `get_statistic_data` `get_key_statistics` `search_term` |
 
 서버 9개, 툴 46개, 공공 API 26종. 모든 툴은 조회 전용이며, 실패는 MCP 오류 결과(`isError`)로 전달된다. 한 서버가 API 여러 개를 쓰는 경우(molit 11, fsc 5, nps 3, pps 2)는 각각 활용신청이 필요하다 — 표는 [api-keys.md](docs/guide/api-keys.md). dart-disclosure(OpenDART)와 bok-ecos(한국은행 ECOS)는 data.go.kr 이 아닌 각자의 키를 쓴다.
+
+## 무엇이 다른가
+
+한국 공공데이터 MCP 서버는 대개 API 하나를 감싼다. 이 저장소는 기관을 가로질러 잇는다 — 사업자등록번호 하나가 네 기관을 지나간다:
+
+```
+> 사업자번호 214-87-12538 거래처 실사해줘
+
+  국세청      → 계속사업자, 부가가치세 일반과세자
+  금융위      → 법인번호 130111-0006246 → 재무제표
+  근로복지공단 → 사업장 주소, 고용·산재보험 현황
+  조달청      → 2026-08-26 낙찰 4.54억 (개인정보보호 관리체계 강화 사업)
+```
 
 ## 빠른 시작
 
@@ -68,10 +83,10 @@
 ```bash
 git clone https://github.com/hichang4u/data-go-mcp-servers && cd data-go-mcp-servers
 uv sync --dev --all-packages
-cp .env.example .env                            # API_KEY (data.go.kr), DART_DISCLOSURE_API_KEY (OpenDART) 채우기 — 실호출 테스트용
-uv run pytest                                   # 334 tests; 실호출은 -m integration
+cp .env.example .env                            # API_KEY, DART_DISCLOSURE_API_KEY, BOK_ECOS_API_KEY 채우기 — 실호출 테스트용
+uv run pytest                                   # 482 tests; 실호출은 -m integration
 uv run ruff check src scripts tests && uv run pyright src scripts tests
-uv run python scripts/check_apis.py             # 11개 API 생존·권한 확인
+uv run python scripts/check_apis.py             # 주요 API 생존·권한 확인
 ```
 
 Python 3.10+, `mcp>=2.2`. CI 는 ubuntu/windows × 3.10/3.13 에서 pytest, ruff, pyright 를 필수로 돌린다.

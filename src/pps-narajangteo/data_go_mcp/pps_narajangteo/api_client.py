@@ -183,7 +183,7 @@ class PpsNarajangteoAPIClient(BaseDataGoClient):
     def _winner_range(start_date: Optional[str], end_date: Optional[str]) -> tuple[str, str]:
         """기본은 최근 1개월. 최대 3개월."""
         if not start_date and not end_date:
-            today = dt.datetime.now()
+            today = _now()
             begin = today - dt.timedelta(days=30)
             return begin.strftime("%Y%m%d0000"), today.strftime("%Y%m%d2359")
         bgn = format_datetime_for_api(start_date or end_date or "", is_end=False)
