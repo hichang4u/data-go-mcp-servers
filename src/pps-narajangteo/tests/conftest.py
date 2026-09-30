@@ -4,6 +4,8 @@ import pytest
 
 
 BASE = "https://apis.data.go.kr/1230000/ao/PubDataOpnStdService"
+# 낙찰업체 조회는 개방표준이 아니라 낙찰정보서비스를 쓴다 (업체 정보가 여기에만 있다)
+SCSBID_BASE = "https://apis.data.go.kr/1230000/as/ScsbidInfoService"
 
 BID_ITEM = {
     "bidNtceNo": "R26BK01722116",

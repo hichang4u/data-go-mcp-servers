@@ -21,7 +21,8 @@ Encoding 값(`%2B`, `%3D` 가 섞인 것)이 아니라 **Decoding 값**(`+`, `=`
 | | [행정안전부_행정표준코드_법정동코드](https://www.data.go.kr/data/15077871/openapi.do) | `find_region_code` |
 | | [근로복지공단_고용/산재보험 현황정보](https://www.data.go.kr/data/15059256/openapi.do) | `get_insurance_status` |
 | nts-business-verification | 포털에서 "국세청_사업자등록정보 진위확인 및 상태조회 서비스" 검색 | 전체 |
-| pps-narajangteo | 포털에서 "조달청_나라장터 공공데이터개방표준서비스" 검색 | 전체 |
+| pps-narajangteo | 포털에서 "조달청_나라장터 공공데이터개방표준서비스" 검색 | `search_bid_announcements` `search_successful_bids` `search_contracts` `get_bid_detail` |
+| | 포털에서 "조달청_나라장터 낙찰정보서비스" 검색 | `find_bid_winners` |
 | fsc-financial-info | [금융위원회_기업 재무정보](https://www.data.go.kr/data/15043459/openapi.do) | `get_summary_financial_statement` `get_balance_sheet` `get_income_statement` `search_company_financial_info` |
 | | [금융위원회_기업기본정보](https://www.data.go.kr/data/15043184/openapi.do) | `find_corp_number` `get_corp_outline` |
 | | [금융위원회_주식시세정보](https://www.data.go.kr/data/15094808/openapi.do) | `get_stock_price` `search_stock_items` |

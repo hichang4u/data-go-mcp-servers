@@ -72,6 +72,12 @@ CALLS = [
         {"region_code": "11680", "deal_ym": "202608", "num_of_rows": 3},
         '"rent_type"',
     ),
+    (
+        "pps_narajangteo",
+        "find_bid_winners",
+        {"company_name": "주식회사", "start_date": "2026-08-26", "end_date": "2026-08-26"},
+        '"scanned_count"',
+    ),
     ("bok_ecos", "get_key_statistics", {"class_name": "환율", "num_of_rows": 10}, '"class_name"'),
     (
         "bok_ecos",

@@ -16,7 +16,11 @@ from data_go_mcp.core import (
     tool_errors,
 )
 
-from .api_client import PpsNarajangteoAPIClient
+from .api_client import (
+    WINNER_OPERATIONS,
+    PpsNarajangteoAPIClient,
+    format_datetime_for_api,
+)
 
 
 load_dotenv()
@@ -28,18 +32,6 @@ BUSINESS_TYPE_NAMES = {"1": "물품", "2": "외자", "3": "공사", "5": "용역
 Date = Annotated[Optional[str], Field(description="날짜 (YYYY-MM-DD 또는 YYYYMMDD)")]
 NumOfRows = Annotated[int, Field(description="한 페이지 결과 수 (기본값: 10, 최대: 999)")]
 PageNo = Annotated[int, Field(description="페이지 번호 (기본값: 1)")]
-
-
-def format_datetime_for_api(dt: Optional[str] = None, is_end: bool = False) -> str:
-    """날짜/시간을 API 형식(YYYYMMDDHHMM)으로 변환. ``None`` 이면 오늘."""
-    if not dt:
-        return datetime.now().strftime("%Y%m%d2359" if is_end else "%Y%m%d0000")
-    clean = dt.replace("-", "").replace(":", "").replace(" ", "")
-    if len(clean) == 8 and clean.isdigit():
-        return clean + ("2359" if is_end else "0000")
-    if len(clean) == 12 and clean.isdigit():
-        return clean
-    raise ValueError(f"잘못된 날짜/시간 형식: {dt}")
 
 
 def parse_business_type(business_type: str) -> str:
@@ -222,6 +214,46 @@ async def get_bid_detail(
             f"(최대 {DETAIL_SCAN_PAGES * 999}건)에서 찾을 수 없습니다. "
             "공고일을 알면 start_date 로 그날을 지정하세요."
         )
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def find_bid_winners(
+    business_number: Annotated[
+        Optional[str], Field(description="낙찰업체 사업자등록번호 10자리 (하이픈 허용)")
+    ] = None,
+    company_name: Annotated[
+        Optional[str], Field(description="낙찰업체 상호 (부분 일치). 사업자번호가 더 정확하다")
+    ] = None,
+    business_type: Annotated[
+        str, Field(description=f"업무구분: {', '.join(WINNER_OPERATIONS)}")
+    ] = "용역",
+    start_date: Date = None,
+    end_date: Date = None,
+) -> dict[str, Any]:
+    """특정 업체의 나라장터 낙찰 이력을 찾습니다. Find a company's winning bids.
+
+    나라장터 API 는 낙찰업체로 **검색할 수 없어서**, 기간 안의 낙찰 건을 전부 받아 걸러냅니다.
+    그래서 기간이 길수록 느립니다 — 용역 1개월이 약 15~35초, 3개월이 약 70초입니다. 기본은 최근
+    1개월이고 **최대 3개월**까지만 됩니다. 업무구분을 하나만 지정하므로 다른 구분의 낙찰은
+    잡히지 않습니다 (용역/물품/공사/외자를 각각 호출하세요). 개찰일시 기준입니다.
+    """
+    async with tool_errors():
+        async with PpsNarajangteoAPIClient() as client:
+            result = await client.find_bid_winners(
+                business_number=business_number,
+                company_name=company_name,
+                business_type=business_type,
+                start_date=start_date,
+                end_date=end_date,
+            )
+    return {
+        **result,
+        "business_type": business_type.strip(),
+        "message": (
+            f"{result['search_period']} 개찰 {result['scanned_count']}건 중 "
+            f"{result['total_count']}건이 일치합니다"
+        ),
+    }
 
 
 def main() -> None:

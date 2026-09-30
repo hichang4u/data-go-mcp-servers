@@ -57,6 +57,7 @@ async def test_all_tools_are_read_only_with_described_params():
         "search_successful_bids",
         "search_contracts",
         "get_bid_detail",
+        "find_bid_winners",
     }
     for tool in tools:
         assert tool.annotations is not None and tool.annotations.read_only_hint is True
@@ -281,3 +282,59 @@ async def test_search_successful_bids_rejects_multi_day_range():
         )
     assert result.is_error is True
     assert "하루" in _text(result)
+
+
+@respx.mock
+async def test_find_bid_winners_reports_scan_scope(base_url):
+    """전수를 훑는 방식이라 얼마나 훑었는지 알려 준다."""
+    from .conftest import SCSBID_BASE
+
+    respx.get(url__startswith=SCSBID_BASE).mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "response": {
+                    "header": {"resultCode": "00", "resultMsg": "정상"},
+                    "body": {
+                        "items": [
+                            {
+                                "bidNtceNo": "R26BK01699507",
+                                "bidNtceNm": "개인정보보호 관리체계 강화 사업",
+                                "bidwinnrNm": "(주)우리소프트",
+                                "bidwinnrBizno": "2148712538",
+                                "sucsfbidAmt": "454000000",
+                                "rlOpengDt": "2026-08-26 11:00:00",
+                                "dminsttNm": "한국주택금융공사",
+                            }
+                        ],
+                        "numOfRows": 999,
+                        "pageNo": 1,
+                        "totalCount": 1,
+                    },
+                }
+            },
+        )
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool(
+            "find_bid_winners",
+            {
+                "business_number": "214-87-12538",
+                "start_date": "2026-08-01",
+                "end_date": "2026-08-31",
+            },
+        )
+
+    data = json.loads(_text(result))
+    assert result.is_error is False
+    assert data["items"][0]["company_name"] == "(주)우리소프트"
+    assert data["items"][0]["winning_amount"] == 454000000
+    assert data["scanned_count"] == 1
+    assert data["business_type"] == "용역"
+
+
+async def test_find_bid_winners_without_target_is_input_error():
+    async with Client(mcp) as client:
+        result = await client.call_tool("find_bid_winners", {"start_date": "2026-08-01"})
+    assert result.is_error is True
+    assert "입력값 오류" in _text(result)

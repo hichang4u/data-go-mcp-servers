@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-data.go.kr 공공 API 23종 + OpenDART + 한국은행 ECOS(서버 9개)를 MCP 서버로 제공하는 uv 워크스페이스. Python 3.10+, `mcp>=2.2,<3`.
+data.go.kr 공공 API 24종 + OpenDART + 한국은행 ECOS(서버 9개)를 MCP 서버로 제공하는 uv 워크스페이스. Python 3.10+, `mcp>=2.2,<3`.
 
 ## 명령
 
@@ -21,7 +21,7 @@ Windows 에서 `uv` 가 PATH 에 없으면 `python -m uv …`. 이 셸에서 이
 ## 구조
 
 - `src/data-go-mcp-core` — 공통: `BaseDataGoClient`, `DataGoAPIError`, `load_api_key`, `tool_errors`, `READ_ONLY`, `configure_logging`
-- `src/<server>/data_go_mcp/<module>/{api_client,models,server}.py` + `tests/{conftest,test_api,test_server}.py`. 서버가 API 여러 개를 쓰면 `api_client.py` 에 클라이언트 클래스 여러 개(같은 `key_env_prefix`), 테스트는 `test_<api>_api.py` (nps 3종, fsc 5종, molit 11종)
+- `src/<server>/data_go_mcp/<module>/{api_client,models,server}.py` + `tests/{conftest,test_api,test_server}.py`. 서버가 API 여러 개를 쓰면 `api_client.py` 에 클라이언트 클래스 여러 개(같은 `key_env_prefix`), 테스트는 `test_<api>_api.py` (nps 3종, fsc 5종, molit 11종, pps 2종)
 - `src/all-servers` — 서버 전부의 툴을 한 프로세스로 (`data_go_mcp` 네임스페이스 자동 탐색). MCPB 번들(`mcpb/`, `scripts/gen_mcpb_manifest.py --pack`)로 Smithery 용(`type: python`, `tools[].inputSchema`)과 Claude Desktop 용(`type: uv`) 둘을 만든다. 새 서버는 이 pyproject 의존성에도 추가
 - `tests/` — stdio 스모크(`test_list_tools`), 실호출(`test_integration`), 루트 `conftest.py`(.env 로드, integration skip)
 - `template/` — cookiecutter. `docs/development/` — 설계·계획. `docs/guide/` — 사용자 문서.

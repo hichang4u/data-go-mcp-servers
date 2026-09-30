@@ -29,6 +29,7 @@ SERVERS = {
         "search_successful_bids",
         "search_contracts",
         "get_bid_detail",
+        "find_bid_winners",
     },
     "fsc_financial_info": {
         "get_summary_financial_statement",
