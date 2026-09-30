@@ -42,6 +42,17 @@ PyPI 는 쓰지 않는다. 원저장소의 `data-go-mcp.*` 네임스페이스는
    태그가 push 된 뒤에 pack 해야 번들이 동작한다 (`tag = "vX.Y.Z"` 를 uv 가 받는다).
    `npx @anthropic-ai/mcpb validate/pack` 은 쓰지 않는다 — Smithery 는 `tools[].inputSchema` 를 요구하고 MCPB 스키마는 그 키를 거부한다(Claude Desktop 직접 설치 시 "확장 프로그램 미리보기 실패"). 그래서 Desktop 용은 `inputSchema` 를 빼고 `server.type` 을 `uv` 로 바꾼 별도 번들이다 (`python` 타입이면 Claude Desktop 이 PATH 의 `uv` 를 찾다 `spawn uv ENOENT`; `uv` 타입은 호스트가 자체 uv 로 설치한다). Claude Desktop 에서 기존 확장을 지우고 `-desktop.mcpb` 를 드래그하면 새 태그로 `.venv` 를 다시 만든다.
 
+## README 데모 이미지
+
+`docs/images/demo-due-diligence.png` 은 실제 실행 출력을 그린 것이다. 데모가 바뀌면 다시 만든다 (브라우저 없이 돌아간다):
+
+```bash
+uv run python scripts/demo_due_diligence.py > demo.txt
+uv run --with pillow python scripts/render_demo_image.py demo.txt docs/images/demo-due-diligence.png
+```
+
+Pillow 는 프로젝트 의존성이 아니라 `--with` 로만 끌어 쓴다. 한글 고정폭은 굴림체(`gulim.ttc`)를 쓴다.
+
 ## 문서 갱신 체크
 
 - `scripts/gen_tool_docs.py --check` 가 통과하는지 (툴 시그니처가 바뀌면 가이드가 어긋난다)
