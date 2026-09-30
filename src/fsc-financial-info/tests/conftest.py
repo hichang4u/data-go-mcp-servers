@@ -326,3 +326,123 @@ def stock_empty_response() -> dict:
             },
         }
     }
+
+
+# ── 지수시세·증권상품시세 (2026-09-29 실제 응답) ────────────────────────────────
+
+INDEX_BASE = "https://apis.data.go.kr/1160100/GetMarketIndexInfoService_V2"
+PRODUCT_BASE = "https://apis.data.go.kr/1160100/GetSecuritiesProductInfoService_V2"
+
+_KOSPI_0928 = {
+    "basDt": "20260928",
+    "idxNm": "코스피",
+    "idxCsf": "KOSPI시리즈",
+    "epyItmsCnt": "828",
+    "clpr": "6889.74",
+    "vs": "-191.18",
+    "fltRt": "-2.7",
+    "mkp": "7057.86",
+    "hipr": "7065.9",
+    "lopr": "6889.68",
+    "trqu": "230005245",
+    "trPrc": "23048679580250",
+    "lstgMrktTotAmt": "5689659864797724",
+    "lsYrEdVsFltRg": "2676",
+    "lsYrEdVsFltRt": "63.49",
+    "yrWRcrdHgst": "9114.55",
+    "yrWRcrdHgstDt": "20260622",
+    "yrWRcrdLwst": "0",
+    "yrWRcrdLwstDt": "20260929",
+    "basPntm": "19800104",
+    "basIdx": "100",
+}
+
+_BOND_INDEX_0929 = {
+    "basDt": "20260929",
+    "idxNm": "KRX 채권지수",
+    "totBnfIdxClpr": "194.21",
+    "totBnfIdxVs": ".49",
+    "zrRinvIdxClpr": "187.64",
+    "zrRinvIdxVs": ".46",
+    "clRinvIdxClpr": "193.15",
+    "clRinvIdxVs": ".48",
+    "mrktPrcIdxClpr": "95.91",
+    "mrktPrcIdxVs": ".24",
+    "durt": "4.835",
+    "cnvt": "70.449",
+    "ytm": "4.318",
+    "nPrcIdxClpr": "95.29",
+    "nPrcIdxVs": ".23",
+}
+
+_ETF_0929 = {
+    "basDt": "20260929",
+    "srtnCd": "0219E0",
+    "isinCd": "KR70219E0005",
+    "itmsNm": "KODEX 200커버드콜액티브",
+    "clpr": "8295",
+    "vs": "-5",
+    "fltRt": "-.06",
+    "nav": "8296.09",
+    "mkp": "8250",
+    "hipr": "8330",
+    "lopr": "8180",
+    "trqu": "5177875",
+    "trPrc": "42788449977",
+    "mrktTotAmt": "919086000000",
+    "stLstgCnt": "110800000",
+    "bssIdxIdxNm": "코스피 200 커버드콜 5% OTM",
+    "bssIdxClpr": "786.08",
+    "nPptTotAmt": "919206372411",
+}
+
+_ETN_0929 = {
+    "basDt": "20260929",
+    "srtnCd": "500067",
+    "isinCd": "KRG500000671",
+    "itmsNm": "신한 레버리지 10년 국채선물 ETN",
+    "clpr": "9335",
+    "vs": "-40",
+    "fltRt": "-.43",
+    "indcVal": "9431.81",
+    "mkp": "9345",
+    "hipr": "9345",
+    "lopr": "9335",
+    "trqu": "2",
+    "trPrc": "18680",
+    "mrktTotAmt": "6534500000",
+    "indcValTotAmt": "6602267000",
+    "lstgScrtCnt": "700000",
+    "bssIdxIdxNm": "10년국채선물 레버리지지수",
+    "bssIdxClpr": "1679.37",
+}
+
+
+@pytest.fixture
+def index_base_url() -> str:
+    return INDEX_BASE
+
+
+@pytest.fixture
+def product_base_url() -> str:
+    return PRODUCT_BASE
+
+
+@pytest.fixture
+def stock_index_response() -> dict:
+    return wrap([_KOSPI_0928], total=1654)
+
+
+@pytest.fixture
+def bond_index_response() -> dict:
+    return wrap([_BOND_INDEX_0929], total=3)
+
+
+@pytest.fixture
+def etf_response() -> dict:
+    return wrap([_ETF_0929], total=14)
+
+
+@pytest.fixture
+def etn_response() -> dict:
+    return wrap([_ETN_0929], total=364)

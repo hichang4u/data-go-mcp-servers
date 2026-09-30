@@ -66,6 +66,8 @@ async def test_all_tools_are_read_only_with_described_params():
         "get_corp_outline",
         "get_stock_price",
         "search_stock_items",
+        "get_market_index",
+        "get_etf_price",
     }
     for tool in tools:
         assert tool.annotations is not None and tool.annotations.read_only_hint is True
@@ -410,3 +412,69 @@ async def test_search_stock_items_accepts_page_no(
 
     assert route.calls[1].request.url.params["pageNo"] == "2"
     assert json.loads(_text(result))["message"].endswith("(showing 2 on page 2)")
+
+
+@respx.mock
+async def test_get_market_index_returns_index_series(
+    index_base_url, stock_index_response
+):
+    respx.get(url__startswith=index_base_url).mock(
+        return_value=httpx.Response(200, json=stock_index_response)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool(
+            "get_market_index", {"index_name": "코스피", "begin_bas_dt": "20260925"}
+        )
+
+    data = json.loads(_text(result))
+    assert result.is_error is False
+    assert data["index_type"] == "주가"
+    assert data["items"][0]["index_name"] == "코스피"
+    assert data["items"][0]["close"] == 6889.74
+
+
+@respx.mock
+async def test_get_market_index_bond_type(index_base_url, bond_index_response):
+    route = respx.get(f"{index_base_url}/getBondMarketIndex_V2").mock(
+        return_value=httpx.Response(200, json=bond_index_response)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool(
+            "get_market_index", {"index_type": "채권", "bas_dt": "20260929"}
+        )
+
+    assert route.called
+    data = json.loads(_text(result))
+    assert data["items"][0]["ytm"] == 4.318
+
+
+@respx.mock
+async def test_get_etf_price_returns_rows(product_base_url, etf_response):
+    respx.get(url__startswith=product_base_url).mock(
+        return_value=httpx.Response(200, json=etf_response)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool(
+            "get_etf_price", {"item_name": "KODEX 200", "bas_dt": "20260929"}
+        )
+
+    data = json.loads(_text(result))
+    assert data["product_type"] == "ETF"
+    assert data["items"][0]["nav"] == 8296.09
+
+
+async def test_market_index_tools_are_read_only_with_descriptions():
+    tools = {t.name: t for t in await mcp.list_tools()}
+    assert {"get_market_index", "get_etf_price"} <= set(tools)
+    for name in ("get_market_index", "get_etf_price"):
+        tool = tools[name]
+        assert tool.annotations is not None and tool.annotations.read_only_hint is True
+        for param, prop in tool.input_schema["properties"].items():
+            assert prop.get("description"), f"{name}.{param} has no description"
+
+
+async def test_bad_index_type_is_input_error():
+    async with Client(mcp) as client:
+        result = await client.call_tool("get_market_index", {"index_type": "파생"})
+    assert result.is_error is True
+    assert "입력값 오류" in _text(result)

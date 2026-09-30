@@ -58,6 +58,18 @@ TARGETS = [
         },
     ),
     (
+        "fsc-financial-info (지수시세)",
+        "GET",
+        "https://apis.data.go.kr/1160100/GetMarketIndexInfoService_V2/getStockMarketIndex_V2",
+        {"numOfRows": 1, "pageNo": 1, "resultType": "json", "idxNm": "코스피"},
+    ),
+    (
+        "fsc-financial-info (ETF시세)",
+        "GET",
+        "https://apis.data.go.kr/1160100/GetSecuritiesProductInfoService_V2/getETFPriceInfo_V2",
+        {"numOfRows": 1, "pageNo": 1, "resultType": "json", "likeItmsNm": "KODEX 200"},
+    ),
+    (
         "molit-realestate (아파트매매)",
         "GET",
         "https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev",

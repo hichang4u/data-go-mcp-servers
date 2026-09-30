@@ -38,6 +38,16 @@
 - 재무상태표·손익계산서는 계정과목 단위로 페이징된다 (`num_of_rows` 최대 100).
 - 조회 결과가 없으면 오류가 아니라 "조회된 … 없습니다" 텍스트가 온다.
 
+## 지수·ETF
+
+`get_market_index` 는 코스피·코스닥 같은 **주가지수**와 KRX **채권지수**를, `get_etf_price` 는 **ETF·ETN** 일별 시세를 돌려준다. 둘 다 [지수시세정보](https://www.data.go.kr/)·[증권상품시세정보] 활용신청이 따로 필요하다 (포털에서 "금융위원회_지수시세정보", "금융위원회_증권상품시세정보" 검색).
+
+- 지수명은 `index_name`(정확)과 `like_index_name`(부분)이 다르다 — "코스피"는 지수 하나지만 "코스피 2"로 부분 검색하면 코스피 200·코스피 200 TR 등이 함께 온다.
+- **지수 계열(`idxCsf`) 필터는 API 가 무시한다** (2026-09-29 확인) — 그래서 툴 파라미터에 넣지 않았다.
+- 채권지수는 종가 대신 총수익지수·듀레이션·만기수익률(ytm) 같은 다른 필드로 온다.
+- ETF 는 순자산가치(`nav`), ETN 은 지표가치(`indicative_value`)를 쓴다. 둘 다 추종하는 기초지수 이름·종가가 함께 온다.
+- ETF/ETN 단축코드는 `0219E0` 처럼 **영숫자**다 (주식의 숫자 6자리와 다르다).
+
 ## 툴
 
 <!-- tools:start -->
@@ -86,6 +96,26 @@ employees / 0 salary) are null.
 |---|---|---|---|---|
 | `crno` | string | 예 |  | 법인등록번호 (13자리 숫자, 하이픈 제외; 모르면 find_corp_number 로 조회) \| Corporate registration number (13 digits) |
 
+### `get_etf_price`
+
+ETF·ETN 의 일별 시세를 조회합니다. | Get daily ETF/ETN prices.
+
+종가·등락률과 함께 ETF 는 순자산가치(nav), ETN 은 지표가치(indicative_value)를, 그리고
+추종하는 기초지수 이름·종가를 돌려줍니다. 종목명이나 단축코드를 주지 않으면 전체 종목이
+오므로(수십만 건) 하나는 지정하거나 bas_dt 로 하루를 좁히세요.
+
+| 파라미터 | 타입 | 필수 | 기본값 | 설명 |
+|---|---|---|---|---|
+| `product_type` | string |  | `ETF` | 상품 종류: ETF, ETN \| Product type |
+| `item_name` | string (optional) |  |  | 종목명 부분 일치 (예: KODEX 200) \| Partial item name |
+| `short_code` | string (optional) |  |  | 단축코드 (영숫자 6자리, 예: 069500) \| Short code |
+| `isin_cd` | string (optional) |  |  | ISIN 코드 (12자리) \| ISIN |
+| `bas_dt` | string (optional) |  |  | 기준일자 YYYYMMDD \| Base date |
+| `begin_bas_dt` | string (optional) |  |  | 기준일자 시작 YYYYMMDD (이상) \| Range start |
+| `end_bas_dt` | string (optional) |  |  | 기준일자 끝 YYYYMMDD (이하) \| Range end |
+| `num_of_rows` | integer |  | `10` | 최대 결과 수 (기본값: 10) \| Max rows |
+| `page_no` | integer |  | `1` | 페이지 번호 (기본값: 1) \| Page number (default: 1) |
+
 ### `get_income_statement`
 
 기업의 손익계산서를 조회합니다. 매출, 비용, 이익 등의 세부 계정과목별 금액을 확인할 수 있습니다. | Get income statement with detailed account items for revenue, expenses, and profit.
@@ -102,6 +132,25 @@ Args:
 | `biz_year` | string (optional) |  |  | 사업연도 (예: 2023) \| Business year (e.g., 2023) |
 | `page_no` | integer |  | `1` | 페이지 번호 (기본값: 1) \| Page number (default: 1) |
 | `num_of_rows` | integer |  | `10` | 한 페이지 결과 수 (기본값: 10, 최대: 100) \| Number of rows per page (default: 10, max: 100) |
+
+### `get_market_index`
+
+주가지수·채권지수의 일별 시세를 조회합니다. | Get daily KRX market index values.
+
+코스피·코스닥 같은 지수의 종가·등락률·거래량을 최신 일자부터 돌려줍니다. 지수명을 정확히
+알면 index_name, 계열을 훑어보려면 like_index_name 을 씁니다. 채권지수(index_type="채권")는
+총수익지수·듀레이션·만기수익률 등 다른 필드로 옵니다.
+
+| 파라미터 | 타입 | 필수 | 기본값 | 설명 |
+|---|---|---|---|---|
+| `index_type` | string |  | `주가` | 지수 종류: 주가, 채권 \| Index type |
+| `index_name` | string (optional) |  |  | 지수명 정확히 일치 (예: 코스피, 코스닥) \| Exact index name |
+| `like_index_name` | string (optional) |  |  | 지수명 부분 일치 (예: '코스피' → 코스피 100, 코스피 200 …) \| Partial |
+| `bas_dt` | string (optional) |  |  | 기준일자 YYYYMMDD \| Base date |
+| `begin_bas_dt` | string (optional) |  |  | 기준일자 시작 YYYYMMDD (이상) \| Range start |
+| `end_bas_dt` | string (optional) |  |  | 기준일자 끝 YYYYMMDD (이하) \| Range end |
+| `num_of_rows` | integer |  | `10` | 최대 결과 수 (기본값: 10) \| Max rows |
+| `page_no` | integer |  | `1` | 페이지 번호 (기본값: 1) \| Page number (default: 1) |
 
 ### `get_stock_price`
 

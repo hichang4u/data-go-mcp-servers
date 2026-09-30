@@ -17,8 +17,11 @@ from pydantic import Field
 from .api_client import (
     CorpBasicInfoAPIClient,
     FSCFinancialAPIClient,
+    MarketIndexAPIClient,
+    SecuritiesProductAPIClient,
     StockPriceAPIClient,
 )
+from .models import INDEX_TYPES, PRODUCT_TYPES
 
 load_dotenv()
 
@@ -457,6 +460,110 @@ async def search_stock_items(
         else f"No listed stock matching '{name}'"
     )
     return result
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def get_market_index(
+    index_type: Annotated[
+        str,
+        Field(description=f"지수 종류: {', '.join(INDEX_TYPES)} | Index type"),
+    ] = "주가",
+    index_name: Annotated[
+        str | None,
+        Field(description="지수명 정확히 일치 (예: 코스피, 코스닥) | Exact index name"),
+    ] = None,
+    like_index_name: Annotated[
+        str | None,
+        Field(
+            description="지수명 부분 일치 (예: '코스피' → 코스피 100, 코스피 200 …) | Partial"
+        ),
+    ] = None,
+    bas_dt: Annotated[
+        str | None, Field(description="기준일자 YYYYMMDD | Base date")
+    ] = None,
+    begin_bas_dt: Annotated[
+        str | None, Field(description="기준일자 시작 YYYYMMDD (이상) | Range start")
+    ] = None,
+    end_bas_dt: Annotated[
+        str | None, Field(description="기준일자 끝 YYYYMMDD (이하) | Range end")
+    ] = None,
+    num_of_rows: Annotated[
+        int, Field(description="최대 결과 수 (기본값: 10) | Max rows")
+    ] = 10,
+    page_no: Annotated[int, Field(description=PAGE_NO_DESC)] = 1,
+) -> dict[str, Any]:
+    """주가지수·채권지수의 일별 시세를 조회합니다. | Get daily KRX market index values.
+
+    코스피·코스닥 같은 지수의 종가·등락률·거래량을 최신 일자부터 돌려줍니다. 지수명을 정확히
+    알면 index_name, 계열을 훑어보려면 like_index_name 을 씁니다. 채권지수(index_type="채권")는
+    총수익지수·듀레이션·만기수익률 등 다른 필드로 옵니다.
+    """
+    async with tool_errors():
+        async with MarketIndexAPIClient() as client:
+            result = await client.get_indices(
+                index_type=index_type,
+                index_name=index_name,
+                like_index_name=like_index_name,
+                bas_dt=bas_dt,
+                begin_bas_dt=begin_bas_dt,
+                end_bas_dt=end_bas_dt,
+                page_no=page_no,
+                num_of_rows=num_of_rows,
+            )
+    return {**result, "index_type": index_type, "page_no": page_no}
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def get_etf_price(
+    product_type: Annotated[
+        str,
+        Field(description=f"상품 종류: {', '.join(PRODUCT_TYPES)} | Product type"),
+    ] = "ETF",
+    item_name: Annotated[
+        str | None,
+        Field(description="종목명 부분 일치 (예: KODEX 200) | Partial item name"),
+    ] = None,
+    short_code: Annotated[
+        str | None,
+        Field(description="단축코드 (영숫자 6자리, 예: 069500) | Short code"),
+    ] = None,
+    isin_cd: Annotated[
+        str | None, Field(description="ISIN 코드 (12자리) | ISIN")
+    ] = None,
+    bas_dt: Annotated[
+        str | None, Field(description="기준일자 YYYYMMDD | Base date")
+    ] = None,
+    begin_bas_dt: Annotated[
+        str | None, Field(description="기준일자 시작 YYYYMMDD (이상) | Range start")
+    ] = None,
+    end_bas_dt: Annotated[
+        str | None, Field(description="기준일자 끝 YYYYMMDD (이하) | Range end")
+    ] = None,
+    num_of_rows: Annotated[
+        int, Field(description="최대 결과 수 (기본값: 10) | Max rows")
+    ] = 10,
+    page_no: Annotated[int, Field(description=PAGE_NO_DESC)] = 1,
+) -> dict[str, Any]:
+    """ETF·ETN 의 일별 시세를 조회합니다. | Get daily ETF/ETN prices.
+
+    종가·등락률과 함께 ETF 는 순자산가치(nav), ETN 은 지표가치(indicative_value)를, 그리고
+    추종하는 기초지수 이름·종가를 돌려줍니다. 종목명이나 단축코드를 주지 않으면 전체 종목이
+    오므로(수십만 건) 하나는 지정하거나 bas_dt 로 하루를 좁히세요.
+    """
+    async with tool_errors():
+        async with SecuritiesProductAPIClient() as client:
+            result = await client.get_product_prices(
+                product_type=product_type,
+                like_item_name=item_name,
+                short_code=short_code,
+                isin_cd=isin_cd,
+                bas_dt=bas_dt,
+                begin_bas_dt=begin_bas_dt,
+                end_bas_dt=end_bas_dt,
+                page_no=page_no,
+                num_of_rows=num_of_rows,
+            )
+    return {**result, "product_type": product_type.upper(), "page_no": page_no}
 
 
 def main() -> None:

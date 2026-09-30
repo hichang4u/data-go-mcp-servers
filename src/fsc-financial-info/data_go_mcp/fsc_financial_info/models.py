@@ -393,3 +393,156 @@ class StockPrice(BaseModel):
             lstg_st_cnt=_int_or_none(raw.get("lstgStCnt")),
             mrkt_tot_amt=_int_or_none(raw.get("mrktTotAmt")),
         )
+
+
+# ── 지수시세 (GetMarketIndexInfoService_V2) ─────────────────────────────────────
+
+INDEX_TYPES = {"주가": "getStockMarketIndex_V2", "채권": "getBondMarketIndex_V2"}
+PRODUCT_TYPES = {"ETF": "getETFPriceInfo_V2", "ETN": "getETNPriceInfo_V2"}
+
+
+class MarketIndex(BaseModel):
+    """주가지수 일별 시세 한 건."""
+
+    bas_dt: str = Field(description="기준일자 (YYYYMMDD)")
+    index_name: str = Field(description="지수명 (예: 코스피, 코스닥)")
+    index_class: str | None = Field(
+        default=None, description="지수 계열 (예: KOSPI시리즈)"
+    )
+    component_count: int | None = Field(default=None, description="구성 종목 수")
+    close: float | None = Field(default=None, description="종가")
+    change: float | None = Field(default=None, description="전일 대비 등락")
+    change_rate: float | None = Field(default=None, description="전일 대비 등락률 (%)")
+    open: float | None = Field(default=None, description="시가")
+    high: float | None = Field(default=None, description="고가")
+    low: float | None = Field(default=None, description="저가")
+    volume: int | None = Field(default=None, description="거래량")
+    trade_value: int | None = Field(default=None, description="거래대금 (원)")
+    listed_market_cap: int | None = Field(default=None, description="상장시가총액 (원)")
+    year_high: float | None = Field(default=None, description="연중 최고 지수")
+    year_high_date: str | None = Field(default=None, description="연중 최고 일자")
+    year_low: float | None = Field(default=None, description="연중 최저 지수")
+    year_low_date: str | None = Field(default=None, description="연중 최저 일자")
+    base_point_date: str | None = Field(default=None, description="기준 시점")
+    base_index: float | None = Field(default=None, description="기준 지수")
+
+    @classmethod
+    def from_api(cls, raw: dict) -> "MarketIndex":
+        """API camelCase 항목 → 모델."""
+        return cls(
+            bas_dt=raw.get("basDt") or "",
+            index_name=raw.get("idxNm") or "",
+            index_class=raw.get("idxCsf") or None,
+            component_count=_int_or_none(raw.get("epyItmsCnt")),
+            close=_float_or_none(raw.get("clpr")),
+            change=_float_or_none(raw.get("vs")),
+            change_rate=_float_or_none(raw.get("fltRt")),
+            open=_float_or_none(raw.get("mkp")),
+            high=_float_or_none(raw.get("hipr")),
+            low=_float_or_none(raw.get("lopr")),
+            volume=_int_or_none(raw.get("trqu")),
+            trade_value=_int_or_none(raw.get("trPrc")),
+            listed_market_cap=_int_or_none(raw.get("lstgMrktTotAmt")),
+            year_high=_float_or_none(raw.get("yrWRcrdHgst")),
+            year_high_date=raw.get("yrWRcrdHgstDt") or None,
+            year_low=_float_or_none(raw.get("yrWRcrdLwst")),
+            year_low_date=raw.get("yrWRcrdLwstDt") or None,
+            base_point_date=raw.get("basPntm") or None,
+            base_index=_float_or_none(raw.get("basIdx")),
+        )
+
+
+class BondIndex(BaseModel):
+    """채권지수 일별 시세 한 건. 주가지수와 필드가 완전히 다르다."""
+
+    bas_dt: str = Field(description="기준일자 (YYYYMMDD)")
+    index_name: str = Field(description="지수명 (예: KRX 채권지수)")
+    total_return_index: float | None = Field(
+        default=None, description="총수익지수 종가"
+    )
+    total_return_change: float | None = Field(
+        default=None, description="총수익지수 대비"
+    )
+    zero_reinvest_index: float | None = Field(
+        default=None, description="제로재투자지수 종가"
+    )
+    call_reinvest_index: float | None = Field(
+        default=None, description="콜재투자지수 종가"
+    )
+    market_price_index: float | None = Field(
+        default=None, description="시장가격지수 종가"
+    )
+    net_price_index: float | None = Field(default=None, description="순가격지수 종가")
+    duration: float | None = Field(default=None, description="듀레이션")
+    convexity: float | None = Field(default=None, description="컨벡시티")
+    ytm: float | None = Field(default=None, description="만기수익률 (%)")
+
+    @classmethod
+    def from_api(cls, raw: dict) -> "BondIndex":
+        """API camelCase 항목 → 모델."""
+        return cls(
+            bas_dt=raw.get("basDt") or "",
+            index_name=raw.get("idxNm") or "",
+            total_return_index=_float_or_none(raw.get("totBnfIdxClpr")),
+            total_return_change=_float_or_none(raw.get("totBnfIdxVs")),
+            zero_reinvest_index=_float_or_none(raw.get("zrRinvIdxClpr")),
+            call_reinvest_index=_float_or_none(raw.get("clRinvIdxClpr")),
+            market_price_index=_float_or_none(raw.get("mrktPrcIdxClpr")),
+            net_price_index=_float_or_none(raw.get("nPrcIdxClpr")),
+            duration=_float_or_none(raw.get("durt")),
+            convexity=_float_or_none(raw.get("cnvt")),
+            ytm=_float_or_none(raw.get("ytm")),
+        )
+
+
+class ProductPrice(BaseModel):
+    """ETF·ETN 일별 시세 한 건. ETF 는 순자산가치(nav), ETN 은 지표가치를 쓴다."""
+
+    bas_dt: str = Field(description="기준일자 (YYYYMMDD)")
+    short_code: str = Field(description="단축코드 (영숫자 6자리)")
+    isin_cd: str | None = Field(default=None, description="ISIN 코드")
+    item_name: str = Field(description="종목명")
+    close: int | None = Field(default=None, description="종가 (원)")
+    change: int | None = Field(default=None, description="전일 대비 (원)")
+    change_rate: float | None = Field(default=None, description="전일 대비 등락률 (%)")
+    nav: float | None = Field(default=None, description="순자산가치 NAV (ETF)")
+    indicative_value: float | None = Field(default=None, description="지표가치 (ETN)")
+    open: int | None = Field(default=None, description="시가 (원)")
+    high: int | None = Field(default=None, description="고가 (원)")
+    low: int | None = Field(default=None, description="저가 (원)")
+    volume: int | None = Field(default=None, description="거래량")
+    trade_value: int | None = Field(default=None, description="거래대금 (원)")
+    market_cap: int | None = Field(default=None, description="시가총액 (원)")
+    listed_count: int | None = Field(default=None, description="상장 증권수")
+    net_asset_total: int | None = Field(
+        default=None, description="순자산총액·지표가치총액 (원)"
+    )
+    base_index_name: str | None = Field(default=None, description="기초지수 이름")
+    base_index_close: float | None = Field(default=None, description="기초지수 종가")
+
+    @classmethod
+    def from_api(cls, raw: dict) -> "ProductPrice":
+        """API camelCase 항목 → 모델. ETF/ETN 이 서로 다른 이름을 쓰는 필드를 모은다."""
+        return cls(
+            bas_dt=raw.get("basDt") or "",
+            short_code=raw.get("srtnCd") or "",
+            isin_cd=raw.get("isinCd") or None,
+            item_name=raw.get("itmsNm") or "",
+            close=_int_or_none(raw.get("clpr")),
+            change=_int_or_none(raw.get("vs")),
+            change_rate=_float_or_none(raw.get("fltRt")),
+            nav=_float_or_none(raw.get("nav")),
+            indicative_value=_float_or_none(raw.get("indcVal")),
+            open=_int_or_none(raw.get("mkp")),
+            high=_int_or_none(raw.get("hipr")),
+            low=_int_or_none(raw.get("lopr")),
+            volume=_int_or_none(raw.get("trqu")),
+            trade_value=_int_or_none(raw.get("trPrc")),
+            market_cap=_int_or_none(raw.get("mrktTotAmt")),
+            listed_count=_int_or_none(raw.get("stLstgCnt") or raw.get("lstgScrtCnt")),
+            net_asset_total=_int_or_none(
+                raw.get("nPptTotAmt") or raw.get("indcValTotAmt")
+            ),
+            base_index_name=raw.get("bssIdxIdxNm") or None,
+            base_index_close=_float_or_none(raw.get("bssIdxClpr")),
+        )

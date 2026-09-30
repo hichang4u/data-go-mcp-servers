@@ -39,6 +39,8 @@ SERVERS = {
         "get_corp_outline",
         "get_stock_price",
         "search_stock_items",
+        "get_market_index",
+        "get_etf_price",
     },
     "presidential_speeches": {"list_speeches", "search_speeches", "get_recent_speeches"},
     "msds_chemical_info": {

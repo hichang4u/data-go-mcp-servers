@@ -25,6 +25,8 @@ Encoding 값(`%2B`, `%3D` 가 섞인 것)이 아니라 **Decoding 값**(`+`, `=`
 | fsc-financial-info | [금융위원회_기업 재무정보](https://www.data.go.kr/data/15043459/openapi.do) | `get_summary_financial_statement` `get_balance_sheet` `get_income_statement` `search_company_financial_info` |
 | | [금융위원회_기업기본정보](https://www.data.go.kr/data/15043184/openapi.do) | `find_corp_number` `get_corp_outline` |
 | | [금융위원회_주식시세정보](https://www.data.go.kr/data/15094808/openapi.do) | `get_stock_price` `search_stock_items` |
+| | 포털에서 "금융위원회_지수시세정보" 검색 | `get_market_index` |
+| | 포털에서 "금융위원회_증권상품시세정보" 검색 | `get_etf_price` |
 | presidential-speeches | [대통령기록관_대통령연설기록(연설문)](https://www.data.go.kr/data/15084167/fileData.do) → "오픈API" 탭 | 전체 |
 | msds-chemical-info | 별도 신청 없이 동작 확인됨 (2026-09) | 전체 |
 | dart-disclosure | data.go.kr 아님 — 4절 | 전체 |

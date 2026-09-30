@@ -49,6 +49,18 @@ CALLS = [
     ),
     ("pps_narajangteo", "search_contracts", {"num_of_rows": 1}, '"success": true'),
     (
+        "fsc_financial_info",
+        "get_market_index",
+        {"index_name": "코스피", "num_of_rows": 1},
+        '"index_name": "코스피"',
+    ),
+    (
+        "fsc_financial_info",
+        "get_etf_price",
+        {"item_name": "KODEX 200", "num_of_rows": 1},
+        '"nav"',
+    ),
+    (
         "molit_realestate",
         "search_property_trades",
         {"region_code": "11680", "deal_ym": "202608", "num_of_rows": 3},

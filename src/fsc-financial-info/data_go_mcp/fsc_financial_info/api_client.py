@@ -6,17 +6,23 @@ from typing import Any
 from data_go_mcp.core import BaseDataGoClient, DataGoAPIError, normalize_items
 
 from .models import (
+    INDEX_TYPES,
+    PRODUCT_TYPES,
     BalanceSheetItem,
     BalanceSheetResponse,
+    BondIndex,
     CorpOutline,
     CorpSearchRequest,
     FinancialRequest,
     IncomeStatementItem,
     IncomeStatementResponse,
+    MarketIndex,
+    ProductPrice,
     StockPrice,
     StockPriceRequest,
     SummaryFinancialResponse,
     SummaryFinancialStatement,
+    _yyyymmdd,
 )
 
 
@@ -329,4 +335,104 @@ class StockPriceAPIClient(BaseDataGoClient):
             "items": [StockPrice.from_api(i).model_dump() for i in items],
             "page_no": page_no,
             "total_count": int(body.get("totalCount", 0)),
+        }
+
+
+class MarketIndexAPIClient(BaseDataGoClient):
+    """금융위원회 지수시세정보 API (GetMarketIndexInfoService_V2).
+
+    주가지수(``getStockMarketIndex_V2``)와 채권지수(``getBondMarketIndex_V2``)를 쓴다.
+    2026-09-29 확인: ``idxNm``(정확)·``likeIdxNm``(부분)·``basDt``·기간 필터는 동작하지만
+    **``idxCsf``(지수 계열)는 무시된다** — 지정해도 전체가 온다.
+    """
+
+    base_url = "https://apis.data.go.kr/1160100/GetMarketIndexInfoService_V2"
+    key_env_prefix = "FSC_FINANCIAL_INFO"
+    default_params = {"resultType": "json"}
+
+    async def get_indices(
+        self,
+        index_type: str = "주가",
+        index_name: str | None = None,
+        like_index_name: str | None = None,
+        bas_dt: str | None = None,
+        begin_bas_dt: str | None = None,
+        end_bas_dt: str | None = None,
+        page_no: int = 1,
+        num_of_rows: int = 10,
+    ) -> dict[str, Any]:
+        """지수 일별 시세 (최신 일자부터)."""
+        endpoint = INDEX_TYPES.get((index_type or "").strip())
+        if endpoint is None:
+            raise ValueError(
+                f"지수 종류는 {', '.join(INDEX_TYPES)} 중 하나여야 합니다: {index_type!r}"
+            )
+        body = await self.get(
+            endpoint,
+            {
+                "pageNo": page_no,
+                "numOfRows": num_of_rows,
+                "idxNm": (index_name or "").strip() or None,
+                "likeIdxNm": (like_index_name or "").strip() or None,
+                "basDt": _yyyymmdd(bas_dt, "기준일자"),
+                "beginBasDt": _yyyymmdd(begin_bas_dt, "기준일자"),
+                "endBasDt": _yyyymmdd(end_bas_dt, "기준일자"),
+            },
+        )
+        items = normalize_items(body)
+        model = BondIndex if index_type.strip() == "채권" else MarketIndex
+        return {
+            "items": [model.from_api(i).model_dump() for i in items],
+            "total_count": int(body.get("totalCount") or 0),
+        }
+
+
+class SecuritiesProductAPIClient(BaseDataGoClient):
+    """금융위원회 증권상품시세정보 API (GetSecuritiesProductInfoService_V2).
+
+    ETF(``getETFPriceInfo_V2``)와 ETN(``getETNPriceInfo_V2``). 단축코드가 ``0219E0`` 처럼
+    영숫자라 주식시세의 숫자 6자리 검증을 쓰지 않는다.
+    """
+
+    base_url = "https://apis.data.go.kr/1160100/GetSecuritiesProductInfoService_V2"
+    key_env_prefix = "FSC_FINANCIAL_INFO"
+    default_params = {"resultType": "json"}
+
+    async def get_product_prices(
+        self,
+        product_type: str = "ETF",
+        item_name: str | None = None,
+        like_item_name: str | None = None,
+        short_code: str | None = None,
+        isin_cd: str | None = None,
+        bas_dt: str | None = None,
+        begin_bas_dt: str | None = None,
+        end_bas_dt: str | None = None,
+        page_no: int = 1,
+        num_of_rows: int = 10,
+    ) -> dict[str, Any]:
+        """ETF·ETN 일별 시세 (최신 일자부터)."""
+        endpoint = PRODUCT_TYPES.get((product_type or "").strip().upper())
+        if endpoint is None:
+            raise ValueError(
+                f"상품 종류는 {', '.join(PRODUCT_TYPES)} 중 하나여야 합니다: {product_type!r}"
+            )
+        body = await self.get(
+            endpoint,
+            {
+                "pageNo": page_no,
+                "numOfRows": num_of_rows,
+                "itmsNm": (item_name or "").strip() or None,
+                "likeItmsNm": (like_item_name or "").strip() or None,
+                "likeSrtnCd": (short_code or "").strip() or None,
+                "isinCd": (isin_cd or "").strip() or None,
+                "basDt": _yyyymmdd(bas_dt, "기준일자"),
+                "beginBasDt": _yyyymmdd(begin_bas_dt, "기준일자"),
+                "endBasDt": _yyyymmdd(end_bas_dt, "기준일자"),
+            },
+        )
+        items = normalize_items(body)
+        return {
+            "items": [ProductPrice.from_api(i).model_dump() for i in items],
+            "total_count": int(body.get("totalCount") or 0),
         }
