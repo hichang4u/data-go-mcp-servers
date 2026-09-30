@@ -1,4 +1,4 @@
-"""사업자등록번호 하나로 네 기관을 가로지르는 조회를 실제로 실행해 보여준다.
+"""사업자등록번호 하나로 여러 기관을 가로지르는 조회를 실제로 실행해 보여준다.
 
 단일 API 를 감싼 MCP 서버로는 할 수 없는 것을 보이기 위한 데모다. 화면에 나오는 값은
 모두 **실제 호출 결과**이며, 호출하는 시점의 공개 데이터에 따라 달라진다.
@@ -64,6 +64,7 @@ class Demo:
         self.client = client
         self.as_json = as_json
         self.record: dict[str, Any] = {}
+        self.queried: list[str] = []
 
     def say(self, text: str = "") -> None:
         """JSON 모드가 아니면 화면에 쓴다."""
@@ -71,7 +72,8 @@ class Demo:
             print(text)
 
     def step(self, agency: str, tool: str) -> None:
-        """단계 머리말."""
+        """단계 머리말. 어떤 기관을 지났는지 모아 둔다."""
+        self.queried.append(agency)
         self.say(f"\n  {agency}")
         self.say(f"  {'·' * 2} {tool}")
 
@@ -93,7 +95,7 @@ class Demo:
 
 
 async def run(business_number: str, as_json: bool, months: int) -> int:
-    """네 기관을 차례로 조회한다."""
+    """기관을 차례로 조회한다."""
     from data_go_mcp.all_servers.server import mcp
 
     digits = re.sub(r"\D", "", business_number)
@@ -193,7 +195,8 @@ async def run(business_number: str, as_json: bool, months: int) -> int:
                         demo.say("     최근 공시 없음 (비상장·공시의무 없음)")
 
         demo.say(f"\n{BAR}")
-        demo.say("  네 기관의 공개 데이터를 한 대화에서 이었습니다.")
+        agencies = " · ".join(demo.queried)
+        demo.say(f"  {agencies} — {len(demo.queried)}개 기관을 한 번에 조회했습니다.")
         demo.say(BAR)
 
         if as_json:
