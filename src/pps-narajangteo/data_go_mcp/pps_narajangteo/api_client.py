@@ -34,6 +34,7 @@ WINNER_PAGE_SIZE = 999  # 1000 을 주면 10건만 온다
 WINNER_MAX_PAGES = 40
 WINNER_MAX_DAYS = 93  # 3개월. 그 이상은 분 단위로 늘어난다
 OPENING_DATE_DIV = 2  # 1=등록일시, 2=개찰일시
+WINNER_TIMEOUT = 90.0  # 한 페이지가 999건이라 기본 30초로는 모자랄 때가 있다
 
 
 def _now() -> "dt.datetime":

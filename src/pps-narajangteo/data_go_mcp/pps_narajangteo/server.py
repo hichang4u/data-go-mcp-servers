@@ -18,6 +18,7 @@ from data_go_mcp.core import (
 
 from .api_client import (
     WINNER_OPERATIONS,
+    WINNER_TIMEOUT,
     PpsNarajangteoAPIClient,
     format_datetime_for_api,
 )
@@ -241,7 +242,8 @@ async def find_bid_winners(
     complete=false 면 기간을 다 훑지 못한 것이니 "0건"을 없다는 뜻으로 읽으면 안 됩니다.
     """
     async with tool_errors():
-        async with PpsNarajangteoAPIClient() as client:
+        # 999건짜리 페이지를 여러 번 받으므로 기본 타임아웃(30초)으로는 끊긴다
+        async with PpsNarajangteoAPIClient(timeout=WINNER_TIMEOUT) as client:
             result = await client.find_bid_winners(
                 business_number=business_number,
                 company_name=company_name,

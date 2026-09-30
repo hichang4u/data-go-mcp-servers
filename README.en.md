@@ -29,10 +29,16 @@ Most Korean public-data MCP servers wrap a single API. Here the agencies are joi
 ```
 > Run due diligence on business number 214-87-12538
 
-  National Tax Service   → active taxpayer, standard VAT
-  FSC                    → corporate number 130111-0006246 → financial statements
-  COMWEL                 → workplace addresses, employment/accident insurance
-  Public Procurement     → 2026-08-26, 454M KRW award (information-security programme)
+  National Tax Service   → active taxpayer · standard VAT
+  FSC                    → Woorisoft Inc. · corporate number 110111-2529050
+  COMWEL                 → 44 insured employees · system software development
+  Public Procurement     → 2026-08-26 award, 500M KRW (information-security programme)
+```
+
+Run it yourself — these are live API calls, so the numbers move:
+
+```bash
+uv run python scripts/demo_due_diligence.py 214-87-12538
 ```
 
 ## Quick start

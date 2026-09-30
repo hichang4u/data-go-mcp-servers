@@ -13,6 +13,7 @@ uv run ruff check src scripts tests && uv run ruff format --check src scripts te
 uv run pyright src scripts tests
 uv run python scripts/check_apis.py              # 주요 API 생존·권한
 uv run python scripts/gen_tool_docs.py [--check] # 툴 레퍼런스 문서 재생성
+uv run python scripts/demo_due_diligence.py [사업자번호] # 4기관 교차 조회 데모 (실호출)
 uv run python -m data_go_mcp.<module>.server     # 서버 단독 실행 (stdio)
 ```
 
