@@ -49,6 +49,9 @@ PyPI 는 쓰지 않는다. 원저장소의 `data-go-mcp.*` 네임스페이스는
 ```bash
 uv run python scripts/demo_due_diligence.py > demo.txt
 uv run --with pillow python scripts/render_demo_image.py demo.txt docs/images/demo-due-diligence.png
+
+uv run python scripts/demo_bid_winners.py --business-type 용역 > bids.txt
+uv run --with pillow python scripts/render_demo_image.py bids.txt docs/images/demo-bid-winners.png   --command "uv run python scripts/demo_bid_winners.py 111-81-26895 --business-type 용역"
 ```
 
 Pillow 는 프로젝트 의존성이 아니라 `--with` 로만 끌어 쓴다. 한글 고정폭은 굴림체(`gulim.ttc`)를 쓴다.

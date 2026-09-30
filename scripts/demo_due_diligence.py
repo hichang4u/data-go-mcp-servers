@@ -15,6 +15,7 @@ import argparse
 import asyncio
 import datetime as dt
 import json
+import logging
 import os
 import re
 import sys
@@ -30,6 +31,12 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 
 load_dotenv()
+
+# httpx 는 INFO 로 요청 URL 을 남기는데 거기에 serviceKey 가 들어 있다. 이 스크립트의 출력은
+# 캡처해 공유하라고 만든 것이므로 키가 화면에 찍히지 않도록 반드시 올린다.
+logging.getLogger().setLevel(logging.WARNING)
+for _noisy in ("httpx", "httpcore", "mcp"):
+    logging.getLogger(_noisy).setLevel(logging.WARNING)
 
 DEFAULT_BUSINESS_NUMBER = "214-87-12538"
 

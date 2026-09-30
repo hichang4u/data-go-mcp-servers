@@ -14,6 +14,7 @@ uv run pyright src scripts tests
 uv run python scripts/check_apis.py              # 주요 API 생존·권한
 uv run python scripts/gen_tool_docs.py [--check] # 툴 레퍼런스 문서 재생성
 uv run python scripts/demo_due_diligence.py [사업자번호] # 기관 교차 조회 데모 (실호출)
+uv run python scripts/demo_bid_winners.py [사업자번호]     # 업체 낙찰 이력 데모 (실호출)
 uv run --with pillow python scripts/render_demo_image.py <출력.txt> <이미지.png> # README 데모 이미지
 uv run python -m data_go_mcp.<module>.server     # 서버 단독 실행 (stdio)
 ```
