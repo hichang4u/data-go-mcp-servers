@@ -53,6 +53,9 @@ uv run --with pillow python scripts/render_demo_image.py demo.txt docs/images/de
 uv run python scripts/demo_realestate.py > realestate.txt
 uv run --with pillow python scripts/render_demo_image.py realestate.txt docs/images/demo-realestate.png   --command "uv run python scripts/demo_realestate.py 강남구 202608"
 
+uv run python scripts/demo_jobs.py > jobs.txt
+uv run --with pillow python scripts/render_demo_image.py jobs.txt docs/images/demo-jobs.png   --command "uv run python scripts/demo_jobs.py 503-81-69211"
+
 uv run python scripts/demo_bid_winners.py --business-type 용역 > bids.txt
 uv run --with pillow python scripts/render_demo_image.py bids.txt docs/images/demo-bid-winners.png   --command "uv run python scripts/demo_bid_winners.py 111-81-26895 --business-type 용역"
 ```

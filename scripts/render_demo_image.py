@@ -45,6 +45,8 @@ AGENCIES = {
     "국민연금공단 (법정동코드)",
     "국토교통부 (매매)",
     "국토교통부 (전월세)",
+    "고용24 (채용공고)",
+    "고용24 (공고 상세)",
 }
 
 FONT_CANDIDATES = [
@@ -65,9 +67,19 @@ def classify(line: str) -> str:
         return "tool"
     if re.fullmatch(r"\(\d+\.\d+초\)", stripped):
         return "time"
-    if stripped.startswith(("사업자등록번호", "사업자번호")) or "아파트 실거래" in stripped:
+    if stripped.startswith(("사업자등록번호", "사업자번호")) or any(
+        k in stripped for k in ("아파트 실거래", "채용 현황", "낙찰 이력")
+    ):
         return "title"
-    if any(k in stripped for k in ("개 기관을 한 번에", "건을 찾았습니다", "실거래를 훑었습니다")):
+    if any(
+        k in stripped
+        for k in (
+            "개 기관을 한 번에",
+            "건을 찾았습니다",
+            "실거래를 훑었습니다",
+            "회사 규모를 확인했습니다",
+        )
+    ):
         return "closing"
     return "data"
 

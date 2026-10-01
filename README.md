@@ -37,7 +37,7 @@
 uv run python scripts/demo_due_diligence.py 214-87-12538
 ```
 
-같은 방식의 데모가 둘 더 있다 — [업체별 낙찰 이력](docs/guide/servers/pps-narajangteo.md#낙찰업체로-찾기)(`demo_bid_winners.py`), [지역 아파트 실거래](docs/guide/servers/molit-realestate.md#지역코드-찾기)(`demo_realestate.py`).
+같은 방식의 데모가 셋 더 있다 — [업체별 낙찰 이력](docs/guide/servers/pps-narajangteo.md#낙찰업체로-찾기)(`demo_bid_winners.py`), [지역 아파트 실거래](docs/guide/servers/molit-realestate.md#지역코드-찾기)(`demo_realestate.py`), [회사 채용 현황](docs/guide/servers/work24-jobs.md#사업자번호로-조회하기)(`demo_jobs.py`).
 
 ## 빠른 시작
 

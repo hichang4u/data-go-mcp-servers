@@ -37,7 +37,7 @@ Run it yourself — these are live API calls, so the numbers move:
 uv run python scripts/demo_due_diligence.py 214-87-12538
 ```
 
-Two more demos in the same style: [a company's winning bids](docs/guide/servers/pps-narajangteo.md#낙찰업체로-찾기) (`demo_bid_winners.py`) and [apartment transactions in one district](docs/guide/servers/molit-realestate.md#지역코드-찾기) (`demo_realestate.py`).
+Three more demos in the same style: [a company's winning bids](docs/guide/servers/pps-narajangteo.md#낙찰업체로-찾기) (`demo_bid_winners.py`), [apartment transactions in one district](docs/guide/servers/molit-realestate.md#지역코드-찾기) (`demo_realestate.py`) and [a company's open positions](docs/guide/servers/work24-jobs.md#사업자번호로-조회하기) (`demo_jobs.py`).
 
 ## Quick start
 
