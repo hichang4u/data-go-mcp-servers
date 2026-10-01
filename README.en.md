@@ -25,9 +25,9 @@ Based on [Koomook/data-go-mcp-servers](https://github.com/Koomook/data-go-mcp-se
 
 ## What makes this different
 
-Most Korean public-data MCP servers wrap a single API. Here the agencies are joined up, so one business registration number walks across five of them:
+Most Korean public-data MCP servers wrap a single API. Here the agencies are joined up, so one business registration number walks across six of them:
 
-![One business number queried across five Korean agencies in a single run](docs/images/demo-due-diligence.png)
+![One business number queried across six Korean agencies in a single run](docs/images/demo-due-diligence.png)
 
 A real run of `scripts/demo_due_diligence.py` — live API calls, nothing staged.
 

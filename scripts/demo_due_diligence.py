@@ -8,7 +8,7 @@
     uv run python scripts/demo_due_diligence.py 214-87-12538 --json
 
 기본 대상은 공개 낙찰 이력이 있는 업체(214-87-12538)다. `API_KEY` 가 필요하고,
-DART 단계는 `DART_DISCLOSURE_API_KEY` 가 있을 때만 돈다.
+고용24·DART 단계는 각각 `WORK24_API_KEY`, `DART_DISCLOSURE_API_KEY` 가 있을 때만 돈다.
 """
 
 import argparse
@@ -179,7 +179,26 @@ async def run(business_number: str, as_json: bool, months: int) -> int:
                     f" · {_fmt_won(bid.get('winning_amount'))} · {bid.get('demand_institution', '')}"
                 )
 
-        # 5. DART — 키가 있을 때만
+        # 5. 고용24 — 사업자번호로 채용 공고가 바로 필터된다 (키가 있을 때만)
+        if os.getenv("WORK24_API_KEY"):
+            demo.step("고용24", "search_job_postings")
+            jobs = await demo.call(
+                "search_job_postings", {"business_number": digits, "num_of_rows": 3}
+            )
+            if jobs is not None:
+                demo.record["jobs"] = jobs
+                count = jobs.get("total_count", 0)
+                demo.say(f"     진행 중인 공고 {count}건")
+                for job in (jobs.get("items") or [])[:2]:
+                    pay = job.get("min_salary")
+                    demo.say(
+                        f"     {job.get('posted_date', '')} · {(job.get('title') or '')[:30]}"
+                        + (f" · {pay / 10000:,.0f}만원" if pay else "")
+                    )
+                if not count:
+                    demo.say("     채용 중인 자리 없음")
+
+        # 6. DART — 키가 있을 때만
         if os.getenv("DART_DISCLOSURE_API_KEY"):
             name = (demo.record.get("corp") or {}).get("corp_nm", "")
             if name:
