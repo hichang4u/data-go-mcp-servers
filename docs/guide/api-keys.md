@@ -31,7 +31,7 @@ Encoding 값(`%2B`, `%3D` 가 섞인 것)이 아니라 **Decoding 값**(`+`, `=`
 | presidential-speeches | [대통령기록관_대통령연설기록(연설문)](https://www.data.go.kr/data/15084167/fileData.do) → "오픈API" 탭 | 전체 |
 | msds-chemical-info | 별도 신청 없이 동작 확인됨 (2026-09) | 전체 |
 | dart-disclosure | data.go.kr 아님 — 4절 | 전체 |
-| molit-realestate | 부동산 종류마다 따로: 아파트·오피스텔·연립다세대·단독다가구 매매/전월세, 상업업무용·토지 매매 → [servers/molit-realestate.md](servers/molit-realestate.md) 표 | 전체 |
+| molit-realestate | [건축HUB 건축물대장](https://www.data.go.kr/data/15134735/openapi.do) + 부동산 종류마다 따로: 아파트·오피스텔·연립다세대·단독다가구 매매/전월세, 상업업무용·토지 매매 → [servers/molit-realestate.md](servers/molit-realestate.md) 표 | 전체 |
 | bok-ecos | data.go.kr 아님 — 5절 | 전체 |
 | work24-jobs | data.go.kr 아님 — 6절 | 전체 |
 

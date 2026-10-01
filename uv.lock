@@ -797,7 +797,7 @@ requires-dist = [
 
 [[package]]
 name = "data-go-mcp-molit-realestate"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "src/molit-realestate" }
 dependencies = [
     { name = "data-go-mcp-core", extra = ["xml"] },

@@ -74,6 +74,10 @@ class Deal(BaseModel):
     )
     dong: Optional[str] = Field(default=None, description="법정동 이름")
     jibun: Optional[str] = Field(default=None, description="지번 (일부는 마스킹되어 온다)")
+    bun: Optional[str] = Field(
+        default=None, description="본번 네 자리. get_building_register 에 그대로 넘긴다"
+    )
+    ji: Optional[str] = Field(default=None, description="부번 네 자리")
     road_name: Optional[str] = Field(default=None, description="도로명")
     deal_date: Optional[str] = Field(default=None, description="계약일 (YYYY-MM-DD)")
     deal_amount: Optional[int] = Field(default=None, description="거래금액 (만원)")
@@ -106,6 +110,8 @@ class Deal(BaseModel):
             house_type=clean(row.get("houseType")) or clean(row.get("buildingType")),
             dong=clean(row.get("umdNm")),
             jibun=clean(row.get("jibun")),
+            bun=clean(row.get("bonbun")),
+            ji=clean(row.get("bubun")),
             road_name=clean(row.get("roadNm")) or clean(row.get("roadnm")),
             deal_date=to_date(row.get("dealYear"), row.get("dealMonth"), row.get("dealDay")),
             deal_amount=to_int(row.get("dealAmount")),
@@ -182,4 +188,79 @@ class Rent(BaseModel):
             total_floor_area=to_float(row.get("totalFloorAr")),
             floor=to_int(row.get("floor")),
             build_year=to_int(row.get("buildYear")),
+        )
+
+
+def to_iso_date(value: Any) -> Optional[str]:
+    """``"19781101"`` → ``"1978-11-01"``. 형식이 다르면 원문."""
+    text = clean(value)
+    if not text or len(text) != 8 or not text.isdigit():
+        return text
+    return f"{text[:4]}-{text[4:6]}-{text[6:]}"
+
+
+class BuildingRegister(BaseModel):
+    """건축물대장 한 건. 종류(표제부/층별개요/지역지구…)마다 채워지는 필드가 다르다."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    building_name: Optional[str] = Field(default=None, description="건물명")
+    dong_name: Optional[str] = Field(default=None, description="동 이름")
+    address: Optional[str] = Field(default=None, description="지번 주소")
+    road_address: Optional[str] = Field(default=None, description="도로명 주소")
+    register_kind: Optional[str] = Field(
+        default=None, description="대장 종류 (일반건축물/집합건축물/전유부 등)"
+    )
+    register_type: Optional[str] = Field(default=None, description="대장 구분 (일반/집합)")
+    main_purpose: Optional[str] = Field(default=None, description="주용도")
+    etc_purpose: Optional[str] = Field(default=None, description="기타 용도")
+    structure: Optional[str] = Field(default=None, description="구조")
+    land_area: Optional[float] = Field(default=None, description="대지면적 (㎡)")
+    building_area: Optional[float] = Field(default=None, description="건축면적 (㎡)")
+    total_floor_area: Optional[float] = Field(default=None, description="연면적 (㎡)")
+    building_coverage_ratio: Optional[float] = Field(default=None, description="건폐율 (%)")
+    floor_area_ratio: Optional[float] = Field(default=None, description="용적률 (%)")
+    ground_floors: Optional[int] = Field(default=None, description="지상 층수")
+    basement_floors: Optional[int] = Field(default=None, description="지하 층수")
+    household_count: Optional[int] = Field(default=None, description="세대수")
+    parking_count: Optional[int] = Field(default=None, description="총 주차대수")
+    approval_date: Optional[str] = Field(default=None, description="사용승인일 (YYYY-MM-DD)")
+    elevator_count: Optional[int] = Field(default=None, description="승용 승강기 수")
+    # 층별개요
+    floor_name: Optional[str] = Field(default=None, description="층 이름 (층별개요)")
+    floor_type: Optional[str] = Field(default=None, description="층 구분 (지상/지하)")
+    area: Optional[float] = Field(default=None, description="해당 층 면적 (㎡)")
+    # 지역지구
+    zone_name: Optional[str] = Field(default=None, description="지역·지구 이름")
+    zone_type: Optional[str] = Field(default=None, description="지역·지구 구분")
+
+    @classmethod
+    def from_api(cls, row: dict[str, Any]) -> "BuildingRegister":
+        """건축물대장 XML 한 행을 정규화한다."""
+        return cls(
+            building_name=clean(row.get("bldNm")),
+            dong_name=clean(row.get("dongNm")),
+            address=clean(row.get("platPlc")),
+            road_address=clean(row.get("newPlatPlc")),
+            register_kind=clean(row.get("regstrKindCdNm")),
+            register_type=clean(row.get("regstrGbCdNm")),
+            main_purpose=clean(row.get("mainPurpsCdNm")),
+            etc_purpose=clean(row.get("etcPurps")),
+            structure=clean(row.get("strctCdNm")),
+            land_area=to_float(row.get("platArea")),
+            building_area=to_float(row.get("archArea")),
+            total_floor_area=to_float(row.get("totArea")),
+            building_coverage_ratio=to_float(row.get("bcRat")),
+            floor_area_ratio=to_float(row.get("vlRat")),
+            ground_floors=to_int(row.get("grndFlrCnt")),
+            basement_floors=to_int(row.get("ugrndFlrCnt")),
+            household_count=to_int(row.get("hhldCnt")),
+            parking_count=to_int(row.get("totPkngCnt")),
+            approval_date=to_iso_date(row.get("useAprDay")),
+            elevator_count=to_int(row.get("rideUseElvtCnt")),
+            floor_name=clean(row.get("flrNoNm")),
+            floor_type=clean(row.get("flrGbCdNm")),
+            area=to_float(row.get("area")),
+            zone_name=clean(row.get("jijiguCdNm")),
+            zone_type=clean(row.get("jijiguGbCdNm")),
         )

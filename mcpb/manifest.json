@@ -441,6 +441,74 @@
       }
     },
     {
+      "name": "get_building_register",
+      "description": "건축물대장을 조회합니다. Look up the building register for one lot.",
+      "inputSchema": {
+        "properties": {
+          "region_code": {
+            "description": "법정동코드 10자리(예: 1168010500 삼성동) 또는 시군구 5자리. 5자리면 bjdong_code 도 함께 준다",
+            "title": "Region Code",
+            "type": "string"
+          },
+          "bun": {
+            "description": "본번 (예: 493). 실거래 결과의 bun 을 그대로 쓴다",
+            "title": "Bun",
+            "type": "string"
+          },
+          "ji": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "부번 (예: 0). 없으면 0000 으로 조회한다",
+            "title": "Ji"
+          },
+          "bjdong_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "법정동코드 5자리. region_code 가 10자리면 필요 없다",
+            "title": "Bjdong Code"
+          },
+          "kind": {
+            "default": "표제부",
+            "description": "대장 종류: 표제부, 총괄표제부, 기본개요, 층별개요, 전유공용면적, 주택가격, 지역지구, 부속지번",
+            "title": "Kind",
+            "type": "string"
+          },
+          "num_of_rows": {
+            "default": 50,
+            "description": "한 페이지 결과 수 (기본값: 100, 최대: 1000)",
+            "title": "Num Of Rows",
+            "type": "integer"
+          },
+          "page_no": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1)",
+            "title": "Page No",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "region_code",
+          "bun"
+        ],
+        "title": "get_building_registerArguments",
+        "type": "object"
+      }
+    },
+    {
       "name": "get_business_detail",
       "description": "사업장 상세정보를 조회합니다.",
       "inputSchema": {

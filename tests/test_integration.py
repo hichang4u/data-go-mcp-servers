@@ -68,6 +68,12 @@ CALLS = [
     ),
     (
         "molit_realestate",
+        "get_building_register",
+        {"region_code": "1168010500", "bun": "1", "ji": "1"},
+        '"total_floor_area"',
+    ),
+    (
+        "molit_realestate",
         "search_property_rents",
         {"region_code": "11680", "deal_ym": "202608", "num_of_rows": 3},
         '"rent_type"',

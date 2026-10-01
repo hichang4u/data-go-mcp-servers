@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-10-01
+
+### Added
+- `get_building_register` — 건축HUB 건축물대장 (표제부·층별개요·지역지구 등 8종). 실거래의 본번·부번으로 바로 이어진다
+- 실거래 결과에 `bun`·`ji` 노출 (건축물대장 조회 열쇠)
+- 이 API 가 자주 내는 `SERVICETIMEOUT_ERROR` 는 세 번까지 재시도
+
 ## [0.1.0] - 2026-09-30
 
 ### Added

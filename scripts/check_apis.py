@@ -76,6 +76,12 @@ TARGETS = [
         {"LAWD_CD": "11680", "DEAL_YMD": "202608", "numOfRows": 1, "pageNo": 1},
     ),
     (
+        "molit-realestate (건축물대장)",
+        "GET",
+        "https://apis.data.go.kr/1613000/BldRgstHubService/getBrTitleInfo",
+        {"sigunguCd": "11680", "bjdongCd": "10500", "bun": "0001", "ji": "0001", "numOfRows": 1},
+    ),
+    (
         "molit-realestate (아파트전월세)",
         "GET",
         "https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent",

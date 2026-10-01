@@ -56,6 +56,7 @@ SERVERS = {
     "molit_realestate": {
         "search_property_trades",
         "search_property_rents",
+        "get_building_register",
     },
     "work24_jobs": {
         "search_job_postings",

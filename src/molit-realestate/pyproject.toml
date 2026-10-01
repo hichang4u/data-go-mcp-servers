@@ -1,6 +1,6 @@
 [project]
 name = "data-go-mcp.molit-realestate"
-version = "0.1.0"
+version = "0.2.0"
 description = "MCP server for Korea real-estate transaction prices from MOLIT (국토교통부 실거래가)"
 readme = "README.md"
 authors = [

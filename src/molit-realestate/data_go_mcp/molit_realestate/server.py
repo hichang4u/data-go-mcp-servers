@@ -4,7 +4,7 @@
 ``find_region_code`` 가 찾아 주며, 거기서 오는 10자리 코드를 그대로 넣어도 된다.
 """
 
-from typing import Annotated, Any
+from typing import Annotated, Any, Optional
 
 from dotenv import load_dotenv
 from mcp.server.mcpserver import MCPServer
@@ -12,7 +12,13 @@ from pydantic import Field
 
 from data_go_mcp.core import READ_ONLY, configure_logging, load_api_key, tool_errors
 
-from .api_client import RENT_TYPES, TRADE_TYPES, MolitRealEstateAPIClient, normalize_region_code
+from .api_client import (
+    BUILDING_KINDS,
+    RENT_TYPES,
+    TRADE_TYPES,
+    MolitRealEstateAPIClient,
+    normalize_region_code,
+)
 
 
 load_dotenv()
@@ -94,6 +100,51 @@ async def search_property_rents(
         "property_type": property_type,
         "page_no": page_no,
     }
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def get_building_register(
+    region_code: Annotated[
+        str,
+        Field(
+            description=(
+                "법정동코드 10자리(예: 1168010500 삼성동) 또는 시군구 5자리. "
+                "5자리면 bjdong_code 도 함께 준다"
+            )
+        ),
+    ],
+    bun: Annotated[str, Field(description="본번 (예: 493). 실거래 결과의 bun 을 그대로 쓴다")],
+    ji: Annotated[
+        Optional[str], Field(description="부번 (예: 0). 없으면 0000 으로 조회한다")
+    ] = None,
+    bjdong_code: Annotated[
+        Optional[str], Field(description="법정동코드 5자리. region_code 가 10자리면 필요 없다")
+    ] = None,
+    kind: Annotated[str, Field(description=f"대장 종류: {', '.join(BUILDING_KINDS)}")] = "표제부",
+    num_of_rows: NumOfRows = 50,
+    page_no: PageNo = 1,
+) -> dict[str, Any]:
+    """건축물대장을 조회합니다. Look up the building register for one lot.
+
+    지번(본번·부번) 기준입니다. **실거래 결과의 bun/ji 를 그대로 넘기면** 그 거래가 일어난
+    건물의 연면적·용도·구조·사용승인일을 볼 수 있습니다. 종류를 바꾸면 층별 면적(층별개요),
+    용도지역(지역지구) 등도 조회됩니다. 집합건물과 일반건축물은 채워지는 종류가 달라, 어떤
+    종류는 0건으로 옵니다.
+
+    이 API 는 일시적으로 SERVICETIMEOUT 을 돌려줄 때가 있어 몇 번 다시 시도합니다.
+    """
+    async with tool_errors():
+        async with MolitRealEstateAPIClient() as client:
+            result = await client.get_building_register(
+                region_code=region_code,
+                bjdong_code=bjdong_code,
+                bun=bun,
+                ji=ji,
+                kind=kind,
+                num_of_rows=num_of_rows,
+                page_no=page_no,
+            )
+    return {**result, "kind": kind.strip(), "page_no": page_no}
 
 
 def main() -> None:
