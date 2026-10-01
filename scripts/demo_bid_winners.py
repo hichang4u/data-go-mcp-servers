@@ -80,9 +80,7 @@ async def run(business_number: str, business_type: str, start: str | None, end: 
 
     data = json.loads(text)
     print(f"     ({elapsed:.1f}초)")
-    print(f"     {data['message']}")
-    if not data["complete"]:
-        print("     기간을 다 훑지 못했습니다 — 기간을 줄이세요")
+    print(f"     {data['message']}")  # 덜 훑었으면 message 에 경고가 이미 붙는다
     items = data["items"]
     if items:
         print(f"\n     {items[0]['company_name']} · 대표 {items[0].get('ceo_name') or '-'}")

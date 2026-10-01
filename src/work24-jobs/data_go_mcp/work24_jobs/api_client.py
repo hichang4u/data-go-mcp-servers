@@ -5,7 +5,11 @@ data.go.kr 계열이 아니다 (2026-10-01 실호출로 확인):
 - data.go.kr 의 "워크넷 채용정보"는 등록유형이 **LINK** 라 공통 ``API_KEY`` 로는 열리지 않는다.
   엔드포인트가 ``www.work24.go.kr`` 이고 키는 고용24에서 **서비스별로** 따로 신청한다
 - 키가 그 서비스에 신청되지 않으면 ``<GO24><error>…</error></GO24>`` 로 온다 (``wantedRoot`` 아님)
-- 결과 없음은 ``<wantedRoot><message>정보가 존재하지 않습니다.</message><messageCd>006</messageCd>``
+- 결과 없음은 ``<wantedRoot><message>정보가 존재하지 않습니다.</message><messageCd>006</messageCd>``.
+  목록에서는 빈 결과지만 **상세에서는 그 공고가 없다는 뜻**이라 오류로 올린다
+- 결과가 하나면 ``<wanted>`` 가 리스트가 아니라 **dict** 로 온다 (xmltodict). 핵심 용례인
+  '회사 하나 조회'가 여기 걸리므로 직접 리스트로 만든다 (core ``normalize_items`` 는
+  ``items.item`` 모양 전용이라 맞지 않는다)
 - **조용히 무시되는 파라미터가 있다**: ``busiNo``(대소문자 틀림), ``regionCd``, ``empTpCd`` 를 주면
   필터가 걸리지 않고 전국 5만여 건이 그대로 온다 → 틀린 이름을 보내지 않도록 여기서 조립한다
 - 지역코드는 **법정동코드 앞 5자리와 호환**이다 (``11680`` → 서울 강남구). ``11000`` 처럼 시도도 된다
@@ -16,7 +20,7 @@ data.go.kr 계열이 아니다 (2026-10-01 실호출로 확인):
 import re
 from typing import Any, Mapping, Optional
 
-from data_go_mcp.core import BaseDataGoClient, DataGoAPIError, normalize_items
+from data_go_mcp.core import BaseDataGoClient, DataGoAPIError
 
 from .models import CompanyProfile, JobDetail, JobPosting
 
@@ -44,17 +48,20 @@ class Work24JobsAPIClient(BaseDataGoClient):
     default_params = {"returnType": "XML"}
 
     def _check_response(self, data: dict[str, Any]) -> dict[str, Any]:
-        """오류 래핑이 둘이다 — ``GO24.error`` 와 ``wantedRoot.messageCd``."""
+        """오류 래핑이 둘이다 — ``GO24.error`` 와 ``wantedRoot.messageCd``.
+
+        ``006``(결과 없음)은 목록에서만 빈 결과다. 상세에서는 그 공고가 없다는 뜻이므로
+        여기서 묶어 처리하지 않고 호출한 쪽이 판단한다.
+        """
         error = data.get("GO24")
         if isinstance(error, Mapping):
             raise DataGoAPIError("", str(error.get("error", "")).strip(), source=SOURCE)
 
         body = data.get("wantedRoot") or data.get("wantedDtl") or data
         if isinstance(body, Mapping) and body.get("messageCd"):
-            code = str(body["messageCd"])
-            if code == NO_DATA:
-                return {"total": 0, "wanted": []}
-            raise DataGoAPIError(code, str(body.get("message", "")).strip(), source=SOURCE)
+            raise DataGoAPIError(
+                str(body["messageCd"]), str(body.get("message", "")).strip(), source=SOURCE
+            )
         return dict(body) if isinstance(body, Mapping) else {}
 
     async def search_jobs(
@@ -78,22 +85,26 @@ class Work24JobsAPIClient(BaseDataGoClient):
                 "조건이 없으면 전국 공고 전체가 조회됩니다"
             )
 
-        body = await self.get(
-            LIST_OPERATION,
-            {
-                "callTp": "L",
-                "startPage": max(page_no, 1),
-                "display": min(max(num_of_rows, 1), MAX_DISPLAY),
-                "busino": busino or None,
-                "keyword": (keyword or "").strip() or None,
-                "region": region,
-                "occupation": (occupation or "").strip() or None,
-                "minPay": min_pay,
-            },
-        )
-        rows = normalize_items({"items": body.get("wanted")})
+        try:
+            body = await self.get(
+                LIST_OPERATION,
+                {
+                    "callTp": "L",
+                    "startPage": max(page_no, 1),
+                    "display": min(max(num_of_rows, 1), MAX_DISPLAY),
+                    "busino": busino or None,
+                    "keyword": (keyword or "").strip() or None,
+                    "region": region,
+                    "occupation": (occupation or "").strip() or None,
+                    "minPay": min_pay,
+                },
+            )
+        except DataGoAPIError as e:
+            if e.result_code != NO_DATA:  # 목록의 '결과 없음'은 오류가 아니다
+                raise
+            return {"items": [], "total_count": 0}
         return {
-            "items": [JobPosting.from_api(r).model_dump() for r in rows],
+            "items": [JobPosting.from_api(r).model_dump() for r in _rows(body.get("wanted"))],
             "total_count": int(body.get("total") or 0),
         }
 
@@ -119,6 +130,13 @@ class Work24JobsAPIClient(BaseDataGoClient):
             "company": CompanyProfile.from_api(dict(company)).model_dump(),
             "posting": JobDetail.from_api(dict(posting)).model_dump(),
         }
+
+
+def _rows(value: Any) -> list[dict[str, Any]]:
+    """결과가 하나면 dict, 여럿이면 list 로 온다 (xmltodict)."""
+    if not value:
+        return []
+    return list(value) if isinstance(value, list) else [value]
 
 
 def normalize_region_code(region_code: str) -> str:

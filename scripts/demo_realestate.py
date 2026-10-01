@@ -58,6 +58,10 @@ async def run(region_name: str, deal_ym: str) -> int:
     """지역명 → 지역코드 → 실거래 순으로 조회한다."""
     from data_go_mcp.all_servers.server import mcp
 
+    if not (len(deal_ym) == 6 and deal_ym.isdigit() and 1 <= int(deal_ym[4:]) <= 12):
+        print(f"계약년월은 YYYYMM 6자리여야 합니다: {deal_ym!r}", file=sys.stderr)
+        return 1
+
     print(BAR)
     print(f"  {region_name} {deal_ym[:4]}년 {int(deal_ym[4:])}월 아파트 실거래")
     print(BAR)
@@ -95,11 +99,13 @@ async def run(region_name: str, deal_ym: str) -> int:
             print(f"     중위 거래가 {middle / 10000:,.1f}억 · 최고 {prices[-1] / 10000:,.1f}억")
             print("\n     가장 비싼 거래")
             for t in live[:5]:
-                pyeong = (t["exclusive_area"] or 0) / PYEONG
+                area = t["exclusive_area"] or 0  # 면적이 비는 행이 있다
+                pyeong = area / PYEONG
                 per = (t["deal_amount"] / pyeong / 10000) if pyeong else 0
+                floor = f"{t['floor']}층" if t["floor"] is not None else "-"
                 print(
                     f"     {t['deal_date']}  {(t['name'] or '')[:14]:14}"
-                    f"  {t['exclusive_area']:>6}㎡  {str(t['floor']) + '층':>4}"
+                    f"  {area:>6}㎡  {floor:>4}"
                     f"  {t['deal_amount'] / 10000:>6,.1f}억  평당 {per:>4,.1f}억  {t['dong']}"
                 )
 

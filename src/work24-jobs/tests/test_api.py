@@ -7,7 +7,7 @@ import respx
 from data_go_mcp.core import DataGoAPIError
 from data_go_mcp.work24_jobs.api_client import Work24JobsAPIClient
 
-from .conftest import DETAIL_ERROR_XML, SERVICE_ERROR_XML
+from .conftest import DETAIL_ERROR_XML, EMPTY_XML, SERVICE_ERROR_XML
 
 
 def _xml(body: str) -> httpx.Response:
@@ -141,3 +141,23 @@ async def test_search_requires_at_least_one_filter():
     async with Work24JobsAPIClient() as client:
         with pytest.raises(ValueError, match="조건"):
             await client.search_jobs()
+
+
+@respx.mock
+async def test_single_result_is_not_swallowed(base_url, single_xml):
+    """결과가 하나면 <wanted> 가 리스트가 아니라 dict 로 온다 — 회사 하나 조회의 기본 경우다."""
+    respx.get(url__startswith=base_url).mock(return_value=_xml(single_xml))
+    async with Work24JobsAPIClient() as client:
+        result = await client.search_jobs(business_number="5038169211", num_of_rows=1)
+    assert len(result["items"]) == 1
+    assert result["items"][0]["company"] == "워터매니지먼트주식회사"
+
+
+@respx.mock
+async def test_detail_not_found_is_an_error_not_an_empty_record(base_url):
+    """상세에서 결과 없음(006)을 빈 레코드로 돌려주면 '공고는 있는데 내용이 없다'로 읽힌다."""
+    respx.get(url__startswith=base_url).mock(return_value=_xml(EMPTY_XML))
+    async with Work24JobsAPIClient() as client:
+        with pytest.raises(DataGoAPIError) as exc:
+            await client.get_job("K000000000000000")
+    assert exc.value.result_code == "006"
