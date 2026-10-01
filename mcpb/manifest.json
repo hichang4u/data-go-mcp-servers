@@ -3,8 +3,8 @@
   "name": "data-go-mcp",
   "display_name": "Korea Public Data (data.go.kr + OpenDART)",
   "version": "0.9.1",
-  "description": "국세청 사업자등록, 국민연금 사업장, 나라장터 입찰·낙찰업체, 금융위 기업재무·주식시세·지수·ETF, 대통령 연설문, MSDS, DART 전자공시, 한국은행 경제통계, 국토부 부동산 실거래가 — 한국 공공 API 26종을 툴 46개로",
-  "long_description": "data.go.kr 공공 API 24종과 OpenDART, 한국은행 ECOS 를 하나의 MCP 서버로 묶었다. 사업자등록번호 진위·상태 확인, 국민연금 가입 사업장 검색, 나라장터 입찰공고·낙찰·계약 조회와 업체별 낙찰 이력, 기업 재무제표·주식시세·지수·ETF, 대통령기록관 연설문 검색, 화학물질 MSDS, DART 공시 목록·원문·재무제표, 한국은행 기준금리·환율·물가 통계, 국토교통부 아파트·오피스텔·연립다세대·단독다가구·상업업무용·공장창고·토지 실거래가와 전월세. data.go.kr 인증키 하나로 7개 서버를, OpenDART 인증키로 DART 를, 한국은행 ECOS 인증키로 경제통계를 쓴다. 서버별로 따로 설치하려면 https://github.com/hichang4u/data-go-mcp-servers 를 본다.",
+  "description": "국세청 사업자등록, 국민연금 사업장, 나라장터 입찰·낙찰업체, 금융위 기업재무·주식시세·지수·ETF, 대통령 연설문, MSDS, DART 전자공시, 한국은행 경제통계, 국토부 부동산 실거래가, 고용24 채용정보 — 한국 공공 API 27종을 툴 48개로",
+  "long_description": "data.go.kr 공공 API 24종과 OpenDART, 한국은행 ECOS 를 하나의 MCP 서버로 묶었다. 사업자등록번호 진위·상태 확인, 국민연금 가입 사업장 검색, 나라장터 입찰공고·낙찰·계약 조회와 업체별 낙찰 이력, 기업 재무제표·주식시세·지수·ETF, 대통령기록관 연설문 검색, 화학물질 MSDS, DART 공시 목록·원문·재무제표, 한국은행 기준금리·환율·물가 통계, 국토교통부 아파트·오피스텔·연립다세대·단독다가구·상업업무용·공장창고·토지 실거래가와 전월세, 고용24 채용공고(사업자번호로 조회). data.go.kr 인증키 하나로 7개 서버를, OpenDART 인증키로 DART 를, 한국은행 ECOS 인증키로 경제통계를 쓴다. 서버별로 따로 설치하려면 https://github.com/hichang4u/data-go-mcp-servers 를 본다.",
   "author": {
     "name": "hichang4u",
     "url": "https://github.com/hichang4u"
@@ -30,7 +30,8 @@
       "env": {
         "API_KEY": "${user_config.api_key}",
         "DART_DISCLOSURE_API_KEY": "${user_config.dart_api_key}",
-        "BOK_ECOS_API_KEY": "${user_config.ecos_api_key}"
+        "BOK_ECOS_API_KEY": "${user_config.ecos_api_key}",
+        "WORK24_API_KEY": "${user_config.work24_api_key}"
       }
     }
   },
@@ -54,6 +55,14 @@
       "type": "string",
       "title": "한국은행 ECOS 인증키 (선택)",
       "description": "https://ecos.bok.or.kr 에서 발급. 비우면 ECOS 통계 툴만 실패한다. sample 을 넣으면 10건까지 시험해 볼 수 있다.",
+      "sensitive": true,
+      "required": false,
+      "default": ""
+    },
+    "work24_api_key": {
+      "type": "string",
+      "title": "고용24 인증키 (선택)",
+      "description": "https://www.work24.go.kr 오픈API 에서 서비스별로 신청. 비우면 채용정보 툴만 실패한다.",
       "sensitive": true,
       "required": false,
       "default": ""
@@ -82,7 +91,9 @@
     "ecos",
     "bok",
     "realestate",
-    "molit"
+    "molit",
+    "jobs",
+    "work24"
   ],
   "license": "Apache-2.0",
   "tools": [
@@ -885,6 +896,30 @@
           "bzno"
         ],
         "title": "get_insurance_statusArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "get_job_posting",
+      "description": "채용공고 상세를 조회합니다. Get one job posting in full.",
+      "inputSchema": {
+        "properties": {
+          "wanted_auth_no": {
+            "description": "채용공고 번호 (search_job_postings 의 wanted_auth_no)",
+            "title": "Wanted Auth No",
+            "type": "string"
+          },
+          "info_service": {
+            "default": "VALIDATION",
+            "description": "정보제공처. 목록 결과의 info_service 를 그대로 넘긴다 (기본값: VALIDATION)",
+            "title": "Info Service",
+            "type": "string"
+          }
+        },
+        "required": [
+          "wanted_auth_no"
+        ],
+        "title": "get_job_postingArguments",
         "type": "object"
       }
     },
@@ -1775,6 +1810,93 @@
           }
         },
         "title": "search_contractsArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "search_job_postings",
+      "description": "고용24 채용공고를 검색합니다. Search job postings on 고용24 (formerly WorkNet).",
+      "inputSchema": {
+        "properties": {
+          "business_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "사업자등록번호 10자리 (하이픈 허용). 회사별 조회에 가장 정확하다",
+            "title": "Business Number"
+          },
+          "keyword": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "검색어. 공고 전반을 훑으므로 회사명으로 쓰면 무관한 공고도 섞인다",
+            "title": "Keyword"
+          },
+          "region_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "지역코드. 법정동코드 앞 5자리(예: 11680 강남구) 또는 10자리. 시도 전체는 11000 처럼. 모르면 nps 서버의 find_region_code 로 찾는다",
+            "title": "Region Code"
+          },
+          "occupation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "직종 코드 6자리 (예: 155500 환경공학 기술자)",
+            "title": "Occupation"
+          },
+          "min_pay": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "최저 임금 하한 (원 단위 연봉, 예: 40000000)",
+            "title": "Min Pay"
+          },
+          "num_of_rows": {
+            "default": 20,
+            "description": "한 페이지 결과 수 (기본값: 20, 최대: 100)",
+            "title": "Num Of Rows",
+            "type": "integer"
+          },
+          "page_no": {
+            "default": 1,
+            "description": "페이지 번호 (기본값: 1)",
+            "title": "Page No",
+            "type": "integer"
+          }
+        },
+        "title": "search_job_postingsArguments",
         "type": "object"
       }
     },

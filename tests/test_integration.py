@@ -78,6 +78,12 @@ CALLS = [
         {"company_name": "주식회사", "start_date": "2026-08-26", "end_date": "2026-08-26"},
         '"scanned_count"',
     ),
+    (
+        "work24_jobs",
+        "search_job_postings",
+        {"business_number": "5038169211", "num_of_rows": 2},
+        '"business_number": "5038169211"',
+    ),
     ("bok_ecos", "get_key_statistics", {"class_name": "환율", "num_of_rows": 10}, '"class_name"'),
     (
         "bok_ecos",
@@ -111,7 +117,11 @@ CALLS = [
 ]
 
 # data.go.kr 키로는 안 되는 서버: 서버별 키가 없으면 그 항목만 skip
-KEY_ENV = {"dart_disclosure": "DART_DISCLOSURE_API_KEY", "bok_ecos": "BOK_ECOS_API_KEY"}
+KEY_ENV = {
+    "dart_disclosure": "DART_DISCLOSURE_API_KEY",
+    "bok_ecos": "BOK_ECOS_API_KEY",
+    "work24_jobs": "WORK24_API_KEY",
+}
 
 
 @pytest.mark.parametrize(

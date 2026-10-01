@@ -18,9 +18,10 @@ Based on [Koomook/data-go-mcp-servers](https://github.com/Koomook/data-go-mcp-se
 | [msds-chemical-info](docs/guide/servers/msds-chemical-info.md) | KOSHA — chemical safety data sheets | `search_chemicals` `get_chemical_section` `get_complete_msds` and 4 more |
 | [dart-disclosure](docs/guide/servers/dart-disclosure.md) | Financial Supervisory Service — DART filings (company profile, filing list and full text, financial statements) | `find_corp_code` `get_company` `list_disclosures` `get_key_accounts` `get_financial_statements` `get_disclosure_document` |
 | [molit-realestate](docs/guide/servers/molit-realestate.md) | Ministry of Land — real-estate transaction prices (apartments, officetels, row houses, detached houses, commercial, factories/warehouses, land; sales and rents) | `search_property_trades` `search_property_rents` |
+| [work24-jobs](docs/guide/servers/work24-jobs.md) | 고용24 (formerly WorkNet) — job postings, searchable by business number, with company size and requirements | `search_job_postings` `get_job_posting` |
 | [bok-ecos](docs/guide/servers/bok-ecos.md) | Bank of Korea — ECOS statistics (policy rate, FX, prices, 100 key indicators) | `find_statistic_table` `get_statistic_items` `get_statistic_data` `get_key_statistics` `search_term` |
 
-9 servers, 46 tools, 26 public APIs. Every tool is read-only, and failures come back as MCP error results (`isError`). Where one server uses several APIs (molit 11, fsc 5, nps 3, pps 2), each one needs its own usage request — see the table in [api-keys.md](docs/guide/api-keys.md). dart-disclosure (OpenDART) and bok-ecos (Bank of Korea ECOS) use their own keys rather than the data.go.kr one.
+10 servers, 48 tools, 27 public APIs. Every tool is read-only, and failures come back as MCP error results (`isError`). Where one server uses several APIs (molit 11, fsc 5, nps 3, pps 2), each one needs its own usage request — see the table in [api-keys.md](docs/guide/api-keys.md). dart-disclosure (OpenDART), bok-ecos (Bank of Korea ECOS) and work24-jobs (고용24) use their own keys rather than the data.go.kr one.
 
 ## What makes this different
 

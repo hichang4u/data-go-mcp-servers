@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-data.go.kr 공공 API 24종 + OpenDART + 한국은행 ECOS(서버 9개)를 MCP 서버로 제공하는 uv 워크스페이스. Python 3.10+, `mcp>=2.2,<3`.
+data.go.kr 공공 API 24종 + OpenDART + 한국은행 ECOS + 고용24(서버 10개)를 MCP 서버로 제공하는 uv 워크스페이스. Python 3.10+, `mcp>=2.2,<3`.
 
 ## 명령
 
@@ -40,7 +40,7 @@ Windows 에서 `uv` 가 PATH 에 없으면 `python -m uv …`. 이 셸에서 이
 - `data_go_mcp/__init__.py` 금지 (네임스페이스). `src/*/tests/__init__.py` 금지 (importlib 충돌). 서버별 pyproject 에 pytest/ruff 설정 금지.
 - pydantic `Field(default=None, …)`. `Field(None, …)` 는 pyright 오류.
 - stdout 에 `print()` 금지 (프로토콜 채널). 로그는 `configure_logging` → stderr.
-- 환경변수: `API_KEY` 공통, `<SERVER>_API_KEY` 서버별 우선. data.go.kr 이 아닌 포털(dart, bok-ecos)은 `shared_key = False` 로 공통 키를 끈다. 키를 커밋·로그·fixture 에 넣지 않는다.
+- 환경변수: `API_KEY` 공통, `<SERVER>_API_KEY` 서버별 우선. data.go.kr 이 아닌 포털(dart, bok-ecos, work24)은 `shared_key = False` 로 공통 키를 끈다. 키를 커밋·로그·fixture 에 넣지 않는다.
 - mcp 2.x: `MCPServer`, `CallToolResult.is_error`, `Tool.input_schema` (snake_case). `FastMCP`·저수준 `@server.list_tools()` 는 없다.
 - 커밋: Conventional Commits, 태스크 단위. 작업은 브랜치(`sN-…`)에서, 스프린트 끝에 `/code-review` → 수정(테스트 먼저) → `main` merge → push.
 - 문서 갱신: 툴 시그니처 변경 시 `gen_tool_docs.py`; 진행 기록은 `docs/development/PLAN.md`; 사용자 문서에 내부 용어(S2, D4, FR-3) 금지.

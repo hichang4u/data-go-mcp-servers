@@ -33,6 +33,7 @@ Encoding 값(`%2B`, `%3D` 가 섞인 것)이 아니라 **Decoding 값**(`+`, `=`
 | dart-disclosure | data.go.kr 아님 — 4절 | 전체 |
 | molit-realestate | 부동산 종류마다 따로: 아파트·오피스텔·연립다세대·단독다가구 매매/전월세, 상업업무용·토지 매매 → [servers/molit-realestate.md](servers/molit-realestate.md) 표 | 전체 |
 | bok-ecos | data.go.kr 아님 — 5절 | 전체 |
+| work24-jobs | data.go.kr 아님 — 6절 | 전체 |
 
 활용목적은 "참고자료" 또는 "앱개발" 정도면 되고, 사유는 "OO 조회 서비스에 OO 정보를 함께 제공하는 용도" 한 줄이면 충분하다. 개발계정 일일 트래픽은 대개 10,000건이다.
 
@@ -61,7 +62,15 @@ MCP 클라이언트 설정의 `"env"` 로 넘기는 것이 기본이고, 저장�
 
 서버에는 `BOK_ECOS_API_KEY` 로만 넘긴다. 공통 `API_KEY` 는 이 서버에 쓰이지 않는다. 키 없이 시험만 해 보려면 `BOK_ECOS_API_KEY=sample` 도 되지만 **한 번에 10건**까지만 오고 넘기면 `한국은행 ECOS 오류 [ERROR-301]` 이 난다. 잘못된 키는 `[INFO-100] 인증키가 유효하지 않습니다`.
 
-## 6. 확인
+## 6. 고용24 인증키 (work24-jobs)
+
+채용정보도 data.go.kr 을 거치지 않는다. 포털에 "워크넷 채용정보"가 있지만 등록유형이 **LINK** 라 공통 `API_KEY` 로는 호출되지 않는다 (엔드포인트가 `www.work24.go.kr`).
+
+[www.work24.go.kr](https://www.work24.go.kr) → 오픈API → **서비스별로 신청**한다. 채용정보·채용행사·임금체불 명단 등이 각각 따로 승인되며, 신청하지 않은 서비스는 `고용24 오류 신청하신 OpenApi 서비스가 존재하지 않습니다` 가 난다.
+
+서버에는 `WORK24_API_KEY` 로만 넘긴다.
+
+## 7. 확인
 
 저장소를 clone 했다면 주요 API 를 한 번에 점검할 수 있다 (키가 없는 항목은 SKIP):
 
