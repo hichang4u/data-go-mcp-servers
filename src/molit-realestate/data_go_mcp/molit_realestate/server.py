@@ -36,6 +36,7 @@ RegionCode = Annotated[
 ]
 DealYm = Annotated[str, Field(description="계약년월 YYYYMM (예: 202608)")]
 NumOfRows = Annotated[int, Field(description="한 페이지 결과 수 (기본값: 100, 최대: 1000)")]
+BuildingRows = Annotated[int, Field(description="한 페이지 결과 수 (기본값: 50, 최대: 1000)")]
 PageNo = Annotated[int, Field(description="페이지 번호 (기본값: 1)")]
 
 
@@ -121,7 +122,7 @@ async def get_building_register(
         Optional[str], Field(description="법정동코드 5자리. region_code 가 10자리면 필요 없다")
     ] = None,
     kind: Annotated[str, Field(description=f"대장 종류: {', '.join(BUILDING_KINDS)}")] = "표제부",
-    num_of_rows: NumOfRows = 50,
+    num_of_rows: BuildingRows = 50,
     page_no: PageNo = 1,
 ) -> dict[str, Any]:
     """건축물대장을 조회합니다. Look up the building register for one lot.

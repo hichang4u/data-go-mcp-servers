@@ -159,3 +159,14 @@ async def test_mcpb_manifest_lists_every_tool():
     }
     assert listed == expected  # Smithery 는 inputSchema 없는 툴을 거부한다
     assert manifest["server"]["type"] == "python"  # smithery CLI 1.2.0 은 "uv" 를 모른다
+
+
+async def test_mcpb_description_counts_match_the_tools():
+    """설명의 '툴 N개' 는 손으로 쓴 것이라 낡기 쉽다 — Smithery·확장 카드에 그대로 노출된다."""
+    import json
+    import re
+
+    manifest = json.loads((SRC.parent / "mcpb" / "manifest.json").read_text(encoding="utf-8"))
+    stated = re.search(r"툴 (\d+)개", manifest["description"])
+    assert stated, "description 에 '툴 N개' 가 없다"
+    assert int(stated.group(1)) == len(manifest["tools"])

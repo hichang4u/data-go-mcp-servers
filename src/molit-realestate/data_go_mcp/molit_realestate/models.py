@@ -73,6 +73,10 @@ class Deal(BaseModel):
         default=None, description="세부 유형 (다가구, 연립, 업무 등)"
     )
     dong: Optional[str] = Field(default=None, description="법정동 이름")
+    dong_code: Optional[str] = Field(
+        default=None,
+        description="법정동코드 뒤 5자리. 시군구코드와 합치면 get_building_register 의 지역코드",
+    )
     jibun: Optional[str] = Field(default=None, description="지번 (일부는 마스킹되어 온다)")
     bun: Optional[str] = Field(
         default=None, description="본번 네 자리. get_building_register 에 그대로 넘긴다"
@@ -109,6 +113,7 @@ class Deal(BaseModel):
             property_type=property_type,
             house_type=clean(row.get("houseType")) or clean(row.get("buildingType")),
             dong=clean(row.get("umdNm")),
+            dong_code=clean(row.get("umdCd")),
             jibun=clean(row.get("jibun")),
             bun=clean(row.get("bonbun")),
             ji=clean(row.get("bubun")),
@@ -199,6 +204,14 @@ def to_iso_date(value: Any) -> Optional[str]:
     return f"{text[:4]}-{text[4:6]}-{text[6:]}"
 
 
+def _attached_lot(row: dict[str, Any]) -> Optional[str]:
+    """부속지번의 본번·부번을 ``"493-0"`` 형태로."""
+    bun, ji = clean(row.get("atchBun")), clean(row.get("atchJi"))
+    if not bun:
+        return None
+    return f"{int(bun)}-{int(ji)}" if ji else str(int(bun))
+
+
 class BuildingRegister(BaseModel):
     """건축물대장 한 건. 종류(표제부/층별개요/지역지구…)마다 채워지는 필드가 다르다."""
 
@@ -223,13 +236,28 @@ class BuildingRegister(BaseModel):
     ground_floors: Optional[int] = Field(default=None, description="지상 층수")
     basement_floors: Optional[int] = Field(default=None, description="지하 층수")
     household_count: Optional[int] = Field(default=None, description="세대수")
-    parking_count: Optional[int] = Field(default=None, description="총 주차대수")
+    parking_count: Optional[int] = Field(
+        default=None, description="총 주차대수 (총괄표제부에만 있다)"
+    )
+    indoor_self_parking: Optional[int] = Field(default=None, description="옥내 자주식 주차")
+    outdoor_self_parking: Optional[int] = Field(default=None, description="옥외 자주식 주차")
+    indoor_mech_parking: Optional[int] = Field(default=None, description="옥내 기계식 주차")
+    outdoor_mech_parking: Optional[int] = Field(default=None, description="옥외 기계식 주차")
     approval_date: Optional[str] = Field(default=None, description="사용승인일 (YYYY-MM-DD)")
     elevator_count: Optional[int] = Field(default=None, description="승용 승강기 수")
     # 층별개요
     floor_name: Optional[str] = Field(default=None, description="층 이름 (층별개요)")
     floor_type: Optional[str] = Field(default=None, description="층 구분 (지상/지하)")
     area: Optional[float] = Field(default=None, description="해당 층 면적 (㎡)")
+    # 전유공용면적
+    unit_name: Optional[str] = Field(default=None, description="호 이름 (예: 103호)")
+    area_type: Optional[str] = Field(default=None, description="전유 / 공용 구분")
+    # 주택가격
+    house_price: Optional[int] = Field(default=None, description="공시가격 (원)")
+    price_base_date: Optional[str] = Field(default=None, description="가격 기준일")
+    # 부속지번
+    attached_lot: Optional[str] = Field(default=None, description="부속 지번 (본번-부번)")
+    attached_register_type: Optional[str] = Field(default=None, description="부속 대장 구분")
     # 지역지구
     zone_name: Optional[str] = Field(default=None, description="지역·지구 이름")
     zone_type: Optional[str] = Field(default=None, description="지역·지구 구분")
@@ -256,11 +284,21 @@ class BuildingRegister(BaseModel):
             basement_floors=to_int(row.get("ugrndFlrCnt")),
             household_count=to_int(row.get("hhldCnt")),
             parking_count=to_int(row.get("totPkngCnt")),
+            indoor_self_parking=to_int(row.get("indrAutoUtcnt")),
+            outdoor_self_parking=to_int(row.get("oudrAutoUtcnt")),
+            indoor_mech_parking=to_int(row.get("indrMechUtcnt")),
+            outdoor_mech_parking=to_int(row.get("oudrMechUtcnt")),
             approval_date=to_iso_date(row.get("useAprDay")),
             elevator_count=to_int(row.get("rideUseElvtCnt")),
             floor_name=clean(row.get("flrNoNm")),
             floor_type=clean(row.get("flrGbCdNm")),
             area=to_float(row.get("area")),
+            unit_name=clean(row.get("hoNm")),
+            area_type=clean(row.get("exposPubuseGbCdNm")),
+            house_price=to_int(row.get("hsprc")),
+            price_base_date=to_iso_date(row.get("stdDay")),
+            attached_lot=_attached_lot(row),
+            attached_register_type=clean(row.get("atchRegstrGbCdNm")),
             zone_name=clean(row.get("jijiguCdNm")),
             zone_type=clean(row.get("jijiguGbCdNm")),
         )

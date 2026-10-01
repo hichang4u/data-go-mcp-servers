@@ -10,7 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `get_building_register` — 건축HUB 건축물대장 (표제부·층별개요·지역지구 등 8종). 실거래의 본번·부번으로 바로 이어진다
 - 실거래 결과에 `bun`·`ji` 노출 (건축물대장 조회 열쇠)
-- 이 API 가 자주 내는 `SERVICETIMEOUT_ERROR` 는 세 번까지 재시도
+- 실거래 결과에 `dong_code`(법정동 뒤 5자리) 노출 — 이것이 있어야 건축물대장 조회를 바로 이어갈 수 있다
+- 이 API 가 자주 내는 `SERVICETIMEOUT_ERROR` 는 다섯 번까지 재시도 (0.5·1·2·4초). 소진하면 과부하임을 알리는 메시지로 바꾼다
+- 대장 종류별 필드: 공시가격·가격기준일(주택가격), 호·전유공용 구분(전유공용면적), 부속지번, 표제부의 자주식·기계식 주차 네 칸
 
 ## [0.1.0] - 2026-09-30
 

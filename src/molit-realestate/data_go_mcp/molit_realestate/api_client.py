@@ -64,8 +64,9 @@ BUILDING_KINDS = {
     "지역지구": "getBrJijiguInfo",
     "부속지번": "getBrAtchJibunInfo",
 }
-BUILDING_RETRIES = 3  # SERVICETIMEOUT 이 잦다
-BUILDING_RETRY_WAIT = 1.0
+# SERVICETIMEOUT 이 잦다. 3회로는 압구정동 표제부가 실패했다 (2026-10-01) — 다섯 번 본다.
+BUILDING_RETRIES = 5
+BUILDING_RETRY_WAIT = 0.5  # 0.5s, 1s, 2s, 4s 로 늘려 가며
 
 
 class MolitRealEstateAPIClient(BaseDataGoClient):
@@ -167,8 +168,14 @@ class MolitRealEstateAPIClient(BaseDataGoClient):
                     raise
                 last = e
                 if attempt < BUILDING_RETRIES - 1:
-                    await asyncio.sleep(BUILDING_RETRY_WAIT)
-        raise last if last else DataGoAPIError("", "건축물대장 조회에 실패했습니다")
+                    await asyncio.sleep(BUILDING_RETRY_WAIT * 2**attempt)
+        raise DataGoAPIError(
+            last.result_code if last else "",
+            f"건축물대장 API 가 응답하지 않습니다 ({BUILDING_RETRIES}회 재시도). "
+            "일시적인 과부하이니 잠시 후 다시 시도하세요. "
+            "지번 없이 넓게 조회하면 더 자주 발생합니다",
+            source=last.source if last else "data.go.kr",
+        )
 
     # -- internals -----------------------------------------------------------
 
@@ -207,10 +214,24 @@ def split_region_code(region_code: str, bjdong_code: Optional[str]) -> tuple[str
     """``1168010500`` → ``("11680", "10500")``. 5자리면 법정동코드를 따로 받는다."""
     text = (region_code or "").strip()
     if _DIGITS.match(text) and len(text) == 10:
-        return text[:5], text[5:]
+        sigungu, dong = text[:5], text[5:]
+        if sigungu[2:5] == "000":
+            raise ValueError(
+                f"시도 단위 코드로는 조회할 수 없습니다: {region_code!r}. 시군구까지 좁히세요"
+            )
+        given = (bjdong_code or "").strip()
+        if given and given != dong:
+            raise ValueError(
+                f"법정동코드가 지역코드와 다릅니다: {region_code!r} vs {bjdong_code!r}"
+            )
+        return sigungu, dong
     if not _DIGITS.match(text) or len(text) != 5:
         raise ValueError(
             f"지역코드는 법정동코드 5자리(시군구) 또는 10자리여야 합니다: {region_code!r}"
+        )
+    if text[2:5] == "000":
+        raise ValueError(
+            f"시도 단위 코드로는 조회할 수 없습니다: {region_code!r}. 시군구까지 좁히세요"
         )
     dong = (bjdong_code or "").strip()
     if not _DIGITS.match(dong) or len(dong) != 5:
