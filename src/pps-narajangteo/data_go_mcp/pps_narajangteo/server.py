@@ -262,6 +262,42 @@ async def find_bid_winners(
     }
 
 
+@mcp.tool(annotations=READ_ONLY)
+async def get_procurement_company(
+    business_number: Annotated[
+        str, Field(description="사업자등록번호 10자리 (예: 111-81-26895 또는 1118126895)")
+    ],
+) -> dict[str, Any]:
+    """조달 등록업체 정보를 조회합니다. Look up a company registered with 나라장터.
+
+    사업자등록번호로 업체 기본정보(상호·대표자·개업일·주소·직원수), **등록 업종**(유효기간과
+    상태 포함), **공급물품**(직접생산 여부 포함)을 한 번에 가져옵니다. 조달시장에 등록되지
+    않은 사업자는 오류가 아니라 ``registered: false`` 로 옵니다.
+
+    낙찰 이력은 find_bid_winners, 제재 이력은 check_procurement_sanctions 입니다.
+    """
+    async with tool_errors():
+        async with PpsNarajangteoAPIClient() as client:
+            return await client.get_procurement_company(business_number)
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def check_procurement_sanctions(
+    business_number: Annotated[
+        str, Field(description="사업자등록번호 10자리 (예: 327-81-00184 또는 3278100184)")
+    ],
+) -> dict[str, Any]:
+    """부정당업자 제재 이력을 조회합니다. Check debarment records for a company.
+
+    공공입찰 참가자격 제한 처분입니다. 처분기관·제재기간·근거법령·사유가 나오며,
+    ``restricted_now`` 로 **지금 제재 중인지**를 따로 알려줍니다 (이력이 있는 것과
+    현재 제한 상태인 것은 다른 질문입니다). 제재가 없으면 0건입니다.
+    """
+    async with tool_errors():
+        async with PpsNarajangteoAPIClient() as client:
+            return await client.check_procurement_sanctions(business_number)
+
+
 def main() -> None:
     """Run the MCP server over stdio."""
     logger = configure_logging(__name__)

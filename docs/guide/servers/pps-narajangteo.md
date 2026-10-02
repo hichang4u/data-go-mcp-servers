@@ -9,6 +9,22 @@
 | 환경변수 | `API_KEY` 또는 `PPS_NARAJANGTEO_API_KEY` |
 | 패키지 | `data-go-mcp.pps-narajangteo` (`src/pps-narajangteo`) |
 
+## 업체를 사업자번호로
+
+`get_procurement_company` 는 조달 등록업체의 기본정보·등록업종·공급물품을 한 번에 가져온다. `check_procurement_sanctions` 는 부정당업자 제재(공공입찰 참가자격 제한) 이력이다.
+
+```
+> 327-81-00184 조달 실사해줘
+  주식회사 세연인터내셔널 · 대표 신현철 · 경기도 구리시 · 직원 3명 · 개업 2015-11-19
+  업종: 의료기기판매업 | 물품: 골프카트, 전자회로기판, 압박붕대
+  제재 1건 · 현재 제한 중 · 방위사업청 2026-02-26~11-25 (계약 미이행)
+```
+
+- **낙찰 조회와 달리 사업자번호 필터가 실제로 동작한다.** `find_bid_winners` 는 기간을 훑어야 하지만 이 둘은 번호 하나로 바로 걸린다.
+- 조달시장에 등록되지 않은 사업자는 오류가 아니라 `registered: false` 다.
+- 제재는 **이력이 있는 것과 지금 제한 중인 것이 다르다** — `restricted_now` 가 오늘 기준으로 알려준다.
+- 등록업종의 `status`(정상 등)와 `valid_until` 은 업종마다 비어 있을 수 있다.
+
 ## 설정
 
 ```json
@@ -54,6 +70,18 @@
 
 <!-- tools:start -->
 
+### `check_procurement_sanctions`
+
+부정당업자 제재 이력을 조회합니다. Check debarment records for a company.
+
+공공입찰 참가자격 제한 처분입니다. 처분기관·제재기간·근거법령·사유가 나오며,
+``restricted_now`` 로 **지금 제재 중인지**를 따로 알려줍니다 (이력이 있는 것과
+현재 제한 상태인 것은 다른 질문입니다). 제재가 없으면 0건입니다.
+
+| 파라미터 | 타입 | 필수 | 기본값 | 설명 |
+|---|---|---|---|---|
+| `business_number` | string | 예 |  | 사업자등록번호 10자리 (예: 327-81-00184 또는 3278100184) |
+
 ### `find_bid_winners`
 
 특정 업체의 나라장터 낙찰 이력을 찾습니다. Find a company's winning bids.
@@ -87,6 +115,20 @@ complete=false 면 기간을 다 훑지 못한 것이니 "0건"을 없다는 뜻
 | `bid_notice_no` | string | 예 |  | 입찰공고번호 (예: R25BK00933743) |
 | `start_date` | string (optional) |  |  | 날짜 (YYYY-MM-DD 또는 YYYYMMDD) |
 | `end_date` | string (optional) |  |  | 날짜 (YYYY-MM-DD 또는 YYYYMMDD) |
+
+### `get_procurement_company`
+
+조달 등록업체 정보를 조회합니다. Look up a company registered with 나라장터.
+
+사업자등록번호로 업체 기본정보(상호·대표자·개업일·주소·직원수), **등록 업종**(유효기간과
+상태 포함), **공급물품**(직접생산 여부 포함)을 한 번에 가져옵니다. 조달시장에 등록되지
+않은 사업자는 오류가 아니라 ``registered: false`` 로 옵니다.
+
+낙찰 이력은 find_bid_winners, 제재 이력은 check_procurement_sanctions 입니다.
+
+| 파라미터 | 타입 | 필수 | 기본값 | 설명 |
+|---|---|---|---|---|
+| `business_number` | string | 예 |  | 사업자등록번호 10자리 (예: 111-81-26895 또는 1118126895) |
 
 ### `search_bid_announcements`
 

@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-10-03
+
+### Added
+- `get_procurement_company` — 조달 등록업체 기본정보·등록업종·공급물품 (사업자번호 하나로)
+- `check_procurement_sanctions` — 부정당업자 제재 이력. `restricted_now` 로 현재 제한 여부를 따로 준다
+
+사용자정보서비스(`ao/UsrInfoService02`)는 낙찰정보와 달리 사업자번호 필터가 실제로 동작한다.
+오퍼레이션마다 "사업자등록번호 기준검색"의 `inqryDiv` 가 다르다 (기본정보 3, 나머지 1).
+
 ## [0.6.1] - 2026-10-01
 
 ### Fixed

@@ -12,7 +12,7 @@
 |---|---|---|
 | [nps-business-enrollment](docs/guide/servers/nps-business-enrollment.md) | 국민연금공단 — 사업장 가입내역 (+ 법정동코드 조회, 고용·산재보험 현황) | `search_business` `get_business_detail` `get_period_status` `find_region_code` `get_insurance_status` |
 | [nts-business-verification](docs/guide/servers/nts-business-verification.md) | 국세청 — 사업자등록 진위확인·상태 | `validate_business` `check_business_status` `batch_validate_businesses` |
-| [pps-narajangteo](docs/guide/servers/pps-narajangteo.md) | 조달청 — 나라장터 입찰·낙찰·계약 | `search_bid_announcements` `search_successful_bids` `search_contracts` `get_bid_detail` `find_bid_winners` |
+| [pps-narajangteo](docs/guide/servers/pps-narajangteo.md) | 조달청 — 나라장터 입찰·낙찰·계약, 조달업체 정보·부정당제재 | `search_bid_announcements` `search_successful_bids` `search_contracts` `get_bid_detail` `find_bid_winners` `get_procurement_company` `check_procurement_sanctions` |
 | [fsc-financial-info](docs/guide/servers/fsc-financial-info.md) | 금융위원회 — 기업 재무제표 (+ 법인번호 조회·기업 개요·주식시세·지수·ETF) | `get_summary_financial_statement` `get_balance_sheet` `get_income_statement` `search_company_financial_info` `find_corp_number` `get_corp_outline` `get_stock_price` `search_stock_items` `get_market_index` `get_etf_price` |
 | [presidential-speeches](docs/guide/servers/presidential-speeches.md) | 대통령기록관 — 연설문 | `list_speeches` `search_speeches` `get_recent_speeches` |
 | [msds-chemical-info](docs/guide/servers/msds-chemical-info.md) | 안전보건공단 — MSDS | `search_chemicals` `get_chemical_section` `get_complete_msds` 외 4 |
@@ -21,7 +21,7 @@
 | [work24-jobs](docs/guide/servers/work24-jobs.md) | 고용24(옛 워크넷) — 채용공고 (사업자번호로 조회, 기업 규모·자격요건) | `search_job_postings` `get_job_posting` |
 | [bok-ecos](docs/guide/servers/bok-ecos.md) | 한국은행 — 경제통계시스템 ECOS (기준금리·환율·물가, 100대 지표) | `find_statistic_table` `get_statistic_items` `get_statistic_data` `get_key_statistics` `search_term` |
 
-서버 10개, 툴 49개, 공공 API 28종. 모든 툴은 조회 전용이며, 실패는 MCP 오류 결과(`isError`)로 전달된다. 한 서버가 API 여러 개를 쓰는 경우(molit 12, fsc 5, nps 3, pps 2)는 각각 활용신청이 필요하다 — 표는 [api-keys.md](docs/guide/api-keys.md). dart-disclosure(OpenDART)·bok-ecos(한국은행 ECOS)·work24-jobs(고용24)는 data.go.kr 이 아닌 각자의 키를 쓴다.
+서버 10개, 툴 51개, 공공 API 29종. 모든 툴은 조회 전용이며, 실패는 MCP 오류 결과(`isError`)로 전달된다. 한 서버가 API 여러 개를 쓰는 경우(molit 12, fsc 5, nps 3, pps 3)는 각각 활용신청이 필요하다 — 표는 [api-keys.md](docs/guide/api-keys.md). dart-disclosure(OpenDART)·bok-ecos(한국은행 ECOS)·work24-jobs(고용24)는 data.go.kr 이 아닌 각자의 키를 쓴다.
 
 ## 무엇이 다른가
 

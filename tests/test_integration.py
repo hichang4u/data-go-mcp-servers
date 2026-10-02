@@ -67,6 +67,18 @@ CALLS = [
         '"deal_amount"',
     ),
     (
+        "pps_narajangteo",
+        "get_procurement_company",
+        {"business_number": "111-81-26895"},
+        '"registered": true',
+    ),
+    (
+        "pps_narajangteo",
+        "check_procurement_sanctions",
+        {"business_number": "327-81-00184"},
+        '"restricted_now"',
+    ),
+    (
         "molit_realestate",
         "get_building_register",
         {"region_code": "1168010500", "bun": "1", "ji": "1"},

@@ -58,6 +58,12 @@ TARGETS = [
         },
     ),
     (
+        "pps-narajangteo (조달업체정보)",
+        "GET",
+        "https://apis.data.go.kr/1230000/ao/UsrInfoService02/getPrcrmntCorpBasicInfo02",
+        {"inqryDiv": "3", "bizno": "1118126895", "numOfRows": 1, "pageNo": 1, "type": "json"},
+    ),
+    (
         "fsc-financial-info (지수시세)",
         "GET",
         "https://apis.data.go.kr/1160100/GetMarketIndexInfoService_V2/getStockMarketIndex_V2",

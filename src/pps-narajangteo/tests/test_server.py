@@ -58,6 +58,8 @@ async def test_all_tools_are_read_only_with_described_params():
         "search_contracts",
         "get_bid_detail",
         "find_bid_winners",
+        "get_procurement_company",
+        "check_procurement_sanctions",
     }
     for tool in tools:
         assert tool.annotations is not None and tool.annotations.read_only_hint is True
@@ -338,3 +340,50 @@ async def test_find_bid_winners_without_target_is_input_error():
         result = await client.call_tool("find_bid_winners", {"start_date": "2026-08-01"})
     assert result.is_error is True
     assert "입력값 오류" in _text(result)
+
+
+@respx.mock
+async def test_get_procurement_company_tool():
+    from .conftest import CORP_BASE, CORP_BASIC, CORP_INDUSTRY, CORP_SUPPLY
+
+    respx.get(f"{CORP_BASE}/getPrcrmntCorpBasicInfo02").mock(
+        return_value=httpx.Response(200, json=CORP_BASIC)
+    )
+    respx.get(f"{CORP_BASE}/getPrcrmntCorpIndstrytyInfo02").mock(
+        return_value=httpx.Response(200, json=CORP_INDUSTRY)
+    )
+    respx.get(f"{CORP_BASE}/getPrcrmntCorpSplyPrdctInfo02").mock(
+        return_value=httpx.Response(200, json=CORP_SUPPLY)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool(
+            "get_procurement_company", {"business_number": "111-81-26895"}
+        )
+
+    assert result.is_error is False
+    data = json.loads(_text(result))
+    assert data["company"]["name"] == "주식회사 레드캡투어"
+    assert data["registered"] is True
+    assert len(data["industries"]) == 2
+
+
+@respx.mock
+async def test_check_procurement_sanctions_tool():
+    from .conftest import CORP_BASE, CORP_SANCTION
+
+    respx.get(url__startswith=CORP_BASE).mock(return_value=httpx.Response(200, json=CORP_SANCTION))
+    async with Client(mcp) as client:
+        result = await client.call_tool(
+            "check_procurement_sanctions", {"business_number": "327-81-00184"}
+        )
+
+    data = json.loads(_text(result))
+    assert data["total_count"] == 1
+    assert data["items"][0]["institution"] == "방위사업청"
+
+
+async def test_procurement_company_rejects_a_bad_number():
+    async with Client(mcp) as client:
+        result = await client.call_tool("get_procurement_company", {"business_number": "123"})
+    assert result.is_error is True
+    assert "사업자번호" in _text(result)

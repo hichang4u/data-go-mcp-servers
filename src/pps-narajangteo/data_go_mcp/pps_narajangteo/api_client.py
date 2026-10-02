@@ -1,4 +1,4 @@
-"""API client for 나라장터 — 공공데이터개방표준서비스와 낙찰정보서비스.
+"""API client for 나라장터 — 공공데이터개방표준서비스, 낙찰정보서비스, 사용자정보서비스.
 
 낙찰업체 조회(``find_bid_winners``)만 낙찰정보서비스(``as/ScsbidInfoService``)를 쓴다.
 2026-09-30 실호출로 확인한 것:
@@ -11,8 +11,13 @@
 - ``inqryDiv=1`` 은 등록일시, ``inqryDiv=2`` 가 **개찰일시** 기준이다
 - **한 요청의 기간 한도는 1개월**이다 (넘기면 코드 07). 그래서 더 긴 기간은 달 단위로 쪼개
   호출한다. 용역 1개월 전수가 4~8페이지 15~35초, 3개월이 19요청 약 70초
+
+업체 조회(``get_procurement_company``, ``check_procurement_sanctions``)는 사용자정보서비스
+(``ao/UsrInfoService02``)를 쓴다. 이쪽은 낙찰정보와 달리 **사업자번호 필터가 실제로 동작한다**
+(2026-10-03 확인). 대신 오퍼레이션마다 '사업자등록번호 기준검색'의 ``inqryDiv`` 코드가 다르다.
 """
 
+import asyncio
 import datetime as dt
 import re
 from typing import Any, Mapping, Optional
@@ -35,6 +40,17 @@ WINNER_MAX_PAGES = 40
 WINNER_MAX_DAYS = 93  # 3개월. 그 이상은 분 단위로 늘어난다
 OPENING_DATE_DIV = 2  # 1=등록일시, 2=개찰일시
 WINNER_TIMEOUT = 90.0  # 한 페이지가 999건이라 기본 30초로는 모자랄 때가 있다
+
+CORP_BASE = "https://apis.data.go.kr/1230000/ao/UsrInfoService02"
+# 오퍼레이션 → (경로, 사업자번호 기준검색의 inqryDiv). **코드가 제각각이다** — 기본정보만 3,
+# 나머지는 1. 하나로 묶으면 조회구분이 달라져 조용히 다른 결과가 온다 (2026-10-03 실호출 확인).
+CORP_OPERATIONS = {
+    "basic": ("getPrcrmntCorpBasicInfo02", "3"),
+    "industry": ("getPrcrmntCorpIndstrytyInfo02", "1"),
+    "supply": ("getPrcrmntCorpSplyPrdctInfo02", "1"),
+    "sanction": ("getUnptRsttCorpInfo02", "1"),
+}
+CORP_PAGE_SIZE = 100
 
 
 def _now() -> "dt.datetime":
@@ -201,6 +217,49 @@ class PpsNarajangteoAPIClient(BaseDataGoClient):
             )
         return bgn, end
 
+    async def get_procurement_company(self, business_number: str) -> dict[str, Any]:
+        """조달 등록업체 정보. 기본정보·등록업종·공급물품을 한 번에 모은다."""
+        bizno = normalize_business_number(business_number)
+        basic, industry, supply = await asyncio.gather(
+            self._corp_rows("basic", bizno),
+            self._corp_rows("industry", bizno),
+            self._corp_rows("supply", bizno),
+        )
+        company = _corp_company(basic[0]) if basic else None
+        return {
+            "company": company,
+            "registered": company is not None,
+            "industries": [_corp_industry(r) for r in industry],
+            "products": [_corp_product(r) for r in supply],
+        }
+
+    async def check_procurement_sanctions(self, business_number: str) -> dict[str, Any]:
+        """부정당업자 제재 이력. 지금 제재 중인지도 함께 돌려준다."""
+        bizno = normalize_business_number(business_number)
+        rows = await self._corp_rows("sanction", bizno)
+        items = [_corp_sanction(r) for r in rows]
+        return {
+            "items": items,
+            "total_count": len(items),
+            "restricted_now": any(i["in_effect"] for i in items),
+        }
+
+    async def _corp_rows(self, facet: str, bizno: str) -> list[dict[str, Any]]:
+        """사용자정보서비스 한 오퍼레이션을 호출하고 행 목록을 돌려준다."""
+        operation, inqry_div = CORP_OPERATIONS[facet]
+        response = await self.http.get(
+            f"{CORP_BASE}/{operation}",
+            params=self._params(
+                {
+                    "inqryDiv": inqry_div,
+                    "bizno": bizno,
+                    "numOfRows": CORP_PAGE_SIZE,
+                    "pageNo": 1,
+                }
+            ),
+        )
+        return normalize_items(self._handle(response))
+
     async def get_contracts(
         self,
         contract_begin_date: Optional[str] = None,
@@ -238,6 +297,114 @@ def _monthly_windows(bgn: str, end: str) -> list[tuple[str, str]]:
         windows.append((start.strftime("%Y%m%d0000"), stop.strftime("%Y%m%d2359")))
         start = stop + dt.timedelta(days=1)
     return windows
+
+
+def normalize_business_number(value: str) -> str:
+    """``"111-81-26895"`` → ``"1118126895"``. 틀린 값은 0건이 아니라 오류로 돌려준다."""
+    bizno = re.sub(r"\D", "", value or "")
+    if len(bizno) != 10:
+        raise ValueError(f"사업자번호는 숫자 10자리여야 합니다: {value!r}")
+    return bizno
+
+
+def _corp_text(value: Any) -> Optional[str]:
+    text = str(value or "").strip()
+    return text or None
+
+
+def _corp_date(value: Any) -> Optional[str]:
+    """``"1996-08-01 00:00:00"`` → ``"1996-08-01"``."""
+    text = _corp_text(value)
+    return text.split(" ")[0] if text else None
+
+
+def _corp_int(value: Any) -> Optional[int]:
+    text = str(value or "").replace(",", "").strip()
+    return int(text) if text.isdigit() else None
+
+
+def _corp_yn(value: Any) -> bool:
+    return str(value or "").strip().upper() == "Y"
+
+
+def _corp_company(row: Mapping[str, Any]) -> dict[str, Any]:
+    """업체 기본정보 한 건."""
+    address = " ".join(
+        part for part in (_corp_text(row.get("adrs")), _corp_text(row.get("dtlAdrs"))) if part
+    )
+    types = _corp_text(row.get("corpBsnsDivNm"))
+    return {
+        "business_number": _corp_text(row.get("bizno")),
+        "name": _corp_text(row.get("corpNm")),
+        "english_name": _corp_text(row.get("engCorpNm")),
+        "ceo": _corp_text(row.get("ceoNm")),
+        "opened_on": _corp_date(row.get("opbizDt")),
+        "region": _corp_text(row.get("rgnNm")),
+        "address": address or None,
+        "postal_code": _corp_text(row.get("zip")),
+        "phone": _corp_text(row.get("telNo")),
+        "fax": _corp_text(row.get("faxNo")),
+        "homepage": _corp_text(row.get("hmpgAdrs")),
+        "employees": _corp_int(row.get("emplyeNum")),
+        "supply_type": _corp_text(row.get("mnfctDivNm")),
+        "business_types": [t.strip() for t in types.split(",")] if types else [],
+        "head_office": _corp_text(row.get("hdoffceDivNm")),
+        "registered_on": _corp_date(row.get("rgstDt")),
+        "changed_on": _corp_date(row.get("chgDt")),
+    }
+
+
+def _corp_industry(row: Mapping[str, Any]) -> dict[str, Any]:
+    """등록 업종 한 건."""
+    return {
+        "name": _corp_text(row.get("indstrytyNm")),
+        "code": _corp_text(row.get("indstrytyCd")),
+        "status": _corp_text(row.get("indstrytyStatsNm")),
+        "representative": _corp_yn(row.get("rprsntIndstrytyYn")),
+        "registered_on": _corp_date(row.get("rgstDt")),
+        "valid_until": _corp_date(row.get("vldPrdExprtDt")),
+    }
+
+
+def _corp_product(row: Mapping[str, Any]) -> dict[str, Any]:
+    """공급물품 한 건."""
+    return {
+        "name": _corp_text(row.get("dtilPrdctClsfcNoNm")),
+        "classification_code": _corp_text(row.get("dtilPrdctClsfcNo")),
+        "representative": _corp_yn(row.get("rprsntPrdctClsfcNoNmYn")),
+        "manufactured": _corp_yn(row.get("mnfctYn")),
+        "registered_on": _corp_date(row.get("rgstDt")),
+    }
+
+
+def _corp_sanction(row: Mapping[str, Any]) -> dict[str, Any]:
+    """부정당업자 제재 한 건. 제재 기간이 오늘을 품고 있으면 진행 중이다."""
+    begins, ends = _corp_date(row.get("rsttBgnDate")), _corp_date(row.get("rsttEndDate"))
+    return {
+        "company_name": _corp_text(row.get("corpNm")),
+        "business_number": _corp_text(row.get("bizno")),
+        "institution": _corp_text(row.get("insttNm")),
+        "begins_on": begins,
+        "ends_on": ends,
+        "in_effect": _corp_in_effect(begins, ends),
+        "months": _corp_int(row.get("rsttPrdMonthNum")),
+        "days": _corp_int(row.get("rsttPrdDayNum")),
+        "status": _corp_text(row.get("rsttProgrsNm")),
+        "law": _corp_text(row.get("lawordNm")),
+        "clause": _corp_text(row.get("lawordArtclClause")),
+        "reason": _corp_text(row.get("lawordArtclClauseCdNm")),
+        "short_reason": _corp_text(row.get("enfcPrvNm")),
+        "document": _corp_text(row.get("unptRsttDocNm")),
+        "notified_on": _corp_text(row.get("ntfcnDt")),
+    }
+
+
+def _corp_in_effect(begins: Optional[str], ends: Optional[str]) -> bool:
+    """오늘이 제재 기간 안인가."""
+    today = dt.date.today().isoformat()
+    if begins and begins > today:
+        return False
+    return bool(ends) and ends >= today
 
 
 def _winner_matches(row: Mapping[str, Any], bizno: str, name: str) -> bool:

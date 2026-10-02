@@ -945,7 +945,7 @@ dev = [
 
 [[package]]
 name = "data-go-mcp-pps-narajangteo"
-version = "0.6.1"
+version = "0.7.0"
 source = { editable = "src/pps-narajangteo" }
 dependencies = [
     { name = "data-go-mcp-core" },

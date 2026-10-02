@@ -30,6 +30,8 @@ SERVERS = {
         "search_contracts",
         "get_bid_detail",
         "find_bid_winners",
+        "get_procurement_company",
+        "check_procurement_sanctions",
     },
     "fsc_financial_info": {
         "get_summary_financial_statement",
