@@ -137,7 +137,12 @@ async def test_clean_company_has_no_sanctions():
     respx.get(url__startswith=CORP_BASE).mock(return_value=httpx.Response(200, json=CORP_EMPTY))
     async with PpsNarajangteoAPIClient() as client:
         result = await client.check_procurement_sanctions(BIZNO)
-    assert result == {"items": [], "total_count": 0, "restricted_now": False}
+    assert result == {
+        "items": [],
+        "total_count": 0,
+        "complete": True,
+        "restricted_now": False,
+    }
 
 
 @pytest.mark.parametrize("value", ["", "111-81-2689", "abc", "11181268950"])
@@ -166,3 +171,69 @@ async def test_api_error_is_raised_not_swallowed():
     async with PpsNarajangteoAPIClient() as client:
         with pytest.raises(DataGoAPIError):
             await client.get_procurement_company(BIZNO)
+
+
+@respx.mock
+async def test_profile_reports_the_api_totals():
+    """100건만 받아 오므로, 더 있는지를 알 수 있어야 한다 (삼성전자 공급물품이 이미 68건)."""
+    _mock_profile()
+    async with PpsNarajangteoAPIClient() as client:
+        result = await client.get_procurement_company(BIZNO)
+
+    assert result["industry_count"] == 3  # fixture 는 2행이지만 totalCount 는 3
+    assert len(result["industries"]) == 2
+    assert result["product_count"] == 2
+    assert result["complete"] is False  # 업종을 다 받지 못했다
+
+
+@respx.mock
+async def test_profile_is_complete_when_everything_fits():
+    respx.get(f"{CORP_BASE}/getPrcrmntCorpBasicInfo02").mock(
+        return_value=httpx.Response(200, json=CORP_BASIC)
+    )
+    respx.get(f"{CORP_BASE}/getPrcrmntCorpIndstrytyInfo02").mock(
+        return_value=httpx.Response(200, json=CORP_SUPPLY)  # 2행 / totalCount 2
+    )
+    respx.get(f"{CORP_BASE}/getPrcrmntCorpSplyPrdctInfo02").mock(
+        return_value=httpx.Response(200, json=CORP_SUPPLY)
+    )
+    async with PpsNarajangteoAPIClient() as client:
+        result = await client.get_procurement_company(BIZNO)
+    assert result["complete"] is True
+
+
+@respx.mock
+async def test_sanctions_use_the_api_total_not_the_row_count():
+    """페이지 2에 살아 있는 제재가 있어도 restricted_now 가 놓치면 안 된다."""
+    respx.get(url__startswith=CORP_BASE).mock(return_value=httpx.Response(200, json=CORP_SANCTION))
+    async with PpsNarajangteoAPIClient() as client:
+        result = await client.check_procurement_sanctions("327-81-00184")
+    assert result["total_count"] == 1  # CORP_SANCTION 의 totalCount
+    assert result["complete"] is True
+
+
+@respx.mock
+async def test_a_failing_facet_does_not_leave_tasks_behind(monkeypatch):
+    """한 오퍼레이션이 실패해도 나머지를 버려두고 커넥션을 닫으면 안 된다."""
+    respx.get(f"{CORP_BASE}/getPrcrmntCorpBasicInfo02").mock(
+        return_value=httpx.Response(
+            200, json={"response": {"header": {"resultCode": "30", "resultMsg": "NO KEY"}}}
+        )
+    )
+    respx.get(f"{CORP_BASE}/getPrcrmntCorpIndstrytyInfo02").mock(
+        return_value=httpx.Response(200, json=CORP_INDUSTRY)
+    )
+    respx.get(f"{CORP_BASE}/getPrcrmntCorpSplyPrdctInfo02").mock(
+        return_value=httpx.Response(200, json=CORP_SUPPLY)
+    )
+    seen: list[str] = []
+    import asyncio
+
+    loop = asyncio.get_running_loop()
+    loop.set_exception_handler(lambda _loop, ctx: seen.append(str(ctx.get("message", ""))))
+
+    async with PpsNarajangteoAPIClient() as client:
+        with pytest.raises(DataGoAPIError):
+            await client.get_procurement_company(BIZNO)
+    await asyncio.sleep(0)
+    assert not [m for m in seen if "never retrieved" in m]

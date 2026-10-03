@@ -170,3 +170,27 @@ async def test_mcpb_description_counts_match_the_tools():
     stated = re.search(r"툴 (\d+)개", manifest["description"])
     assert stated, "description 에 '툴 N개' 가 없다"
     assert int(stated.group(1)) == len(manifest["tools"])
+
+
+async def test_docs_tool_and_server_counts_are_current():
+    """손으로 쓴 '툴 N개'·'서버 N개' 가 낡는 일이 반복됐다 (v0.11.0, v0.12.0 둘 다)."""
+    import re
+
+    root = SRC.parent
+    tools = len(await mcp.list_tools())
+    servers = len(_server_dirs())
+    stale: list[str] = []
+    for rel in ("README.md", "README.en.md", "docs/guide/installation.md"):
+        text = (root / rel).read_text(encoding="utf-8")
+        for pattern, expected, label in (
+            (r"툴 (\d+)개", tools, "툴"),
+            (r"(\d+) tools", tools, "tools"),
+            (r"서버 (\d+)개", servers, "서버"),
+            (r"위 (\d+)개 전부", servers, "위 N개"),
+            (r"서버 (\d+)개를 다", servers, "서버 N개를"),
+            (r"(\d+) servers", servers, "servers"),
+        ):
+            for found in re.findall(pattern, text):
+                if int(found) != expected:
+                    stale.append(f"{rel}: {label} {found} (실제 {expected})")
+    assert not stale, "\n".join(stale)

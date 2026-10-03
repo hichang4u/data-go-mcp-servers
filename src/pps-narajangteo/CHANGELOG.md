@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `get_procurement_company` — 조달 등록업체 기본정보·등록업종·공급물품 (사업자번호 하나로)
 - `check_procurement_sanctions` — 부정당업자 제재 이력. `restricted_now` 로 현재 제한 여부를 따로 준다
+- 두 툴 모두 API 총계(`industry_count`·`product_count`·`total_count`)와 `complete` 를 준다 — 한 번에 100건까지만 받기 때문
 
 사용자정보서비스(`ao/UsrInfoService02`)는 낙찰정보와 달리 사업자번호 필터가 실제로 동작한다.
 오퍼레이션마다 "사업자등록번호 기준검색"의 `inqryDiv` 가 다르다 (기본정보 3, 나머지 1).

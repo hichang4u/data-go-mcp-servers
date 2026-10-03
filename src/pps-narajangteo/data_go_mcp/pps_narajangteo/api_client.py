@@ -20,7 +20,7 @@
 import asyncio
 import datetime as dt
 import re
-from typing import Any, Mapping, Optional
+from typing import Any, Awaitable, Mapping, NamedTuple, Optional
 
 from data_go_mcp.core import BaseDataGoClient, DataGoAPIError, normalize_items
 
@@ -220,32 +220,39 @@ class PpsNarajangteoAPIClient(BaseDataGoClient):
     async def get_procurement_company(self, business_number: str) -> dict[str, Any]:
         """조달 등록업체 정보. 기본정보·등록업종·공급물품을 한 번에 모은다."""
         bizno = normalize_business_number(business_number)
-        basic, industry, supply = await asyncio.gather(
+        basic, industry, supply = await _gather_all(
             self._corp_rows("basic", bizno),
             self._corp_rows("industry", bizno),
             self._corp_rows("supply", bizno),
         )
-        company = _corp_company(basic[0]) if basic else None
+        company = _corp_company(basic.rows[0]) if basic.rows else None
+        industries = [_corp_industry(r) for r in industry.rows]
+        products = [_corp_product(r) for r in supply.rows]
         return {
             "company": company,
             "registered": company is not None,
-            "industries": [_corp_industry(r) for r in industry],
-            "products": [_corp_product(r) for r in supply],
+            "industries": industries,
+            "products": products,
+            # 한 번에 CORP_PAGE_SIZE 건까지만 받는다. 총계를 함께 줘야 잘렸는지 알 수 있다
+            "industry_count": industry.total,
+            "product_count": supply.total,
+            "complete": len(industries) >= industry.total and len(products) >= supply.total,
         }
 
     async def check_procurement_sanctions(self, business_number: str) -> dict[str, Any]:
         """부정당업자 제재 이력. 지금 제재 중인지도 함께 돌려준다."""
         bizno = normalize_business_number(business_number)
-        rows = await self._corp_rows("sanction", bizno)
-        items = [_corp_sanction(r) for r in rows]
+        page = await self._corp_rows("sanction", bizno)
+        items = [_corp_sanction(r) for r in page.rows]
         return {
             "items": items,
-            "total_count": len(items),
+            "total_count": page.total,  # len(items) 는 100 을 못 넘는다
+            "complete": len(items) >= page.total,
             "restricted_now": any(i["in_effect"] for i in items),
         }
 
-    async def _corp_rows(self, facet: str, bizno: str) -> list[dict[str, Any]]:
-        """사용자정보서비스 한 오퍼레이션을 호출하고 행 목록을 돌려준다."""
+    async def _corp_rows(self, facet: str, bizno: str) -> "CorpPage":
+        """사용자정보서비스 한 오퍼레이션을 호출한다. 총계도 함께 돌려준다."""
         operation, inqry_div = CORP_OPERATIONS[facet]
         response = await self.http.get(
             f"{CORP_BASE}/{operation}",
@@ -258,7 +265,8 @@ class PpsNarajangteoAPIClient(BaseDataGoClient):
                 }
             ),
         )
-        return normalize_items(self._handle(response))
+        body = self._handle(response)
+        return CorpPage(normalize_items(body), int(body.get("totalCount") or 0))
 
     async def get_contracts(
         self,
@@ -297,6 +305,27 @@ def _monthly_windows(bgn: str, end: str) -> list[tuple[str, str]]:
         windows.append((start.strftime("%Y%m%d0000"), stop.strftime("%Y%m%d2359")))
         start = stop + dt.timedelta(days=1)
     return windows
+
+
+class CorpPage(NamedTuple):
+    """한 오퍼레이션의 결과 한 페이지와 API 가 말하는 총계."""
+
+    rows: list[dict[str, Any]]
+    total: int
+
+
+async def _gather_all(*aws: "Awaitable[CorpPage]") -> list[CorpPage]:
+    """Gather 하되 실패해도 나머지를 버려두지 않는다.
+
+    ``asyncio.gather`` 는 첫 실패를 바로 올리고 남은 태스크를 취소하지 않는다. 그 뒤
+    ``async with`` 가 커넥션 풀을 닫으면 남은 태스크가 닫힌 풀에서 실패하고, 아무도
+    기다리지 않아 ``Task exception was never retrieved`` 가 stderr 에 남는다.
+    """
+    results = await asyncio.gather(*aws, return_exceptions=True)
+    for result in results:
+        if isinstance(result, BaseException):
+            raise result
+    return [r for r in results if isinstance(r, CorpPage)]
 
 
 def normalize_business_number(value: str) -> str:

@@ -32,13 +32,13 @@ uvx --from "git+https://github.com/hichang4u/data-go-mcp-servers#subdirectory=sr
 | `ftc-ecommerce` | 공정거래위원회 통신판매사업자 — 사업자번호로 온라인 판매 신고 조회 |
 | `work24-jobs` | 고용24 채용정보 — 사업자번호로 채용공고 조회 (키: `WORK24_API_KEY`) |
 | `bok-ecos` | 한국은행 경제통계 — 기준금리·환율·물가, 100대 지표 (키: `BOK_ECOS_API_KEY`) |
-| `all-servers` | 위 10개 전부를 한 프로세스로 ([아래](#통합-서버-all-servers)) |
+| `all-servers` | 위 11개 전부를 한 프로세스로 ([아래](#통합-서버-all-servers)) |
 
 특정 커밋/태그에 고정하려면 `data-go-mcp-servers@v0.11.0#subdirectory=…` 처럼 `@` 뒤에 붙인다.
 
 ## Claude Desktop
 
-방법이 둘이다. 서버 10개를 다 쓸 거면 **A**, 필요한 서버만 골라 쓸 거면 **B**.
+방법이 둘이다. 서버 11개를 다 쓸 거면 **A**, 필요한 서버만 골라 쓸 거면 **B**.
 
 ### A. 확장 프로그램(.mcpb)으로 설치 — uv 불필요
 
@@ -51,7 +51,7 @@ uvx --from "git+https://github.com/hichang4u/data-go-mcp-servers#subdirectory=sr
    - **고용24 인증키** (선택) — 비워 두면 채용정보 툴만 실패한다
 4. 확장 프로그램이 켜져 있는지 확인한다.
 
-설치되는 것은 [통합 서버](#통합-서버-all-servers)(툴 51개)다. Claude Desktop 이 자체 uv 로 의존성을 설치하므로 uv 를 따로 깔 필요가 없다. 키를 바꾸려면 확장 프로그램 목록에서 이 확장의 설정을 연다.
+설치되는 것은 [통합 서버](#통합-서버-all-servers)(툴 52개)다. Claude Desktop 이 자체 uv 로 의존성을 설치하므로 uv 를 따로 깔 필요가 없다. 키를 바꾸려면 확장 프로그램 목록에서 이 확장의 설정을 연다.
 
 `data-go-mcp.mcpb`(이름에 `desktop` 이 없는 것)는 Smithery 용이라 Claude Desktop 에 끌어 놓으면 설치가 거부된다.
 
@@ -177,13 +177,13 @@ stdio 서버를 등록하는 곳에 같은 `command`/`args`/`env` 를 넣으면 
 
 ## 통합 서버 (all-servers)
 
-서버 10개의 툴 51개를 **한 프로세스**로 띄우는 패키지. 설정 항목 하나로 전부 쓰고 싶을 때, 또는 Smithery 처럼 리스팅 하나에 서버 하나만 올릴 수 있는 곳에 쓴다.
+서버 11개의 툴 52개를 **한 프로세스**로 띄우는 패키지. 설정 항목 하나로 전부 쓰고 싶을 때, 또는 Smithery 처럼 리스팅 하나에 서버 하나만 올릴 수 있는 곳에 쓴다.
 
 ```
 uvx --from "git+https://github.com/hichang4u/data-go-mcp-servers#subdirectory=src/all-servers" data-go-mcp.all-servers
 ```
 
-환경변수는 `API_KEY` (data.go.kr 7종 공통), `DART_DISCLOSURE_API_KEY` (OpenDART, 선택), `BOK_ECOS_API_KEY` (한국은행 ECOS, 선택), `WORK24_API_KEY` (고용24, 선택). 없는 키 쪽의 툴만 실패한다. 툴 51개가 한꺼번에 클라이언트에 실리므로 몇 개만 쓴다면 서버별 설치가 낫다.
+환경변수는 `API_KEY` (data.go.kr 7종 공통), `DART_DISCLOSURE_API_KEY` (OpenDART, 선택), `BOK_ECOS_API_KEY` (한국은행 ECOS, 선택), `WORK24_API_KEY` (고용24, 선택). 없는 키 쪽의 툴만 실패한다. 툴 52개가 한꺼번에 클라이언트에 실리므로 몇 개만 쓴다면 서버별 설치가 낫다.
 
 ## Smithery (smithery.ai)
 

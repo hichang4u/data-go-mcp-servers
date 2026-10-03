@@ -45,6 +45,15 @@ async def test_lookup_by_business_number():
     assert result["total_count"] == 1
 
 
+@pytest.mark.parametrize("marker", ["N/A", "NULL", "null", "None", " ", "-"])
+async def test_every_empty_marker_becomes_none(marker):
+    """이 API 는 빈 값을 여러 문자열로 쓴다. 실응답에서 100행 중 29행이 ``"NULL"`` 이었다."""
+    from data_go_mcp.ftc_ecommerce.models import OnlineSeller
+
+    seller = OnlineSeller.from_api({"brno": "1208800767", "rprsvEmladr": marker})
+    assert seller.email is None
+
+
 @respx.mock
 async def test_na_strings_become_none():
     """이 API 는 빈 값을 ``"N/A"`` 로 보낸다. 그대로 두면 모델이 가짜 값을 갖는다."""
@@ -69,6 +78,7 @@ async def test_closed_seller_keeps_its_status():
     assert seller["business_status"] == "폐업자"
     assert seller["active"] is False
     assert seller["corporate_number"] is None  # "N/A"
+    assert seller["email"] is None  # "NULL" — 이 API 의 두 번째 빈 값 표기
 
 
 @respx.mock

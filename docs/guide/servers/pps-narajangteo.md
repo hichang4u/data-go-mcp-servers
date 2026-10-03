@@ -24,6 +24,7 @@
 - 조달시장에 등록되지 않은 사업자는 오류가 아니라 `registered: false` 다.
 - 제재는 **이력이 있는 것과 지금 제한 중인 것이 다르다** — `restricted_now` 가 오늘 기준으로 알려준다.
 - 등록업종의 `status`(정상 등)와 `valid_until` 은 업종마다 비어 있을 수 있다.
+- **한 번에 100건까지** 받는다. `industry_count`·`product_count` 가 API 가 말하는 총계이고, 다 받았는지는 `complete` 로 본다 (삼성전자가 공급물품 68건이라 상한이 멀지 않다). 제재도 마찬가지로 `total_count` 는 총계다.
 
 ## 설정
 

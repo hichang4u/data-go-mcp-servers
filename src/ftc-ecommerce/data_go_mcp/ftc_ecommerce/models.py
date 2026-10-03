@@ -8,8 +8,9 @@ from typing import Any, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 
-# 이 API 가 빈 값을 표현하는 방법들
-EMPTY_VALUES = {"", "n/a", "na", "-"}
+# 이 API 가 빈 값을 표현하는 방법들. ``"NULL"`` 이 흔하다 — 실응답 100행 중 29행의
+# rprsvEmladr 가 이 문자열이었다 (2026-10-03).
+EMPTY_VALUES = {"", "n/a", "na", "null", "none", "-"}
 
 # 영업 중으로 볼 상태. 나머지는 직권말소·직권취소·폐업 등
 ACTIVE_STATUS = "정상영업"
