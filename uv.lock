@@ -18,6 +18,7 @@ members = [
     "data-go-mcp-core",
     "data-go-mcp-dart-disclosure",
     "data-go-mcp-fsc-financial-info",
+    "data-go-mcp-ftc-ecommerce",
     "data-go-mcp-molit-realestate",
     "data-go-mcp-msds-chemical-info",
     "data-go-mcp-nps-business-enrollment",
@@ -636,6 +637,7 @@ dependencies = [
     { name = "data-go-mcp-core" },
     { name = "data-go-mcp-dart-disclosure" },
     { name = "data-go-mcp-fsc-financial-info" },
+    { name = "data-go-mcp-ftc-ecommerce" },
     { name = "data-go-mcp-molit-realestate" },
     { name = "data-go-mcp-msds-chemical-info" },
     { name = "data-go-mcp-nps-business-enrollment" },
@@ -652,6 +654,7 @@ requires-dist = [
     { name = "data-go-mcp-core", editable = "src/data-go-mcp-core" },
     { name = "data-go-mcp-dart-disclosure", editable = "src/dart-disclosure" },
     { name = "data-go-mcp-fsc-financial-info", editable = "src/fsc-financial-info" },
+    { name = "data-go-mcp-ftc-ecommerce", editable = "src/ftc-ecommerce" },
     { name = "data-go-mcp-molit-realestate", editable = "src/molit-realestate" },
     { name = "data-go-mcp-msds-chemical-info", editable = "src/msds-chemical-info" },
     { name = "data-go-mcp-nps-business-enrollment", editable = "src/nps-business-enrollment" },
@@ -793,6 +796,43 @@ requires-dist = [
     { name = "mcp", extras = ["cli"], specifier = ">=2.2,<3" },
     { name = "pydantic", specifier = ">=2.11" },
     { name = "python-dotenv", specifier = ">=1.1" },
+]
+
+[[package]]
+name = "data-go-mcp-ftc-ecommerce"
+version = "0.1.0"
+source = { editable = "src/ftc-ecommerce" }
+dependencies = [
+    { name = "data-go-mcp-core" },
+    { name = "httpx" },
+    { name = "mcp", extra = ["cli"] },
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+    { name = "pytest-mock" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "data-go-mcp-core", editable = "src/data-go-mcp-core" },
+    { name = "httpx", specifier = ">=0.28" },
+    { name = "mcp", extras = ["cli"], specifier = ">=2.2,<3" },
+    { name = "pydantic", specifier = ">=2.11" },
+    { name = "python-dotenv", specifier = ">=1.1" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=8.4.1" },
+    { name = "pytest-asyncio", specifier = ">=1.1.0" },
+    { name = "pytest-cov", specifier = ">=4.1.0" },
+    { name = "pytest-mock", specifier = ">=3.12.0" },
 ]
 
 [[package]]

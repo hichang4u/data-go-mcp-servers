@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-data.go.kr 공공 API 26종 + OpenDART + 한국은행 ECOS + 고용24(서버 10개)를 MCP 서버로 제공하는 uv 워크스페이스. Python 3.10+, `mcp>=2.2,<3`.
+data.go.kr 공공 API 27종 + OpenDART + 한국은행 ECOS + 고용24(서버 11개)를 MCP 서버로 제공하는 uv 워크스페이스. Python 3.10+, `mcp>=2.2,<3`.
 
 ## 명령
 

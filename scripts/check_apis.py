@@ -118,6 +118,12 @@ TARGETS = [
         {"numOfRows": 1, "pageNo": 1, "resultType": "json", "likeSrtnCd": "005930"},
     ),
     (
+        "ftc-ecommerce (통신판매사업자)",
+        "GET",
+        "https://apis.data.go.kr/1130000/MllBsDtl_3Service/getMllBsInfoDetail_3",
+        {"brno": "1208800767", "numOfRows": 1, "pageNo": 1, "resultType": "json"},
+    ),
+    (
         "presidential-speeches",
         "GET",
         "https://api.odcloud.kr/api/15084167/v1/uddi:1c8b5454-bd4e-45db-98f7-fe94d71f271b",

@@ -33,6 +33,7 @@ SERVERS = {
     "dart-disclosure": "dart_disclosure",
     "bok-ecos": "bok_ecos",
     "molit-realestate": "molit_realestate",
+    "ftc-ecommerce": "ftc_ecommerce",
     "work24-jobs": "work24_jobs",
 }
 

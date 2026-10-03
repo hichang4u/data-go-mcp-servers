@@ -67,6 +67,12 @@ CALLS = [
         '"deal_amount"',
     ),
     (
+        "ftc_ecommerce",
+        "get_online_seller",
+        {"business_number": "120-88-00767"},
+        '"report_number"',
+    ),
+    (
         "pps_narajangteo",
         "get_procurement_company",
         {"business_number": "111-81-26895"},

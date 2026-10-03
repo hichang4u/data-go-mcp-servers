@@ -60,6 +60,9 @@ SERVERS = {
         "search_property_rents",
         "get_building_register",
     },
+    "ftc_ecommerce": {
+        "get_online_seller",
+    },
     "work24_jobs": {
         "search_job_postings",
         "get_job_posting",

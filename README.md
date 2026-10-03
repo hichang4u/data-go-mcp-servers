@@ -18,10 +18,11 @@
 | [msds-chemical-info](docs/guide/servers/msds-chemical-info.md) | 안전보건공단 — MSDS | `search_chemicals` `get_chemical_section` `get_complete_msds` 외 4 |
 | [dart-disclosure](docs/guide/servers/dart-disclosure.md) | 금융감독원 — DART 전자공시 (기업 개황, 공시 목록·원문, 재무제표) | `find_corp_code` `get_company` `list_disclosures` `get_key_accounts` `get_financial_statements` `get_disclosure_document` |
 | [molit-realestate](docs/guide/servers/molit-realestate.md) | 국토교통부 — 부동산 실거래가 (아파트·오피스텔·연립다세대·단독다가구·상업업무용·공장창고·토지, 매매/전월세) + 건축물대장 | `search_property_trades` `search_property_rents` `get_building_register` |
+| [ftc-ecommerce](docs/guide/servers/ftc-ecommerce.md) | 공정거래위원회 — 통신판매사업자 신고 내역 (온라인 판매) | `get_online_seller` |
 | [work24-jobs](docs/guide/servers/work24-jobs.md) | 고용24(옛 워크넷) — 채용공고 (사업자번호로 조회, 기업 규모·자격요건) | `search_job_postings` `get_job_posting` |
 | [bok-ecos](docs/guide/servers/bok-ecos.md) | 한국은행 — 경제통계시스템 ECOS (기준금리·환율·물가, 100대 지표) | `find_statistic_table` `get_statistic_items` `get_statistic_data` `get_key_statistics` `search_term` |
 
-서버 10개, 툴 51개, 공공 API 29종. 모든 툴은 조회 전용이며, 실패는 MCP 오류 결과(`isError`)로 전달된다. 한 서버가 API 여러 개를 쓰는 경우(molit 12, fsc 5, nps 3, pps 3)는 각각 활용신청이 필요하다 — 표는 [api-keys.md](docs/guide/api-keys.md). dart-disclosure(OpenDART)·bok-ecos(한국은행 ECOS)·work24-jobs(고용24)는 data.go.kr 이 아닌 각자의 키를 쓴다.
+서버 11개, 툴 52개, 공공 API 30종. 모든 툴은 조회 전용이며, 실패는 MCP 오류 결과(`isError`)로 전달된다. 한 서버가 API 여러 개를 쓰는 경우(molit 12, fsc 5, nps 3, pps 3)는 각각 활용신청이 필요하다 — 표는 [api-keys.md](docs/guide/api-keys.md). dart-disclosure(OpenDART)·bok-ecos(한국은행 ECOS)·work24-jobs(고용24)는 data.go.kr 이 아닌 각자의 키를 쓴다.
 
 ## 무엇이 다른가
 

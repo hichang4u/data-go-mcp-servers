@@ -29,6 +29,7 @@ uvx --from "git+https://github.com/hichang4u/data-go-mcp-servers#subdirectory=sr
 | `msds-chemical-info` | 안전보건공단 MSDS |
 | `dart-disclosure` | 금융감독원 DART 전자공시 — 기업 개황, 공시 목록·원문, 재무제표 (키: `DART_DISCLOSURE_API_KEY`) |
 | `molit-realestate` | 국토교통부 부동산 실거래가 — 매매·전월세 (종류별 활용신청 필요) |
+| `ftc-ecommerce` | 공정거래위원회 통신판매사업자 — 사업자번호로 온라인 판매 신고 조회 |
 | `work24-jobs` | 고용24 채용정보 — 사업자번호로 채용공고 조회 (키: `WORK24_API_KEY`) |
 | `bok-ecos` | 한국은행 경제통계 — 기준금리·환율·물가, 100대 지표 (키: `BOK_ECOS_API_KEY`) |
 | `all-servers` | 위 10개 전부를 한 프로세스로 ([아래](#통합-서버-all-servers)) |
