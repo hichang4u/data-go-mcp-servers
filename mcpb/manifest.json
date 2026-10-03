@@ -113,6 +113,10 @@
         ],
         "title": "batch_validate_businessesArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -131,6 +135,10 @@
         ],
         "title": "check_business_statusArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -149,6 +157,10 @@
         ],
         "title": "check_procurement_sanctionsArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -217,6 +229,10 @@
         },
         "title": "find_bid_winnersArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -249,6 +265,10 @@
         ],
         "title": "find_corp_codeArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -297,6 +317,10 @@
         },
         "title": "find_corp_numberArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -327,6 +351,10 @@
         ],
         "title": "find_region_codeArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -364,6 +392,10 @@
         ],
         "title": "find_statistic_tableArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -412,6 +444,10 @@
         },
         "title": "get_balance_sheetArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -456,6 +492,10 @@
         ],
         "title": "get_bid_detailArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -524,6 +564,10 @@
         ],
         "title": "get_building_registerArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -554,6 +598,10 @@
         ],
         "title": "get_business_detailArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -572,6 +620,10 @@
         ],
         "title": "get_chemical_handling_infoArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -590,6 +642,10 @@
         ],
         "title": "get_chemical_propertiesArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -608,6 +664,10 @@
         ],
         "title": "get_chemical_regulatory_infoArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -626,6 +686,10 @@
         ],
         "title": "get_chemical_safety_summaryArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -650,6 +714,10 @@
         ],
         "title": "get_chemical_sectionArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -668,6 +736,10 @@
         ],
         "title": "get_companyArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -686,6 +758,10 @@
         ],
         "title": "get_complete_msdsArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -704,6 +780,10 @@
         ],
         "title": "get_corp_outlineArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -737,6 +817,10 @@
         ],
         "title": "get_disclosure_documentArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -843,6 +927,10 @@
         },
         "title": "get_etf_priceArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -892,6 +980,10 @@
         ],
         "title": "get_financial_statementsArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -940,6 +1032,10 @@
         },
         "title": "get_income_statementArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -983,6 +1079,10 @@
         ],
         "title": "get_insurance_statusArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -1007,6 +1107,10 @@
         ],
         "title": "get_job_postingArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -1050,6 +1154,10 @@
         ],
         "title": "get_key_accountsArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -1079,6 +1187,10 @@
         },
         "title": "get_key_statisticsArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -1172,6 +1284,10 @@
         },
         "title": "get_market_indexArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -1220,6 +1336,10 @@
         },
         "title": "get_online_sellerArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -1263,6 +1383,10 @@
         ],
         "title": "get_period_statusArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -1281,6 +1405,10 @@
         ],
         "title": "get_procurement_companyArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -1310,6 +1438,10 @@
         },
         "title": "get_recent_speechesArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -1410,6 +1542,10 @@
         ],
         "title": "get_statistic_dataArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -1434,6 +1570,10 @@
         ],
         "title": "get_statistic_itemsArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -1534,6 +1674,10 @@
         },
         "title": "get_stock_priceArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -1582,6 +1726,10 @@
         },
         "title": "get_summary_financial_statementArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -1659,6 +1807,10 @@
         },
         "title": "list_disclosuresArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -1687,6 +1839,10 @@
         },
         "title": "list_speechesArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -1735,6 +1891,10 @@
         },
         "title": "search_bid_announcementsArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -1822,6 +1982,10 @@
         },
         "title": "search_businessArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -1865,6 +2029,10 @@
         ],
         "title": "search_chemicalsArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -1889,6 +2057,10 @@
         ],
         "title": "search_company_financial_infoArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -1963,6 +2135,10 @@
         },
         "title": "search_contractsArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -2050,6 +2226,10 @@
         },
         "title": "search_job_postingsArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -2092,6 +2272,10 @@
         ],
         "title": "search_property_rentsArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -2134,6 +2318,10 @@
         ],
         "title": "search_property_tradesArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -2208,6 +2396,10 @@
         },
         "title": "search_speechesArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -2238,6 +2430,10 @@
         ],
         "title": "search_stock_itemsArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -2292,6 +2488,10 @@
         },
         "title": "search_successful_bidsArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -2316,6 +2516,10 @@
         ],
         "title": "search_termArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     },
     {
@@ -2424,6 +2628,10 @@
         ],
         "title": "validate_businessArguments",
         "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
       }
     }
   ]

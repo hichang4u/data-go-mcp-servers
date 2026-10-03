@@ -27,7 +27,11 @@ BUNDLE_FILES = ["pyproject.toml", "src/server.py"]
 
 
 async def tools() -> list[dict[str, Any]]:
-    """{name, description(첫 줄), inputSchema} 를 이름순으로."""
+    """{name, description(첫 줄), inputSchema, annotations} 를 이름순으로.
+
+    ``annotations`` 는 Smithery 의 quality score 항목이다. 싣지 않으면 툴이 전부 READ_ONLY 인데도
+    0/52 로 깎인다 (2026-10-03 확인).
+    """
     from data_go_mcp.all_servers.server import mcp
 
     return [
@@ -35,9 +39,18 @@ async def tools() -> list[dict[str, Any]]:
             "name": t.name,
             "description": (t.description or "").strip().splitlines()[0],
             "inputSchema": t.input_schema,
+            "annotations": _annotations(t),
         }
         for t in sorted(await mcp.list_tools(), key=lambda t: t.name)
     ]
+
+
+def _annotations(tool: Any) -> dict[str, Any]:
+    """툴의 annotations 중 설정된 것만 camelCase 로."""
+    annotations = getattr(tool, "annotations", None)
+    if annotations is None:
+        return {}
+    return annotations.model_dump(by_alias=True, exclude_none=True)
 
 
 def desktop_manifest(manifest: dict[str, Any]) -> dict[str, Any]:

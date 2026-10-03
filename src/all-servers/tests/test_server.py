@@ -152,9 +152,18 @@ async def test_mcpb_manifest_lists_every_tool():
     import json
 
     manifest = json.loads((SRC.parent / "mcpb" / "manifest.json").read_text(encoding="utf-8"))
-    listed = {t["name"]: (t["description"], t["inputSchema"]) for t in manifest["tools"]}
+    listed = {
+        t["name"]: (t["description"], t["inputSchema"], t.get("annotations"))
+        for t in manifest["tools"]
+    }
     expected = {
-        t.name: ((t.description or "").strip().splitlines()[0], t.input_schema)
+        t.name: (
+            (t.description or "").strip().splitlines()[0],
+            t.input_schema,
+            # Smithery 의 quality score 가 annotations 를 센다. 툴은 전부 READ_ONLY 인데
+            # manifest 에 싣지 않아 0/52 로 깎이고 있었다 (2026-10-03).
+            {"readOnlyHint": True, "openWorldHint": True},
+        )
         for t in await mcp.list_tools()
     }
     assert listed == expected  # Smithery 는 inputSchema 없는 툴을 거부한다
