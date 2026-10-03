@@ -12,23 +12,23 @@ PyPI 는 쓰지 않는다. 원저장소의 `data-go-mcp.*` 네임스페이스는
 
 - 각 `src/*/pyproject.toml` 의 `version`. 서버는 각자 올린다 — 툴이 바뀐 서버만 bump (v0.12.0 시점: pps 0.7.0, fsc 0.6.0, nps 0.5.0, molit-realestate 0.2.0, dart·all-servers·work24-jobs·ftc-ecommerce 0.1.0, bok-ecos 0.1.1, 나머지 0.3.0), core 는 독립 (0.2.x).
 - fsc 의 `SERVER_VERSION` 은 패키지 메타데이터에서 읽으므로 손댈 곳이 없다.
-- git 태그 `vX.Y.Z` 는 저장소 전체 스냅샷이며 서버 버전과 무관하게 올라간다. 사용자는 `data-go-mcp-servers@v0.12.0#subdirectory=…` 로 고정할 수 있다.
+- git 태그 `vX.Y.Z` 는 저장소 전체 스냅샷이며 서버 버전과 무관하게 올라간다. 사용자는 `data-go-mcp-servers@v0.12.1#subdirectory=…` 로 고정할 수 있다.
 
 ## 절차
 
 1. `main` 이 green 인지 확인 (CI).
 2. `src/*/CHANGELOG.md` 에 항목 추가. 형식은 Keep a Changelog.
 3. 버전 bump: `src/*/pyproject.toml` (+ `src/*/data_go_mcp/*/__init__.py` 의 `__version__` 이 있으면 함께).
-4. `uv lock` 후 커밋: `chore(release): v0.12.0`.
+4. `uv lock` 후 커밋: `chore(release): v0.12.1`.
 5. 태그와 릴리스:
    ```bash
-   git tag -a v0.12.0 -m "v0.12.0"
+   git tag -a v0.12.1 -m "v0.12.1"
    git push origin main --tags
-   gh release create v0.12.0 --title "v0.12.0" --notes-file <notes>
+   gh release create v0.12.1 --title "v0.12.1" --notes-file <notes>
    ```
 6. 새 환경에서 확인:
    ```bash
-   uvx --refresh --from "git+https://github.com/hichang4u/data-go-mcp-servers@v0.12.0#subdirectory=src/nts-business-verification" data-go-mcp.nts-business-verification
+   uvx --refresh --from "git+https://github.com/hichang4u/data-go-mcp-servers@v0.12.1#subdirectory=src/nts-business-verification" data-go-mcp.nts-business-verification
    ```
    (키 없이 실행하면 경고 후 stdin 을 기다린다 — Ctrl+C.) 가능하면 Claude Desktop 에 등록해 툴 호출 1회.
 7. MCPB 번들과 Smithery (통합 서버의 툴이나 키 항목이 바뀌었거나 새 태그를 태우려면):
@@ -41,7 +41,7 @@ PyPI 는 쓰지 않는다. 원저장소의 `data-go-mcp.*` 네임스페이스는
    ```
    **설명·홈페이지는 번들이 아니라 웹에서 넣는다.** Smithery 는 MCPB manifest 의 `description`·`homepage` 를 리스팅에 쓰지 않는다 (2026-10-03 확인). `smithery mcp publish` 에도 해당 옵션이 없다. 서버 페이지 → **Settings → General** 의 Description / Homepage / GitHub Repository 에 직접 입력한다 (계정 Settings 가 아니라 서버 Settings 다).
 
-   Settings → **Verification** 에 quality score 내역이 있다. 80 이상이어야 verified 가 된다. 점수를 깎는 항목: Description 12pt, Homepage 12pt, Icon 8pt, Output schemas 10.37pt, Annotations 5.93pt, Naming 4.44pt, Optional config 15pt. `annotations` 는 `gen_mcpb_manifest.py` 가 싣는다 (0.12.0 부터).
+   Settings → **Verification** 에 quality score 내역이 있다. 80 이상이어야 verified 가 된다. 점수를 깎는 항목: Description 12pt, Homepage 12pt, Icon 8pt, Output schemas 10.37pt, Annotations 5.93pt, Naming 4.44pt, Optional config 15pt. `annotations` 는 `gen_mcpb_manifest.py` 가 싣는다 (v0.12.1 부터).
 
    태그가 push 된 뒤에 pack 해야 번들이 동작한다 (`tag = "vX.Y.Z"` 를 uv 가 받는다).
    `npx @anthropic-ai/mcpb validate/pack` 은 쓰지 않는다 — Smithery 는 `tools[].inputSchema` 를 요구하고 MCPB 스키마는 그 키를 거부한다(Claude Desktop 직접 설치 시 "확장 프로그램 미리보기 실패"). 그래서 Desktop 용은 `inputSchema` 를 빼고 `server.type` 을 `uv` 로 바꾼 별도 번들이다 (`python` 타입이면 Claude Desktop 이 PATH 의 `uv` 를 찾다 `spawn uv ENOENT`; `uv` 타입은 호스트가 자체 uv 로 설치한다). Claude Desktop 에서 기존 확장을 지우고 `-desktop.mcpb` 를 드래그하면 새 태그로 `.venv` 를 다시 만든다.
