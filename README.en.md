@@ -10,7 +10,7 @@ Based on [Koomook/data-go-mcp-servers](https://github.com/Koomook/data-go-mcp-se
 
 | Server | Agency / data | Tools |
 |---|---|---|
-| [nps-business-enrollment](docs/guide/servers/nps-business-enrollment.md) | National Pension Service — workplace enrolment (+ legal-dong codes, employment/accident insurance) | `search_business` `get_business_detail` `get_period_status` `find_region_code` `get_insurance_status` |
+| [nps-business-enrollment](docs/guide/servers/nps-business-enrollment.md) | National Pension Service — workplace enrolment and withdrawal (+ legal-dong codes, employment/accident insurance) | `search_business` `get_business_detail` `get_period_status` `find_region_code` `get_insurance_status` `search_withdrawn_business` `get_withdrawn_business_detail` |
 | [nts-business-verification](docs/guide/servers/nts-business-verification.md) | National Tax Service — business-registration validity and status | `validate_business` `check_business_status` `batch_validate_businesses` |
 | [pps-narajangteo](docs/guide/servers/pps-narajangteo.md) | Public Procurement Service — bids, awards, contracts, supplier profiles and debarment records | `search_bid_announcements` `search_successful_bids` `search_contracts` `get_bid_detail` `find_bid_winners` `get_procurement_company` `check_procurement_sanctions` |
 | [fsc-financial-info](docs/guide/servers/fsc-financial-info.md) | Financial Services Commission — corporate financials (+ corporate numbers, company outline, stock quotes, indices, ETFs) | `get_summary_financial_statement` `get_balance_sheet` `get_income_statement` `search_company_financial_info` `find_corp_number` `get_corp_outline` `get_stock_price` `search_stock_items` `get_market_index` `get_etf_price` |
@@ -22,7 +22,7 @@ Based on [Koomook/data-go-mcp-servers](https://github.com/Koomook/data-go-mcp-se
 | [work24-jobs](docs/guide/servers/work24-jobs.md) | 고용24 (formerly WorkNet) — job postings, searchable by business number, with company size and requirements | `search_job_postings` `get_job_posting` |
 | [bok-ecos](docs/guide/servers/bok-ecos.md) | Bank of Korea — ECOS statistics (policy rate, FX, prices, 100 key indicators) | `find_statistic_table` `get_statistic_items` `get_statistic_data` `get_key_statistics` `search_term` |
 
-11 servers, 52 tools, 30 public APIs. Every tool is read-only, and failures come back as MCP error results (`isError`). Where one server uses several APIs (molit 12, fsc 5, nps 3, pps 3), each one needs its own usage request — see the table in [api-keys.md](docs/guide/api-keys.md). dart-disclosure (OpenDART), bok-ecos (Bank of Korea ECOS) and work24-jobs (고용24) use their own keys rather than the data.go.kr one.
+11 servers, 54 tools, 31 public APIs. Every tool is read-only, and failures come back as MCP error results (`isError`). Where one server uses several APIs (molit 12, fsc 5, nps 4, pps 3), each one needs its own usage request — see the table in [api-keys.md](docs/guide/api-keys.md). dart-disclosure (OpenDART), bok-ecos (Bank of Korea ECOS) and work24-jobs (고용24) use their own keys rather than the data.go.kr one.
 
 ## What makes this different
 

@@ -18,6 +18,8 @@ SERVERS = {
         "get_period_status",
         "find_region_code",
         "get_insurance_status",
+        "search_withdrawn_business",
+        "get_withdrawn_business_detail",
     },
     "nts_business_verification": {
         "validate_business",

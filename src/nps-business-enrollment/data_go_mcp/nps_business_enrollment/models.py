@@ -181,3 +181,44 @@ class InsuredWorkplace(BaseModel):
             industry_nm=s("sjEopjongNm") or s("gyEopjongNm"),
             saeop_fg=s("saeopFg"),
         )
+
+
+class WithdrawnBusinessItem(BaseModel):
+    """탈퇴사업장 한 건 (목록)."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    seq: Optional[int] = Field(default=None, description="사업장 일련번호. 상세 조회에 쓴다")
+    wkpl_nm: Optional[str] = Field(default=None, alias="wkplNm", description="사업장명")
+    bzowr_rgst_no: Optional[str] = Field(
+        default=None, alias="bzowrRgstNo", description="사업자등록번호(앞6자리, 뒤는 마스킹)"
+    )
+    data_crt_ym: Optional[str] = Field(
+        default=None, alias="dataCrtYm", description="자료 기준년월"
+    )
+    wkpl_road_nm_dtl_addr: Optional[str] = Field(
+        default=None, alias="wkplRoadNmDtlAddr", description="사업장 도로명 주소"
+    )
+    ldong_addr_mgpl_dg_cd: Optional[str] = Field(
+        default=None, alias="ldongAddrMgplDgCd", description="법정동 시도코드"
+    )
+    ldong_addr_mgpl_sggu_cd: Optional[str] = Field(
+        default=None, alias="ldongAddrMgplSgguCd", description="법정동 시군구코드"
+    )
+    ldong_addr_mgpl_sggu_emd_cd: Optional[str] = Field(
+        default=None, alias="ldongAddrMgplSgguEmdCd", description="법정동 읍면동코드"
+    )
+
+
+class WithdrawnBusinessDetailItem(WithdrawnBusinessItem):
+    """탈퇴사업장 상세 — 탈퇴일이 여기 있다."""
+
+    scsn_dt: Optional[str] = Field(default=None, alias="scsnDt", description="탈퇴일 (YYYYMMDD)")
+    acpt_dt: Optional[str] = Field(
+        default=None, alias="acptDt", description="가입 접수일 (YYYYMMDD)"
+    )
+    vldt_vl_krn_nm: Optional[str] = Field(default=None, alias="vldtVlKrnNm", description="업종명")
+    wkpl_intp_cd: Optional[str] = Field(default=None, alias="wkplIntpCd", description="업종코드")
+    wkpl_styl_dvcd: Optional[str] = Field(
+        default=None, alias="wkplStylDvcd", description="사업장 형태 구분코드"
+    )

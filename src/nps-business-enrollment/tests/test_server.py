@@ -30,6 +30,8 @@ async def test_all_tools_are_read_only_with_described_params():
         "get_period_status",
         "find_region_code",
         "get_insurance_status",
+        "search_withdrawn_business",
+        "get_withdrawn_business_detail",
     }
     for tool in tools:
         assert tool.annotations is not None and tool.annotations.read_only_hint is True
@@ -253,3 +255,41 @@ async def test_get_insurance_status_bad_bzno_is_tool_error():
 
     assert result.is_error is True
     assert "입력값 오류" in _text(result)
+
+
+@respx.mock
+async def test_search_withdrawn_business_tool():
+    from .conftest import SCSN_BASE, SCSN_SEARCH_RESPONSE
+
+    respx.get(f"{SCSN_BASE}/getBassInfoSearchV2").mock(
+        return_value=httpx.Response(200, json=SCSN_SEARCH_RESPONSE)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool(
+            "search_withdrawn_business", {"bzowr_rgst_no": "119818", "num_of_rows": 2}
+        )
+
+    assert result.is_error is False
+    data = json.loads(_text(result))
+    assert data["total_count"] > 0
+    assert data["items"][0]["wkpl_nm"]
+
+
+@respx.mock
+async def test_get_withdrawn_business_detail_tool():
+    from .conftest import SCSN_BASE, SCSN_DETAIL_RESPONSE
+
+    respx.get(f"{SCSN_BASE}/getDetailInfoSearchV2").mock(
+        return_value=httpx.Response(200, json=SCSN_DETAIL_RESPONSE)
+    )
+    async with Client(mcp) as client:
+        result = await client.call_tool("get_withdrawn_business_detail", {"seq": 1473020})
+
+    data = json.loads(_text(result))
+    assert data["items"][0]["scsn_dt"] == "20260501"
+
+
+async def test_withdrawn_search_without_a_filter_is_an_error():
+    async with Client(mcp) as client:
+        result = await client.call_tool("search_withdrawn_business", {})
+    assert result.is_error is True

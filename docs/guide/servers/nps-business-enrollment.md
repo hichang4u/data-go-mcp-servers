@@ -31,7 +31,8 @@
 
 - `search_business` 결과의 `seq` 가 상세·기간별 조회의 키다.
 - `estimated_avg_monthly_salary` 는 `당월고지금액 ÷ 가입자수 ÷ 0.09(보험료율)` 로 계산한 **추정값**이다. 상한액·감면 등을 반영하지 않는다.
-- 사업자등록번호는 앞 6자리만 검색된다. 응답의 번호도 뒷자리가 마스킹돼 있다.
+- 사업자등록번호는 앞 6자리만 검색된다. 응답의 번호도 뒷자리가 마스킹돼 있다. **탈퇴사업장도 같다** — 10자리를 주면 툴이 미리 막는다.
+- `search_withdrawn_business` 는 국민연금에서 **빠진** 사업장이다. `search_business`(현재 가입 중)와 짝으로, 폐업·사업 축소 신호로 읽는다. 탈퇴일은 상세(`get_withdrawn_business_detail`)에만 있다 — 가입 접수일과 함께 보면 그 사업장이 얼마나 유지됐는지 알 수 있다 (실측: 가입 2024-08-08 → 탈퇴 2026-04-15).
 - 지역 필터는 시도(2자리)·시군구(3자리)·읍면동(3자리) 코드다. 시군구는 시도와, 읍면동은 시도·시군구와 함께 줘야 적용된다. `find_region_code` 결과의 `nps_params` 를 그대로 넘기면 된다. 리(里) 단위 필터는 없다.
 - `find_region_code` 는 부분 일치라 "강남" 은 다른 지역의 강남동도 포함한다. 시도명까지 붙이면 좁혀진다.
 - `get_insurance_status` 는 **10자리 사업자등록번호 전체**가 필요하다(nps 검색의 앞 6자리와 다름). 사업장·보험 종류마다 한 건씩 오므로 `summary` 로 종류별 사업장 수·상시인원 합계를 본다 — 합계는 현재 페이지 기준. 산재는 사업장 단위, 고용은 본사 단위로 잡히는 경우가 많아 두 인원이 다를 수 있다.
@@ -99,6 +100,19 @@ plus estimated_avg_monthly_salary (추정값) taken from the business detail.
 | `page_no` | integer |  | `1` | 페이지 번호 (기본값: 1) |
 | `num_of_rows` | integer |  | `10` | 한 페이지 결과 수 (기본값: 10) |
 
+### `get_withdrawn_business_detail`
+
+탈퇴사업장 상세를 조회합니다. Get details of a withdrawn workplace.
+
+**탈퇴일(scsn_dt)** 과 가입 접수일(acpt_dt), 업종이 나옵니다. 둘을 함께 보면 그 사업장이
+얼마나 유지됐는지 알 수 있습니다.
+
+| 파라미터 | 타입 | 필수 | 기본값 | 설명 |
+|---|---|---|---|---|
+| `seq` | integer | 예 |  | 사업장 일련번호 (search_withdrawn_business 의 seq) |
+| `page_no` | integer |  | `1` | 페이지 번호 (기본값: 1) |
+| `num_of_rows` | integer |  | `10` | 한 페이지 결과 수 (기본값: 10) |
+
 ### `search_business`
 
 사업장 정보를 조회합니다.
@@ -116,5 +130,26 @@ Returns items, page_no, num_of_rows, total_count, message.
 | `bzowr_rgst_no` | string (optional) |  |  | 사업자등록번호 (앞 6자리) |
 | `page_no` | integer |  | `1` | 페이지 번호 (기본값: 1) |
 | `num_of_rows` | integer |  | `100` | 한 페이지 결과 수 (기본값: 100, 최대: 100) |
+
+### `search_withdrawn_business`
+
+국민연금에서 탈퇴한 사업장을 조회합니다. Search workplaces that left the pension scheme.
+
+사업장이 국민연금 가입에서 빠진 이력입니다. 폐업·사업 축소·인력 이동의 신호로 읽히며,
+`search_business`(현재 가입 중)와 짝입니다. 상세(`get_withdrawn_business_detail`)에
+**탈퇴일**이 있습니다.
+
+사업장명이나 사업자번호 앞 6자리 중 하나가 필요합니다. 사업자번호는 **앞 6자리만** 걸리고
+결과의 번호도 뒷자리가 마스킹돼 옵니다 — 같은 앞 6자리를 가진 다른 사업자가 섞일 수 있어
+사업장명으로 확인하세요.
+
+| 파라미터 | 타입 | 필수 | 기본값 | 설명 |
+|---|---|---|---|---|
+| `wkpl_nm` | string (optional) |  |  | 사업장명 (부분 일치) |
+| `bzowr_rgst_no` | string (optional) |  |  | 사업자등록번호 **앞 6자리** (10자리를 주면 0건) |
+| `ldong_addr_mgpl_dg_cd` | string (optional) |  |  | 법정동 시도코드 (find_region_code 로 찾는다) |
+| `ldong_addr_mgpl_sggu_cd` | string (optional) |  |  | 법정동 시군구코드 |
+| `page_no` | integer |  | `1` | 페이지 번호 (기본값: 1) |
+| `num_of_rows` | integer |  | `100` | 한 페이지 결과 수 (기본값: 100) |
 
 <!-- tools:end -->

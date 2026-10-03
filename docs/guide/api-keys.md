@@ -18,6 +18,7 @@ Encoding 값(`%2B`, `%3D` 가 섞인 것)이 아니라 **Decoding 값**(`+`, `=`
 | 서버 | API (신청 페이지) | 쓰는 툴 |
 |---|---|---|
 | nps-business-enrollment | [국민연금공단_국민연금 가입 사업장 내역](https://www.data.go.kr/data/3046071/openapi.do) | `search_business` `get_business_detail` `get_period_status` |
+| | [국민연금공단_탈퇴사업장 정보](https://www.data.go.kr/data/15020284/openapi.do) | `search_withdrawn_business` `get_withdrawn_business_detail` |
 | | [행정안전부_행정표준코드_법정동코드](https://www.data.go.kr/data/15077871/openapi.do) | `find_region_code` |
 | | [근로복지공단_고용/산재보험 현황정보](https://www.data.go.kr/data/15059256/openapi.do) | `get_insurance_status` |
 | nts-business-verification | 포털에서 "국세청_사업자등록정보 진위확인 및 상태조회 서비스" 검색 | 전체 |

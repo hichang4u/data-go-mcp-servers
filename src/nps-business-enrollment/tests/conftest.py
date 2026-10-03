@@ -201,3 +201,80 @@ def insurance_single_xml() -> str:
 @pytest.fixture
 def insurance_empty_xml() -> str:
     return INSURANCE_EMPTY_XML
+
+
+# ── 탈퇴사업장 (NpsScsnBplcInfoInqireServiceV2, 2026-10-03 실제 응답) ──────────
+
+SCSN_BASE = "https://apis.data.go.kr/B552015/NpsScsnBplcInfoInqireServiceV2"
+
+SCSN_SEARCH_RESPONSE = {
+    "response": {
+        "header": {"resultCode": "00", "resultMsg": "NORMAL_CODE"},
+        "body": {
+            "items": {
+                "item": [
+                    {
+                        "bzowrRgstNo": "119818****",
+                        "dataCrtYm": "202606",
+                        "ldongAddrMgplDgCd": "41",
+                        "ldongAddrMgplSgguCd": "591",
+                        "ldongAddrMgplSgguEmdCd": "256",
+                        "seq": 1473021,
+                        "wkplNm": "일도티씨에스（주）/일용/코코스팩(주) 화성공장 증축공사 중 초평탄공사",
+                        "wkplRoadNmDtlAddr": "경기도 화성시 만세구 남양읍 신남로",
+                    },
+                    {
+                        "bzowrRgstNo": "119818****",
+                        "dataCrtYm": "202606",
+                        "ldongAddrMgplDgCd": "41",
+                        "ldongAddrMgplSgguCd": "192",
+                        "ldongAddrMgplSgguEmdCd": "101",
+                        "seq": 1476143,
+                        "wkplNm": "주식회사 의현메디컬",
+                        "wkplRoadNmDtlAddr": "경기도 부천시 원미구 조마루로397번길",
+                    },
+                ]
+            },
+            "pageNo": 1,
+            "numOfRows": 2,
+            "totalCount": 630,
+        },
+    }
+}
+
+SCSN_DETAIL_RESPONSE = {
+    "response": {
+        "header": {"resultCode": "00", "resultMsg": "NORMAL_CODE"},
+        "body": {
+            "items": {
+                "item": [
+                    {
+                        "acptDt": "20260119",
+                        "bzowrRgstNo": "119818****",
+                        "dataCrtYm": "202606",
+                        "ldongAddrMgplDgCd": "44",
+                        "ldongAddrMgplSgguCd": "133",
+                        "ldongAddrMgplSgguEmdCd": "310",
+                        "scsnDt": "20260501",
+                        "seq": 1473020,
+                        "vldtVlKrnNm": "미장, 타일 및 방수 공사업",
+                        "wkplIntpCd": "452101",
+                        "wkplNm": "일도티씨에스(주)/일용/쿠팡 CHA6 ACR",
+                        "wkplRoadNmDtlAddr": "충청남도 천안시 서북구 입장면 용정도하길",
+                        "wkplStylDvcd": "1",
+                    }
+                ]
+            },
+            "pageNo": 1,
+            "numOfRows": 10,
+            "totalCount": 1,
+        },
+    }
+}
+
+SCSN_EMPTY_RESPONSE = {
+    "response": {
+        "header": {"resultCode": "00", "resultMsg": "NORMAL_CODE"},
+        "body": {"items": {}, "pageNo": 1, "numOfRows": 2, "totalCount": 0},
+    }
+}

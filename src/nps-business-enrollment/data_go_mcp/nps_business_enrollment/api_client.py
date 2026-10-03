@@ -1,5 +1,6 @@
 """API client for National Pension Service (국민연금공단 국민연금 가입 사업장 내역)."""
 
+import re
 from typing import Any, Optional
 
 from pydantic import BaseModel
@@ -13,7 +14,17 @@ from .models import (
     InsuredWorkplace,
     PeriodStatusItem,
     RegionCodeItem,
+    WithdrawnBusinessDetailItem,
+    WithdrawnBusinessItem,
 )
+
+
+def check_six_digits(value: str) -> str:
+    """사업자번호 앞 6자리. 10자리를 보내면 API 가 조용히 0건을 준다."""
+    text = re.sub(r"\D", "", value or "")
+    if len(text) != 6:
+        raise ValueError(f"사업자등록번호는 앞 6자리만 조회됩니다 (10자리는 0건): {value!r}")
+    return text
 
 
 class NPSAPIClient(BaseDataGoClient):
@@ -94,6 +105,78 @@ class NPSAPIClient(BaseDataGoClient):
                 "page_no": page_no,
                 "num_of_rows": num_of_rows,
             },
+        )
+
+
+class WithdrawnBusinessAPIClient(BaseDataGoClient):
+    """국민연금 탈퇴사업장 API 클라이언트.
+
+    가입 사업장(``NpsBplcInfoInqireServiceV2``)과 응답 모양이 같고 서비스만 다르다.
+    사업자번호 제약도 같다 — **앞 6자리로만 걸리고**(10자리를 보내면 0건) 응답은 마스킹된다
+    (2026-10-03 실호출 확인). 상세에만 탈퇴일(``scsnDt``)이 있다.
+    """
+
+    base_url = "https://apis.data.go.kr/B552015/NpsScsnBplcInfoInqireServiceV2"
+    key_env_prefix = "NPS_BUSINESS_ENROLLMENT"
+    default_params = {"dataType": "json"}
+
+    async def _search(
+        self, endpoint: str, model: type[BaseModel], params: dict[str, Any]
+    ) -> dict[str, Any]:
+        body = await self.get(endpoint, {to_camel(k): v for k, v in params.items()})
+        items: list[dict[str, Any]] = []
+        for raw in normalize_items(body):
+            try:
+                items.append(model(**raw).model_dump())
+            except Exception:
+                items.append(raw)
+        return {
+            "items": items,
+            "page_no": body.get("pageNo", params.get("page_no")),
+            "num_of_rows": body.get("numOfRows", params.get("num_of_rows")),
+            "total_count": body.get("totalCount", 0),
+        }
+
+    async def search_withdrawn_business(
+        self,
+        wkpl_nm: Optional[str] = None,
+        bzowr_rgst_no: Optional[str] = None,
+        ldong_addr_mgpl_dg_cd: Optional[str] = None,
+        ldong_addr_mgpl_sggu_cd: Optional[str] = None,
+        ldong_addr_mgpl_sggu_emd_cd: Optional[str] = None,
+        page_no: int = 1,
+        num_of_rows: int = 100,
+    ) -> dict[str, Any]:
+        """탈퇴사업장 검색. 사업장명이나 사업자번호 앞 6자리 중 하나는 있어야 한다."""
+        if bzowr_rgst_no is not None:
+            bzowr_rgst_no = check_six_digits(bzowr_rgst_no)
+        if not (wkpl_nm or bzowr_rgst_no):
+            raise ValueError(
+                "사업장명(wkpl_nm) 또는 사업자번호 앞 6자리(bzowr_rgst_no) 중 하나는 "
+                "필요합니다. 조건 없이 부르면 0건이 옵니다"
+            )
+        return await self._search(
+            "getBassInfoSearchV2",
+            WithdrawnBusinessItem,
+            {
+                "wkpl_nm": wkpl_nm,
+                "bzowr_rgst_no": bzowr_rgst_no,
+                "ldong_addr_mgpl_dg_cd": ldong_addr_mgpl_dg_cd,
+                "ldong_addr_mgpl_sggu_cd": ldong_addr_mgpl_sggu_cd,
+                "ldong_addr_mgpl_sggu_emd_cd": ldong_addr_mgpl_sggu_emd_cd,
+                "page_no": page_no,
+                "num_of_rows": num_of_rows,
+            },
+        )
+
+    async def get_withdrawn_business_detail(
+        self, seq: int, page_no: int = 1, num_of_rows: int = 10
+    ) -> dict[str, Any]:
+        """탈퇴사업장 상세 — 탈퇴일·가입일·업종."""
+        return await self._search(
+            "getDetailInfoSearchV2",
+            WithdrawnBusinessDetailItem,
+            {"seq": seq, "page_no": page_no, "num_of_rows": num_of_rows},
         )
 
 

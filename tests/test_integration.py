@@ -67,6 +67,12 @@ CALLS = [
         '"deal_amount"',
     ),
     (
+        "nps_business_enrollment",
+        "search_withdrawn_business",
+        {"wkpl_nm": "쿠팡", "num_of_rows": 3},
+        '"wkpl_nm"',
+    ),
+    (
         "ftc_ecommerce",
         "get_online_seller",
         {"business_number": "120-88-00767"},

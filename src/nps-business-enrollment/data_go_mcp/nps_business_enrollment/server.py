@@ -8,7 +8,12 @@ from pydantic import Field
 
 from data_go_mcp.core import READ_ONLY, configure_logging, load_api_key, tool_errors
 
-from .api_client import InsuranceStatusAPIClient, NPSAPIClient, RegionCodeAPIClient
+from .api_client import (
+    InsuranceStatusAPIClient,
+    NPSAPIClient,
+    RegionCodeAPIClient,
+    WithdrawnBusinessAPIClient,
+)
 
 
 load_dotenv()
@@ -244,6 +249,61 @@ async def get_insurance_status(
     else:
         result["message"] = f"{normalized}: no insured workplace found"
     return result
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def search_withdrawn_business(
+    wkpl_nm: Annotated[Optional[str], Field(description="사업장명 (부분 일치)")] = None,
+    bzowr_rgst_no: Annotated[
+        Optional[str], Field(description="사업자등록번호 **앞 6자리** (10자리를 주면 0건)")
+    ] = None,
+    ldong_addr_mgpl_dg_cd: Annotated[
+        Optional[str], Field(description="법정동 시도코드 (find_region_code 로 찾는다)")
+    ] = None,
+    ldong_addr_mgpl_sggu_cd: Annotated[
+        Optional[str], Field(description="법정동 시군구코드")
+    ] = None,
+    page_no: Annotated[int, Field(description="페이지 번호 (기본값: 1)")] = 1,
+    num_of_rows: Annotated[int, Field(description="한 페이지 결과 수 (기본값: 100)")] = 100,
+) -> dict[str, Any]:
+    """국민연금에서 탈퇴한 사업장을 조회합니다. Search workplaces that left the pension scheme.
+
+    사업장이 국민연금 가입에서 빠진 이력입니다. 폐업·사업 축소·인력 이동의 신호로 읽히며,
+    `search_business`(현재 가입 중)와 짝입니다. 상세(`get_withdrawn_business_detail`)에
+    **탈퇴일**이 있습니다.
+
+    사업장명이나 사업자번호 앞 6자리 중 하나가 필요합니다. 사업자번호는 **앞 6자리만** 걸리고
+    결과의 번호도 뒷자리가 마스킹돼 옵니다 — 같은 앞 6자리를 가진 다른 사업자가 섞일 수 있어
+    사업장명으로 확인하세요.
+    """
+    async with tool_errors():
+        async with WithdrawnBusinessAPIClient() as client:
+            return await client.search_withdrawn_business(
+                wkpl_nm=wkpl_nm,
+                bzowr_rgst_no=bzowr_rgst_no,
+                ldong_addr_mgpl_dg_cd=ldong_addr_mgpl_dg_cd,
+                ldong_addr_mgpl_sggu_cd=ldong_addr_mgpl_sggu_cd,
+                page_no=page_no,
+                num_of_rows=num_of_rows,
+            )
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def get_withdrawn_business_detail(
+    seq: Annotated[int, Field(description="사업장 일련번호 (search_withdrawn_business 의 seq)")],
+    page_no: Annotated[int, Field(description="페이지 번호 (기본값: 1)")] = 1,
+    num_of_rows: Annotated[int, Field(description="한 페이지 결과 수 (기본값: 10)")] = 10,
+) -> dict[str, Any]:
+    """탈퇴사업장 상세를 조회합니다. Get details of a withdrawn workplace.
+
+    **탈퇴일(scsn_dt)** 과 가입 접수일(acpt_dt), 업종이 나옵니다. 둘을 함께 보면 그 사업장이
+    얼마나 유지됐는지 알 수 있습니다.
+    """
+    async with tool_errors():
+        async with WithdrawnBusinessAPIClient() as client:
+            return await client.get_withdrawn_business_detail(
+                seq=seq, page_no=page_no, num_of_rows=num_of_rows
+            )
 
 
 def main() -> None:

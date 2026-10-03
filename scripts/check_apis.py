@@ -28,6 +28,12 @@ TARGETS = [
         {"wkplNm": "삼성전자", "numOfRows": 1, "pageNo": 1, "dataType": "json"},
     ),
     (
+        "nps-business-enrollment (탈퇴사업장)",
+        "GET",
+        "https://apis.data.go.kr/B552015/NpsScsnBplcInfoInqireServiceV2/getBassInfoSearchV2",
+        {"wkplNm": "쿠팡", "numOfRows": 1, "pageNo": 1, "dataType": "json"},
+    ),
+    (
         "nps-business-enrollment (법정동코드)",
         "GET",
         "https://apis.data.go.kr/1741000/StanReginCd/getStanReginCdList",
