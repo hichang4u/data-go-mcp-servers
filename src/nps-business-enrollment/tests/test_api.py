@@ -116,3 +116,11 @@ async def test_error_result_code_raises_data_go_error(base_url):
         with pytest.raises(DataGoAPIError) as exc:
             await client.search_business(wkpl_nm="x")
     assert exc.value.result_code == "22"
+
+
+@pytest.mark.parametrize("value", ["1208800767", "12088"])
+async def test_enrolled_search_rejects_a_non_six_digit_number(value):
+    """가입 사업장도 앞 6자리만 걸린다 (10자리는 실호출에서 0건) — 탈퇴 쪽과 같이 막는다."""
+    async with NPSAPIClient() as client:
+        with pytest.raises(ValueError, match="앞 6자리"):
+            await client.search_business(bzowr_rgst_no=value)

@@ -31,7 +31,8 @@
 
 - `search_business` 결과의 `seq` 가 상세·기간별 조회의 키다.
 - `estimated_avg_monthly_salary` 는 `당월고지금액 ÷ 가입자수 ÷ 0.09(보험료율)` 로 계산한 **추정값**이다. 상한액·감면 등을 반영하지 않는다.
-- 사업자등록번호는 앞 6자리만 검색된다. 응답의 번호도 뒷자리가 마스킹돼 있다. **탈퇴사업장도 같다** — 10자리를 주면 툴이 미리 막는다.
+- 사업자등록번호는 앞 6자리만 검색된다. 응답의 번호도 뒷자리가 마스킹돼 있다. 가입·탈퇴 **두 검색 모두** 10자리를 주면 툴이 미리 막는다 (API 는 조용히 0건을 준다).
+- 두 검색 모두 사업장명·사업자번호·지역코드 중 하나는 있어야 한다. **지역코드만으로도 조회된다** — 경기도 화성시(41/590) 탈퇴사업장이 29,050건이다.
 - `search_withdrawn_business` 는 국민연금에서 **빠진** 사업장이다. `search_business`(현재 가입 중)와 짝으로, 폐업·사업 축소 신호로 읽는다. 탈퇴일은 상세(`get_withdrawn_business_detail`)에만 있다 — 가입 접수일과 함께 보면 그 사업장이 얼마나 유지됐는지 알 수 있다 (실측: 가입 2024-08-08 → 탈퇴 2026-04-15).
 - 지역 필터는 시도(2자리)·시군구(3자리)·읍면동(3자리) 코드다. 시군구는 시도와, 읍면동은 시도·시군구와 함께 줘야 적용된다. `find_region_code` 결과의 `nps_params` 를 그대로 넘기면 된다. 리(里) 단위 필터는 없다.
 - `find_region_code` 는 부분 일치라 "강남" 은 다른 지역의 강남동도 포함한다. 시도명까지 붙이면 좁혀진다.
@@ -139,7 +140,7 @@ Returns items, page_no, num_of_rows, total_count, message.
 `search_business`(현재 가입 중)와 짝입니다. 상세(`get_withdrawn_business_detail`)에
 **탈퇴일**이 있습니다.
 
-사업장명이나 사업자번호 앞 6자리 중 하나가 필요합니다. 사업자번호는 **앞 6자리만** 걸리고
+사업장명·사업자번호 앞 6자리·지역코드 중 하나가 필요합니다. 사업자번호는 **앞 6자리만** 걸리고
 결과의 번호도 뒷자리가 마스킹돼 옵니다 — 같은 앞 6자리를 가진 다른 사업자가 섞일 수 있어
 사업장명으로 확인하세요.
 
@@ -149,6 +150,7 @@ Returns items, page_no, num_of_rows, total_count, message.
 | `bzowr_rgst_no` | string (optional) |  |  | 사업자등록번호 **앞 6자리** (10자리를 주면 0건) |
 | `ldong_addr_mgpl_dg_cd` | string (optional) |  |  | 법정동 시도코드 (find_region_code 로 찾는다) |
 | `ldong_addr_mgpl_sggu_cd` | string (optional) |  |  | 법정동 시군구코드 |
+| `ldong_addr_mgpl_sggu_emd_cd` | string (optional) |  |  | 법정동 읍면동코드 |
 | `page_no` | integer |  | `1` | 페이지 번호 (기본값: 1) |
 | `num_of_rows` | integer |  | `100` | 한 페이지 결과 수 (기본값: 100) |
 

@@ -2613,6 +2613,19 @@
             "description": "법정동 시군구코드",
             "title": "Ldong Addr Mgpl Sggu Cd"
           },
+          "ldong_addr_mgpl_sggu_emd_cd": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "법정동 읍면동코드",
+            "title": "Ldong Addr Mgpl Sggu Emd Cd"
+          },
           "page_no": {
             "default": 1,
             "description": "페이지 번호 (기본값: 1)",

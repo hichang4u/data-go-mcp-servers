@@ -93,3 +93,43 @@ async def test_shares_the_server_key_prefix():
     """같은 서버의 다른 클라이언트들과 키를 공유한다 (설정 항목을 늘리지 않는다)."""
     assert WithdrawnBusinessAPIClient.key_env_prefix == "NPS_BUSINESS_ENROLLMENT"
     assert WithdrawnBusinessAPIClient.shared_key is True
+
+
+@respx.mock
+async def test_region_only_search_is_allowed():
+    """지역만으로도 API 는 답한다 — 실측 41/590 → 29,050건. 가드가 막으면 안 된다."""
+    route = respx.get(f"{SCSN_BASE}/getBassInfoSearchV2").mock(
+        return_value=httpx.Response(200, json=SCSN_SEARCH_RESPONSE)
+    )
+    async with WithdrawnBusinessAPIClient() as client:
+        await client.search_withdrawn_business(
+            ldong_addr_mgpl_dg_cd="41", ldong_addr_mgpl_sggu_cd="590"
+        )
+    params = route.calls.last.request.url.params
+    assert params["ldongAddrMgplDgCd"] == "41"
+    assert params["ldongAddrMgplSgguCd"] == "590"
+
+
+@respx.mock
+async def test_emd_code_reaches_the_api():
+    route = respx.get(f"{SCSN_BASE}/getBassInfoSearchV2").mock(
+        return_value=httpx.Response(200, json=SCSN_SEARCH_RESPONSE)
+    )
+    async with WithdrawnBusinessAPIClient() as client:
+        await client.search_withdrawn_business(
+            ldong_addr_mgpl_dg_cd="41",
+            ldong_addr_mgpl_sggu_cd="590",
+            ldong_addr_mgpl_sggu_emd_cd="101",
+        )
+    assert route.calls.last.request.url.params["ldongAddrMgplSgguEmdCd"] == "101"
+
+
+@respx.mock
+async def test_blank_business_number_is_treated_as_absent():
+    """빈 문자열을 넣는 클라이언트가 있다 — 이름 검색을 막으면 안 된다."""
+    route = respx.get(f"{SCSN_BASE}/getBassInfoSearchV2").mock(
+        return_value=httpx.Response(200, json=SCSN_SEARCH_RESPONSE)
+    )
+    async with WithdrawnBusinessAPIClient() as client:
+        await client.search_withdrawn_business(wkpl_nm="쿠팡", bzowr_rgst_no="")
+    assert route.calls.last.request.url.params["wkplNm"] == "쿠팡"

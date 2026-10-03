@@ -263,6 +263,9 @@ async def search_withdrawn_business(
     ldong_addr_mgpl_sggu_cd: Annotated[
         Optional[str], Field(description="법정동 시군구코드")
     ] = None,
+    ldong_addr_mgpl_sggu_emd_cd: Annotated[
+        Optional[str], Field(description="법정동 읍면동코드")
+    ] = None,
     page_no: Annotated[int, Field(description="페이지 번호 (기본값: 1)")] = 1,
     num_of_rows: Annotated[int, Field(description="한 페이지 결과 수 (기본값: 100)")] = 100,
 ) -> dict[str, Any]:
@@ -272,7 +275,7 @@ async def search_withdrawn_business(
     `search_business`(현재 가입 중)와 짝입니다. 상세(`get_withdrawn_business_detail`)에
     **탈퇴일**이 있습니다.
 
-    사업장명이나 사업자번호 앞 6자리 중 하나가 필요합니다. 사업자번호는 **앞 6자리만** 걸리고
+    사업장명·사업자번호 앞 6자리·지역코드 중 하나가 필요합니다. 사업자번호는 **앞 6자리만** 걸리고
     결과의 번호도 뒷자리가 마스킹돼 옵니다 — 같은 앞 6자리를 가진 다른 사업자가 섞일 수 있어
     사업장명으로 확인하세요.
     """
@@ -283,6 +286,7 @@ async def search_withdrawn_business(
                 bzowr_rgst_no=bzowr_rgst_no,
                 ldong_addr_mgpl_dg_cd=ldong_addr_mgpl_dg_cd,
                 ldong_addr_mgpl_sggu_cd=ldong_addr_mgpl_sggu_cd,
+                ldong_addr_mgpl_sggu_emd_cd=ldong_addr_mgpl_sggu_emd_cd,
                 page_no=page_no,
                 num_of_rows=num_of_rows,
             )

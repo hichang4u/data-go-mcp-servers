@@ -19,26 +19,18 @@ from .models import (
 )
 
 
-def check_six_digits(value: str) -> str:
-    """사업자번호 앞 6자리. 10자리를 보내면 API 가 조용히 0건을 준다."""
-    text = re.sub(r"\D", "", value or "")
-    if len(text) != 6:
-        raise ValueError(f"사업자등록번호는 앞 6자리만 조회됩니다 (10자리는 0건): {value!r}")
-    return text
+class BplcSearchMixin:
+    """국민연금 사업장 서비스들의 공통 조회.
 
-
-class NPSAPIClient(BaseDataGoClient):
-    """국민연금공단 API 클라이언트."""
-
-    base_url = "https://apis.data.go.kr/B552015/NpsBplcInfoInqireServiceV2"
-    key_env_prefix = "NPS_BUSINESS_ENROLLMENT"
-    default_params = {"dataType": "json"}
+    가입(``NpsBplcInfoInqireServiceV2``)과 탈퇴(``NpsScsnBplcInfoInqireServiceV2``)는
+    오퍼레이션 이름과 응답 모양이 같다. 응답 처리를 한 군데 둔다.
+    """
 
     async def _search(
         self, endpoint: str, model: type[BaseModel], params: dict[str, Any]
     ) -> dict[str, Any]:
         """snake_case 파라미터를 camelCase로 바꿔 호출하고 items를 모델로 파싱한다."""
-        body = await self.get(endpoint, {to_camel(k): v for k, v in params.items()})
+        body = await self.get(endpoint, {to_camel(k): v for k, v in params.items()})  # type: ignore[attr-defined]
         items: list[dict[str, Any]] = []
         for raw in normalize_items(body):
             try:
@@ -53,6 +45,22 @@ class NPSAPIClient(BaseDataGoClient):
             "total_count": body.get("totalCount", 0),
         }
 
+
+def check_six_digits(value: str) -> str:
+    """사업자번호 앞 6자리. 10자리를 보내면 API 가 조용히 0건을 준다."""
+    text = re.sub(r"\D", "", value or "")
+    if len(text) != 6:
+        raise ValueError(f"사업자등록번호는 앞 6자리만 조회됩니다 (10자리는 0건): {value!r}")
+    return text
+
+
+class NPSAPIClient(BplcSearchMixin, BaseDataGoClient):
+    """국민연금공단 API 클라이언트."""
+
+    base_url = "https://apis.data.go.kr/B552015/NpsBplcInfoInqireServiceV2"
+    key_env_prefix = "NPS_BUSINESS_ENROLLMENT"
+    default_params = {"dataType": "json"}
+
     async def search_business(
         self,
         ldong_addr_mgpl_dg_cd: Optional[str] = None,
@@ -64,6 +72,8 @@ class NPSAPIClient(BaseDataGoClient):
         num_of_rows: int = 100,
     ) -> dict[str, Any]:
         """사업장 정보조회 — 기본 100개 반환 (최대 100개)."""
+        if bzowr_rgst_no:
+            bzowr_rgst_no = check_six_digits(bzowr_rgst_no)
         return await self._search(
             "getBassInfoSearchV2",
             BusinessItem,
@@ -108,7 +118,7 @@ class NPSAPIClient(BaseDataGoClient):
         )
 
 
-class WithdrawnBusinessAPIClient(BaseDataGoClient):
+class WithdrawnBusinessAPIClient(BplcSearchMixin, BaseDataGoClient):
     """국민연금 탈퇴사업장 API 클라이언트.
 
     가입 사업장(``NpsBplcInfoInqireServiceV2``)과 응답 모양이 같고 서비스만 다르다.
@@ -120,23 +130,6 @@ class WithdrawnBusinessAPIClient(BaseDataGoClient):
     key_env_prefix = "NPS_BUSINESS_ENROLLMENT"
     default_params = {"dataType": "json"}
 
-    async def _search(
-        self, endpoint: str, model: type[BaseModel], params: dict[str, Any]
-    ) -> dict[str, Any]:
-        body = await self.get(endpoint, {to_camel(k): v for k, v in params.items()})
-        items: list[dict[str, Any]] = []
-        for raw in normalize_items(body):
-            try:
-                items.append(model(**raw).model_dump())
-            except Exception:
-                items.append(raw)
-        return {
-            "items": items,
-            "page_no": body.get("pageNo", params.get("page_no")),
-            "num_of_rows": body.get("numOfRows", params.get("num_of_rows")),
-            "total_count": body.get("totalCount", 0),
-        }
-
     async def search_withdrawn_business(
         self,
         wkpl_nm: Optional[str] = None,
@@ -147,13 +140,21 @@ class WithdrawnBusinessAPIClient(BaseDataGoClient):
         page_no: int = 1,
         num_of_rows: int = 100,
     ) -> dict[str, Any]:
-        """탈퇴사업장 검색. 사업장명이나 사업자번호 앞 6자리 중 하나는 있어야 한다."""
-        if bzowr_rgst_no is not None:
+        """탈퇴사업장 검색. 사업장명·사업자번호 앞 6자리·지역코드 중 하나는 있어야 한다."""
+        if bzowr_rgst_no:
             bzowr_rgst_no = check_six_digits(bzowr_rgst_no)
-        if not (wkpl_nm or bzowr_rgst_no):
+        filters = (
+            wkpl_nm,
+            bzowr_rgst_no,
+            ldong_addr_mgpl_dg_cd,
+            ldong_addr_mgpl_sggu_cd,
+            ldong_addr_mgpl_sggu_emd_cd,
+        )
+        if not any(filters):
+            # 조건이 하나도 없으면 API 가 0건을 준다 (지역만 줘도 29,050건이 온다)
             raise ValueError(
-                "사업장명(wkpl_nm) 또는 사업자번호 앞 6자리(bzowr_rgst_no) 중 하나는 "
-                "필요합니다. 조건 없이 부르면 0건이 옵니다"
+                "사업장명·사업자번호 앞 6자리·지역코드 중 하나는 필요합니다. "
+                "조건 없이 부르면 0건이 옵니다"
             )
         return await self._search(
             "getBassInfoSearchV2",
