@@ -7,7 +7,8 @@
     uv run python scripts/demo_due_diligence.py [사업자등록번호]
     uv run python scripts/demo_due_diligence.py 214-87-12538 --json
 
-기본 대상은 공개 낙찰 이력이 있는 업체(214-87-12538)다. `API_KEY` 가 필요하고,
+기본 대상은 공개 낙찰 이력이 있는 업체(214-87-12538)다. 국세청·공정위·금융위·근로복지공단·
+조달청은 `API_KEY` 하나로 돌고,
 고용24·DART 단계는 각각 `WORK24_API_KEY`, `DART_DISCLOSURE_API_KEY` 가 있을 때만 돈다.
 """
 
@@ -124,7 +125,27 @@ async def run(business_number: str, as_json: bool, months: int) -> int:
             demo.record["status"] = first
             demo.say(f"     {first.get('status', '?')} · {first.get('tax_type', '')}")
 
-        # 2. 금융위 — 사업자번호를 법인번호로 바꿔 재무를 본다
+        # 2. 공정거래위원회 — 온라인으로 파는가, 그리고 법인번호는 무엇인가
+        demo.step("공정거래위원회", "get_online_seller")
+        seller_crno = None
+        seller = await demo.call("get_online_seller", {"business_number": digits})
+        if seller is not None:
+            rows = seller.get("items") or []
+            demo.record["seller"] = rows
+            if rows:
+                row = rows[0]
+                seller_crno = row.get("corporate_number")
+                demo.say(
+                    f"     {row.get('name', '')} · {row.get('operating_status', '')}"
+                    f" · 신고 {row.get('report_number', '')} ({row.get('reported_on', '')})"
+                    + (f" · {row.get('product_type')}" if row.get("product_type") else "")
+                )
+                for domain in (row.get("domains") or [])[:2]:
+                    demo.say(f"     {domain}")
+            else:
+                demo.say("     통신판매업 신고 없음 (온라인 판매를 하지 않는다)")
+
+        # 3. 금융위 — 사업자번호를 법인번호로 바꿔 재무를 본다
         demo.step("금융위원회", "find_corp_number → get_summary_financial_statement")
         corp = await demo.call("find_corp_number", {"bzno": digits})
         crno = None
@@ -133,6 +154,9 @@ async def run(business_number: str, as_json: bool, months: int) -> int:
             crno = found.get("crno")
             demo.record["corp"] = found
             demo.say(f"     {found.get('corp_nm', '')} · 법인번호 {crno}")
+        elif seller_crno:  # 금융위에 없으면 공정위가 준 법인번호로 이어 간다
+            crno = seller_crno
+            demo.say(f"     금융위 기업기본정보에 없음 — 공정위의 법인번호 {crno} 로 계속")
         if crno:
             fin = await demo.call(
                 "get_summary_financial_statement",
@@ -147,7 +171,7 @@ async def run(business_number: str, as_json: bool, months: int) -> int:
                 elif "없습니다" in body:
                     demo.say("     금융위 재무정보에 없음 (공시대상 법인만 실린다)")
 
-        # 3. 근로복지공단 — 사람을 얼마나 쓰는가
+        # 4. 근로복지공단 — 사람을 얼마나 쓰는가
         demo.step("근로복지공단", "get_insurance_status")
         insurance = await demo.call("get_insurance_status", {"bzno": digits, "num_of_rows": 3})
         if insurance and insurance.get("items"):
@@ -163,12 +187,54 @@ async def run(business_number: str, as_json: bool, months: int) -> int:
                     line += f" · {industry[:22]}"
                 demo.say(line)
 
-        # 4. 조달청 — 공공 낙찰 이력 (업체 필터가 없어 기간을 훑는다)
+        # 5. 조달청 — 등록·제재는 번호로 바로, 낙찰은 기간을 훑어야 한다
         bid_args: dict[str, Any] = {"business_number": digits}
         if months > 1:
             start = (_now() - dt.timedelta(days=30 * months)).strftime("%Y-%m-%d")
             bid_args |= {"start_date": start, "end_date": _now().strftime("%Y-%m-%d")}
-        demo.step("조달청", f"find_bid_winners (최근 {months}개월 훑기 — 수십 초 걸린다)")
+        demo.step(
+            "조달청",
+            f"get_procurement_company → check_procurement_sanctions → "
+            f"find_bid_winners (최근 {months}개월 훑기 — 수십 초 걸린다)",
+        )
+        vendor = await demo.call("get_procurement_company", {"business_number": digits})
+        if vendor is not None:
+            demo.record["vendor"] = vendor
+            if vendor.get("registered"):
+                company = vendor.get("company") or {}
+                line = f"     조달 등록 · {company.get('name', '')}"
+                if company.get("employees"):
+                    line += f" · 직원 {company['employees']}명"
+                if company.get("opened_on"):
+                    line += f" · 개업 {company['opened_on']}"
+                demo.say(line)
+                trades = [
+                    i.get("name") for i in (vendor.get("industries") or [])[:3] if i.get("name")
+                ]
+                if trades:
+                    demo.say(f"     업종 {vendor.get('industry_count')}건 — {', '.join(trades)}")
+                goods = [
+                    p.get("name") for p in (vendor.get("products") or [])[:3] if p.get("name")
+                ]
+                if goods:
+                    demo.say(f"     공급물품 {vendor.get('product_count')}건 — {', '.join(goods)}")
+            else:
+                demo.say("     조달시장 등록 없음")
+
+        sanctions = await demo.call("check_procurement_sanctions", {"business_number": digits})
+        if sanctions is not None:
+            demo.record["sanctions"] = sanctions
+            if sanctions.get("total_count"):
+                state = "현재 제한 중" if sanctions.get("restricted_now") else "기간 만료"
+                demo.say(f"     부정당업자 제재 {sanctions['total_count']}건 · {state}")
+                for hit in (sanctions.get("items") or [])[:2]:
+                    demo.say(
+                        f"     {hit.get('begins_on', '')}~{hit.get('ends_on', '')}"
+                        f" · {hit.get('institution', '')} · {(hit.get('short_reason') or '')[:30]}"
+                    )
+            else:
+                demo.say("     부정당업자 제재 없음")
+
         winners = await demo.call("find_bid_winners", bid_args)
         if winners:
             demo.record["bids"] = winners
@@ -179,7 +245,7 @@ async def run(business_number: str, as_json: bool, months: int) -> int:
                     f" · {_fmt_won(bid.get('winning_amount'))} · {bid.get('demand_institution', '')}"
                 )
 
-        # 5. 고용24 — 사업자번호로 채용 공고가 바로 필터된다 (키가 있을 때만)
+        # 6. 고용24 — 사업자번호로 채용 공고가 바로 필터된다 (키가 있을 때만)
         if os.getenv("WORK24_API_KEY"):
             demo.step("고용24", "search_job_postings")
             jobs = await demo.call(
@@ -198,7 +264,7 @@ async def run(business_number: str, as_json: bool, months: int) -> int:
                 if not count:
                     demo.say("     채용 중인 자리 없음")
 
-        # 6. DART — 키가 있을 때만
+        # 7. DART — 키가 있을 때만
         if os.getenv("DART_DISCLOSURE_API_KEY"):
             name = (demo.record.get("corp") or {}).get("corp_nm", "")
             if name:
